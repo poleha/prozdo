@@ -5,42 +5,41 @@ from .helper import make_alias
 from django.core.urlresolvers import reverse
 
 
-class PostMixin(models.Model):
-    class Meta:
-        abstract = True
+#<Constants***********************************************************
 
-    post_cls = models.CharField(max_length=100)
-    post_id = models.PositiveIntegerField()
-
-class Alias(PostMixin):
-    alias = models.CharField(max_length=800, blank=True)
-
-
-class AliasMixin(models.Model):
-    class Meta:
-        abstract = True
-    alias = models.OneToOneField('Alias', null=True, blank=True)
-
-    def save(self, *args, create_alias=True, **kwargs):
-        super().save(*args, **kwargs)
-        if create_alias:
-            alias, created = Alias.objects.get_or_create(post_cls=type(self).__name__, post_id=self.pk)
-            if hasattr(self, 'title') and self.title and not alias.alias:
-                alias.alias = make_alias(self.title)
-                alias.save()
-            self.alias = alias
-            self.save(create_alias=False)
+POST_TYPE_DRUG = 1
+POST_TYPE_BLOG = 2
+POST_TYPE_FORUM = 3
+POST_TYPE_COSMETICS = 4
+POST_TYPE_COMPONENT = 5
+POST_TYPE_BRAND = 6
+POST_TYPE_DRUG_USAGE_FORM = 7
+POST_TYPE_COSMETICS_DOSAGE_FORM = 8
+POST_TYPE_COSMETICS_LINE = 9
+POST_TYPE_COSMETICS_USAGE_AREA = 10
+POST_TYPE_DRUG_USAGE_AREA = 11
+POST_TYPE_CATEGORY = 12
 
 
+POST_TYPES = (
+    (POST_TYPE_DRUG, 'Препарат'),
+    (POST_TYPE_BLOG, 'Блог'),
+    (POST_TYPE_FORUM, 'Форум'),
+    (POST_TYPE_COMPONENT, 'Компонент'),
+    (POST_TYPE_COSMETICS, 'Косметика'),
+    (POST_TYPE_BRAND, 'Бренд'),
+    (POST_TYPE_DRUG_USAGE_FORM, 'Форма выпуска препарата'),
+    (POST_TYPE_COSMETICS_DOSAGE_FORM, 'Форма выпуска косметики'),
+    (POST_TYPE_COSMETICS_LINE, 'Линия косметики'),
+    (POST_TYPE_COSMETICS_USAGE_AREA, 'Область применения косметики'),
+    (POST_TYPE_DRUG_USAGE_AREA, 'Област применения препарата'),
+    (POST_TYPE_CATEGORY, 'Категория'),
+)
 
-"""
-def save_alias(sender, instance, created, **kwargs):
-    if instance.title and not instance.alias:
-        instance.alias = transliterate(instance.title)
+#Constants>***********************************************************
 
+#<Posts******************************************************************
 
-post_save.connect(save_alias, sender=Product)
-"""
 
 class AbstractModel(models.Model):
     class Meta:
@@ -49,40 +48,51 @@ class AbstractModel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-class Brand(AliasMixin):
-    title = models.CharField(max_length=500, verbose_name='Название')
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-#class Post(models.Model):
+    def __str__(self):
+        return self.title
 
 
-class DrugDosageForm(AbstractModel):
+class Post(AbstractModel):
+    alias = models.CharField(max_length=800, blank=True)
+    post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
+
+    def save(self, *args, **kwargs):
+        if hasattr(self, 'title') and self.title and not self.alias:
+            self.alias = make_alias(self.title)
+        super().save(*args, **kwargs)
+
+
+class Brand(Post):
     pass
 
 
-class CosteticsDosageForm(AbstractModel):
+
+class DrugDosageForm(Post):
     pass
 
 
-class CosmeticsLine(AbstractModel):
-    pass
-
-class CosmeticsUsageArea(AbstractModel):
+class CosmeticsDosageForm(Post):
     pass
 
 
-class DrugUsageArea(AbstractModel):
+class CosmeticsLine(Post):
     pass
 
-class Category(AbstractModel):
+class CosmeticsUsageArea(Post):
     pass
 
 
-class Component(AliasMixin, AbstractModel):
+class DrugUsageArea(Post):
+    pass
+
+class Category(Post):
+    pass
+
+
+class Component(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
 
-class Drug(AliasMixin, AbstractModel):
+class Drug(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
     features = models.TextField(verbose_name='Особенности', blank=True)
     indications = models.TextField(verbose_name='Показания', blank=True)
@@ -105,25 +115,26 @@ class Drug(AliasMixin, AbstractModel):
             return reverse('drug-detail', kwargs={'pk': self.pk})
 
 
-class Cosmetics(AliasMixin, AbstractModel):
+class Cosmetics(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд')
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линия')
-    dosage_forms = models.ManyToManyField(CosteticsDosageForm, verbose_name='Формы выпуска')
+    dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
 
 
-class Blog(AliasMixin, AbstractModel):
+class Blog(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
 
-class Forum(AbstractModel):
+class Forum(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
 
+#Post>*******************************************************************
 
 
-
-class Comment(PostMixin):
+class Comment(models.Model):
+    post = models.ForeignKey(Post)
     body = models.TextField(verbose_name='Содержимое', blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -149,12 +160,13 @@ HISTORY_TYPES = (
     (HISTORY_TYPE_POST_COMPLAINT, 'Жалоба на пост'),
 )
 
-class History(PostMixin):
+class History(models.Model):
+    post = models.ForeignKey(Post, related_name='history_post')
     history_type = models.IntegerField(choices=HISTORY_TYPES)
     author = models.ForeignKey(User, null=True, blank=True, related_name='history_author')
     user = models.ForeignKey(User, null=True, blank=True, related_name='history_user')
     created = models.DateTimeField(auto_now_add=True)
-    comment = models.ForeignKey(Component, null=True, blank=True)
+    comment = models.ForeignKey(Component, null=True, blank=True, related_name='history_comment')
     user_points = models.PositiveIntegerField(default=0, blank=True)
     author_points = models.PositiveIntegerField(default=0, blank=True)
 

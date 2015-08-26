@@ -18,7 +18,6 @@ components = []
 drug_dosage_forms = []
 drug_usage_areas = []
 
-models.Alias.objects.all().delete()
 models.Component.objects.all().delete()
 models.DrugDosageForm.objects.all().delete()
 models.DrugUsageArea.objects.all().delete()

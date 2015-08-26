@@ -13,12 +13,34 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Alias',
+            name='Comment',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('post_cls', models.CharField(max_length=100)),
-                ('post_id', models.PositiveIntegerField()),
-                ('alias', models.CharField(unique=True, max_length=800, blank=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('updated', models.DateTimeField(auto_now=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='History',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('history_type', models.IntegerField(choices=[(1, 'Комментарий создан'), (2, 'Комментарий сохранен'), (3, 'Комментарий оценен'), (4, 'Пост создан'), (5, 'Пост сохранен'), (6, 'Пост оценен'), (7, 'Жалоба на коммент'), (8, 'Жалоба на пост')])),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('user_points', models.PositiveIntegerField(default=0, blank=True)),
+                ('author_points', models.PositiveIntegerField(default=0, blank=True)),
+                ('author', models.ForeignKey(related_name='history_author', null=True, blank=True, to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Post',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('title', models.CharField(verbose_name='Название', max_length=500)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('updated', models.DateTimeField(auto_now=True)),
+                ('alias', models.CharField(blank=True, max_length=800)),
+                ('post_type', models.IntegerField(choices=[(1, 'Препарат'), (2, 'Блог'), (3, 'Форум'), (5, 'Компонент'), (4, 'Косметика'), (6, 'Бренд'), (7, 'Форма выпуска препарата'), (8, 'Форма выпуска косметики'), (9, 'Линия косметики'), (10, 'Область применения косметики'), (11, 'Област применения препарата'), (12, 'Категория')], verbose_name='Вид записи')),
             ],
             options={
                 'abstract': False,
@@ -27,221 +49,180 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Blog',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
-                ('alias', models.OneToOneField(to='prozdo_main.Alias', null=True, blank=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Brand',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('alias', models.OneToOneField(to='prozdo_main.Alias', null=True, blank=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Category',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
-        ),
-        migrations.CreateModel(
-            name='Comment',
-            fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('post_cls', models.CharField(max_length=100)),
-                ('post_id', models.PositiveIntegerField()),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                'abstract': False,
-            },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Component',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
-                ('alias', models.OneToOneField(to='prozdo_main.Alias', null=True, blank=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Cosmetics',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
-                ('alias', models.OneToOneField(to='prozdo_main.Alias', null=True, blank=True)),
-                ('brand', models.ForeignKey(to='prozdo_main.Brand', verbose_name='Бренд')),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
+                ('brand', models.ForeignKey(verbose_name='Бренд', to='prozdo_main.Brand')),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
+        ),
+        migrations.CreateModel(
+            name='CosmeticsDosageForm',
+            fields=[
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='CosmeticsLine',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='CosmeticsUsageArea',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
-        ),
-        migrations.CreateModel(
-            name='CosteticsDosageForm',
-            fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                'abstract': False,
-            },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Drug',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
-                ('features', models.TextField(verbose_name='Особенности', blank=True)),
-                ('indications', models.TextField(verbose_name='Показания', blank=True)),
-                ('priem', models.TextField(verbose_name='Схема приема', blank=True)),
-                ('dosage_form', models.TextField(verbose_name='Формы выпуска', blank=True)),
-                ('contra_indications', models.TextField(verbose_name='Противопоказания', blank=True)),
-                ('side_effects', models.TextField(verbose_name='Побочные эффекты', blank=True)),
-                ('compound', models.TextField(verbose_name='Состав', blank=True)),
-                ('alias', models.OneToOneField(to='prozdo_main.Alias', null=True, blank=True)),
-                ('components', models.ManyToManyField(to='prozdo_main.Component', verbose_name='Состав')),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
+                ('features', models.TextField(blank=True, verbose_name='Особенности')),
+                ('indications', models.TextField(blank=True, verbose_name='Показания')),
+                ('priem', models.TextField(blank=True, verbose_name='Схема приема')),
+                ('dosage_form', models.TextField(blank=True, verbose_name='Формы выпуска')),
+                ('contra_indications', models.TextField(blank=True, verbose_name='Противопоказания')),
+                ('side_effects', models.TextField(blank=True, verbose_name='Побочные эффекты')),
+                ('compound', models.TextField(blank=True, verbose_name='Состав')),
+                ('components', models.ManyToManyField(verbose_name='Состав', to='prozdo_main.Component')),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='DrugDosageForm',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='DrugUsageArea',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
         migrations.CreateModel(
             name='Forum',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('title', models.CharField(max_length=500, verbose_name='Название')),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('updated', models.DateTimeField(auto_now=True)),
-                ('body', models.TextField(verbose_name='Содержимое', blank=True)),
+                ('post_ptr', models.OneToOneField(serialize=False, to='prozdo_main.Post', primary_key=True, auto_created=True, parent_link=True)),
+                ('body', models.TextField(blank=True, verbose_name='Содержимое')),
             ],
             options={
                 'abstract': False,
             },
+            bases=('prozdo_main.post',),
         ),
-        migrations.CreateModel(
-            name='History',
-            fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('post_cls', models.CharField(max_length=100)),
-                ('post_id', models.PositiveIntegerField()),
-                ('history_type', models.IntegerField(choices=[(1, 'Комментарий создан'), (2, 'Комментарий сохранен'), (3, 'Комментарий оценен'), (4, 'Пост создан'), (5, 'Пост сохранен'), (6, 'Пост оценен'), (7, 'Жалоба на коммент'), (8, 'Жалоба на пост')])),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('user_points', models.PositiveIntegerField(default=0, blank=True)),
-                ('author_points', models.PositiveIntegerField(default=0, blank=True)),
-                ('author', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='history_author', blank=True, null=True)),
-                ('comment', models.ForeignKey(to='prozdo_main.Component', blank=True, null=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='history_user', blank=True, null=True)),
-            ],
-            options={
-                'abstract': False,
-            },
+        migrations.AddField(
+            model_name='history',
+            name='post',
+            field=models.ForeignKey(to='prozdo_main.Post', related_name='history_post'),
+        ),
+        migrations.AddField(
+            model_name='history',
+            name='user',
+            field=models.ForeignKey(related_name='history_user', null=True, blank=True, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='comment',
+            name='post',
+            field=models.ForeignKey(to='prozdo_main.Post'),
+        ),
+        migrations.AddField(
+            model_name='history',
+            name='comment',
+            field=models.ForeignKey(related_name='history_comment', null=True, blank=True, to='prozdo_main.Component'),
         ),
         migrations.AddField(
             model_name='drug',
             name='dosage_forms',
-            field=models.ManyToManyField(to='prozdo_main.DrugDosageForm', verbose_name='Формы выпуска'),
+            field=models.ManyToManyField(verbose_name='Формы выпуска', to='prozdo_main.DrugDosageForm'),
         ),
         migrations.AddField(
             model_name='drug',
             name='usage_areas',
-            field=models.ManyToManyField(to='prozdo_main.DrugUsageArea', verbose_name='Область применения'),
+            field=models.ManyToManyField(verbose_name='Область применения', to='prozdo_main.DrugUsageArea'),
         ),
         migrations.AddField(
             model_name='cosmetics',
             name='dosage_forms',
-            field=models.ManyToManyField(to='prozdo_main.CosteticsDosageForm', verbose_name='Формы выпуска'),
+            field=models.ManyToManyField(verbose_name='Формы выпуска', to='prozdo_main.CosmeticsDosageForm'),
         ),
         migrations.AddField(
             model_name='cosmetics',
             name='line',
-            field=models.ForeignKey(to='prozdo_main.CosmeticsLine', verbose_name='Линия'),
+            field=models.ForeignKey(verbose_name='Линия', to='prozdo_main.CosmeticsLine'),
         ),
         migrations.AddField(
             model_name='cosmetics',
             name='usage_areas',
-            field=models.ManyToManyField(to='prozdo_main.CosmeticsUsageArea', verbose_name='Область применения'),
+            field=models.ManyToManyField(verbose_name='Область применения', to='prozdo_main.CosmeticsUsageArea'),
         ),
     ]

@@ -4,7 +4,7 @@ from . import models
 
 @admin.register(models.Drug)
 class DrugAdmin(admin.ModelAdmin):
-    exclude = ['alias']
+    pass
 
 
 
@@ -20,14 +20,13 @@ class DrugUsageAreaAdmin(admin.ModelAdmin):
 
 @admin.register(models.Component)
 class ComponentAdmin(admin.ModelAdmin):
-    exclude = ['alias']
+    pass
 
 
 @admin.register(models.Comment)
 class CommentAdmin(admin.ModelAdmin):
     pass
 
-
-@admin.register(models.Alias)
-class AliasAdmin(admin.ModelAdmin):
+@admin.register(models.Post)
+class PostAdmin(admin.ModelAdmin):
     pass
