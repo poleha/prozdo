@@ -5,8 +5,10 @@ from . import views
 urlpatterns = [
     #url(r'^drug/detail/(?P<pk>\d+)$', views.DrugDetail.as_view(), name='drug-detail'),
     url(r'^drug/list', views.DrugList.as_view(), name='drug-list'),
-    url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), name='post-detail'),
+    url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), name='post-detail-alias'),
 
-    url(r'^drug/detail/(?P<pk>\d+)$', views.PostDetail.as_view(), kwargs={'klass': 'Drug'}, name='drug-detail'),
+    url(r'^post/detail/(?P<pk>\d+)$', views.PostDetail.as_view(), name='post-detail-pk'),
+
+    url(r'^history/ajax_save', views.HistoryAjaxSave.as_view(), name='history-ajax-save'),
 
 ]

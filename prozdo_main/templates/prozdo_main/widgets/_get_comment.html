@@ -1,0 +1,17 @@
+{% load prozdo_tags %}
+{% if comment.user %}
+<div> {% get_verbose_field_name comment 'user' %}: {{ comment.user }}</div>
+{% endif %}
+        <div> {% get_verbose_field_name comment 'username' %}:
+            {{ comment.username }}
+        </div>
+        <div> {% get_verbose_field_name comment 'email' %}: {{ comment.email }}</div>
+        <div> {% get_verbose_field_name comment 'body' %}: {{ comment.body }}</div>
+        <div class="comment-current-mark" id="comment-current-mark-{{ comment.pk }}">Отзыв сочли полезным: <span id="comment-current-mark-span-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
+        {% if voted %}
+         <div>Вы уже проголосовали за этот отзыв</div>
+        {% elif is_author %}
+         <div>Вы не можете голосовать за свой отзыв</div>
+        {% else %}
+        <input class="comment-mark-button" type="button" id="comment-mark-button-{{ comment.pk }}" value='Отзыв полезен'>
+        {% endif %}

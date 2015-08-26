@@ -2,24 +2,28 @@ from django.contrib import admin
 from . import models
 
 
+class PostAdminMixin(admin.ModelAdmin):
+    readonly_fields = ['post_type']
+
+
 @admin.register(models.Drug)
-class DrugAdmin(admin.ModelAdmin):
+class DrugAdmin(PostAdminMixin):
     pass
 
 
 
 @admin.register(models.DrugDosageForm)
-class DrugDosageFormAdmin(admin.ModelAdmin):
+class DrugDosageFormAdmin(PostAdminMixin):
     pass
 
 
 @admin.register(models.DrugUsageArea)
-class DrugUsageAreaAdmin(admin.ModelAdmin):
+class DrugUsageAreaAdmin(PostAdminMixin):
     pass
 
 
 @admin.register(models.Component)
-class ComponentAdmin(admin.ModelAdmin):
+class ComponentAdmin(PostAdminMixin):
     pass
 
 
@@ -28,5 +32,9 @@ class CommentAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(models.Post)
-class PostAdmin(admin.ModelAdmin):
+class PostAdmin(PostAdminMixin):
+    pass
+
+@admin.register(models.History)
+class HistoryAdmin(admin.ModelAdmin):
     pass

@@ -1,1 +1,120 @@
-<a href="{{ drug.get_absolute_url }}">{{ drug }}</a>
+{% extends 'prozdo_main/base/base.html' %}
+{% load prozdo_tags %}
+
+{% block content %}
+<div>
+    <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+    </div>
+
+    <div>
+    <h4>{% get_verbose_field_name obj 'body' %}:</h4>
+    {{ obj.body }}
+    </div>
+
+    <div>
+    <h4>{% get_verbose_field_name obj 'features' %}:</h4>
+    {{ obj.features }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'indications' %}:</h4>
+    {{ obj.indications }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'application_scheme' %}:</h4>
+    {{ obj.application_scheme }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'dosage_form' %}:</h4>
+    {{ obj.dosage_form }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'contra_indications' %}:</h4>
+    {{ obj.contra_indications }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'side_effects' %}:</h4>
+    {{ obj.side_effects }}
+    </div>
+
+     <div>
+    <h4>{% get_verbose_field_name obj 'compound' %}:</h4>
+    {{ obj.compound }}
+    </div>
+
+    <div>
+    <h4>Компоненты:</h4>
+    {% for component in obj.components.all %}
+   <div> <a href="{{ component.get_absolute_url }}">{{ component }}</a></div>
+
+    {% endfor %}
+    </div>
+
+    <div>
+    <h4>Формы выпуска:</h4>
+    {% for dosage_form in obj.dosage_forms.all %}
+   <div> {{ dosage_form }}</div>
+
+    {% endfor %}
+    </div>
+
+    <div>
+    <h4>Области применения:</h4>
+    {% for usage_area in obj.usage_areas.all %}
+   <div> {{ usage_area }}</div>
+
+    {% endfor %}
+    </div>
+
+    <div>
+    <h4>Отзывы:</h4>
+    {% for comment in obj.comment_set.all %}
+        {% get_comment %}
+
+    {% endfor %}
+    </div>
+<div>
+<form method="post">
+{% csrf_token %}
+    {{ comment_form.as_p }}
+
+<input type="submit" value="Отправить">
+</form>
+</div>
+<script>
+         $(function() {
+            $('.comment-mark-button').click(function(e){
+                $(this).addClass('hidden');
+
+            var id = this.id;
+            var pk = id.replace('comment-mark-button-', '');
+                var data = {'pk': pk, 'action': 'comment-mark'};
+                $.ajax({
+                    type: 'POST',//$(frm).attr('method'),
+                    url: '{% url 'history-ajax-save' %}',
+                    data: data,
+                    success: function (data) {
+                    $('#comment-current-mark-span-' + pk).html(data);
+                    },
+                    error: function (data) {
+
+                    }
+                });
+
+
+
+
+
+
+
+                   });
+         });
+
+</script>
+
+{% endblock content %}
+
