@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
-from .helper import make_alias, get_client_ip
+from .helper import make_alias, get_client_ip, cut_text
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
@@ -220,6 +220,8 @@ COMMENT_STATUSES = (
 
 
 class Comment(models.Model):
+    class Meta:
+        ordering = ['created']
     post = models.ForeignKey(Post, related_name='comments')
     username = models.CharField(max_length=256, verbose_name='Имя')
     email = models.EmailField(verbose_name='E-Mail')
@@ -233,6 +235,17 @@ class Comment(models.Model):
     parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True, related_name='childs')
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
 
+    def __str__(self):
+        return cut_text(self.body)
+
+
+    @property
+    def get_level(self):
+        if hasattr(self, 'level') and self.level:
+            return self.level
+        else:
+            return 1
+
     @property
     def comment_mark(self):
         try:
@@ -242,6 +255,27 @@ class Comment(models.Model):
         except:
             mark = 0
         return mark
+
+    def get_childs_tree(self, cur=None, level=2):
+        tree = []
+        if cur is None:
+            cur = self
+        else:
+            tree.append(cur)
+        for child in cur.childs.filter(status=COMMENT_STATUS_PUBLISHED):
+            child.level = level
+            tree += child.get_childs_tree(child, level+1)
+        return tree
+
+    def get_absolute_url(self):
+        return self.post.get_absolute_url()
+
+
+    def get_status(self):
+        if self.user.is_authenticated():
+            return COMMENT_STATUS_PUBLISHED
+        else:
+            raise Exception('Доделать')
 
     @property
     def complain_count(self):
@@ -354,7 +388,7 @@ class History(models.Model):
         else:
             post_author = None
 
-        if not user.is_authenticated():
+        if user and not user.is_authenticated():
             user = None
 
         if history_type == HISTORY_TYPE_POST_CREATED:
@@ -369,9 +403,13 @@ class History(models.Model):
         elif history_type == HISTORY_TYPE_COMMENT_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
             if not hist_exists:
+                if comment.post_mark:
+                    author_points = comment.post_mark
+                else:
+                    author_points = 0
                 History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author_points=comment.post_mark, author=post_author)
+                                       author_points=author_points, author=post_author)
             else:
                 History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:

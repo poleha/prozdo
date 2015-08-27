@@ -46,13 +46,16 @@ def get_verbose_field_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name.title()
 
 
-@register.inclusion_tag('prozdo_main/widgets/_get_comments.html', takes_context=True)
-def get_comments(context, post):
+@register.inclusion_tag('prozdo_main/widgets/_get_child_comments.html', takes_context=True)
+def get_child_comments(context):
     res = {}
-    comments = post.comments.all()
-    res['comments'] = comments
+    comment = context['comment']
+    childs_list = comment.get_childs_tree()
+    res['childs'] = childs_list
     res['request'] = context['request']
     return res
+
+
 
 
 

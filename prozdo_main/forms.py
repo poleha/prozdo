@@ -18,3 +18,25 @@ class CommentForm(forms.ModelForm):
             self.fields['email'].widget = forms.HiddenInput()
             self.fields['email'].initial = user.email
 
+
+
+COMMENTS_ORDER_BY_CREATED_INC = 1
+COMMENTS_ORDER_BY_CREATED_DEC = 2
+
+COMMENTS_ORDER_BY_CREATED_CHOICES = (
+    (COMMENTS_ORDER_BY_CREATED_INC, 'По возрастанию'),
+    (COMMENTS_ORDER_BY_CREATED_DEC, 'По Убыванию'),
+)
+
+COMMENTS_SHOW_TYPE_PLAIN = 1
+COMMENTS_SHOW_TYPE_TREE = 2
+
+COMMENTS_SHOW_TYPE_CHOICES = (
+    (COMMENTS_SHOW_TYPE_PLAIN, 'Простой'),
+    (COMMENTS_SHOW_TYPE_TREE, 'Деревом'),
+)
+
+
+class CommentsOptionsForm(forms.Form):
+    order_by_created = forms.ChoiceField(choices=COMMENTS_ORDER_BY_CREATED_CHOICES, initial=COMMENTS_ORDER_BY_CREATED_DEC, label='Упорядочить по дате добавления', required=False)
+    show_type= forms.ChoiceField(choices=COMMENTS_SHOW_TYPE_CHOICES, label='Вид показа отзывов', initial=COMMENTS_SHOW_TYPE_PLAIN, required=False)

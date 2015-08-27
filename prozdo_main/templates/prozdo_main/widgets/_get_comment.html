@@ -1,4 +1,12 @@
 {% load prozdo_main_tags %}
+<div class="full-comment">
+DEBUG{{ comment.get_level }}DEBUG
+
+{% if comment.parent %}
+<div>
+    <label>В ответ на:</label><a href="{{ comment.parent.get_absolute_url }}">{{ comment.parent.body }}</a>
+</div>
+{% endif %}
 {% if comment.user %}
 <div> {% get_verbose_field_name comment 'user' %}: {{ comment.user }}</div>
 {% endif %}
@@ -6,28 +14,31 @@
             {{ comment.username }}
         </div>
         <div> {% get_verbose_field_name comment 'email' %}: {{ comment.email }}</div>
-        <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-{{ comment.pk }}">{{ comment.body }}</span></div>
+        <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.body }}</span></div>
 
-         <div class="comment-current-mark" id="comment-current-mark-{{ comment.pk }}">Отзыв сочли полезным: <span id="comment-current-mark-span-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
+
+
+<input type="hidden" value="{{ comment.get_level }}" class="comment-level">
+<div class="comment-current-mark" id="comment-current-mark-level-{{ comment.get_level }}-pk-{{ comment.pk }}">Отзыв сочли полезным: <span id="comment-current-mark-span-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
         {% if can_mark %}
-         <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-{{ comment.pk }}" value='Отозвать оценку'>
-         <input class="comment-mark-button" type="button" id="comment-mark-button-{{ comment.pk }}" value='Отзыв полезен'>
+         <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
+         <input class="comment-mark-button" type="button" id="comment-mark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
         {% elif is_author and comment.user.is_authenticated %}
          <div>Вы не можете голосовать за свой отзыв</div>
         {% elif can_unmark %}
-        <input class="comment-unmark-button" type="button" id="comment-unmark-button-{{ comment.pk }}" value='Отозвать оценку'>
-        <input class="comment-mark-button hidden" type="button" id="comment-mark-button-{{ comment.pk }}" value='Отзыв полезен'>
+        <input class="comment-unmark-button" type="button" id="comment-unmark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
+        <input class="comment-mark-button hidden" type="button" id="comment-mark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
         {% endif %}
 
-        <div class="comment-current-complain" id="comment-current-complain-{{ comment.pk }}">Жалоб: <span id="comment-current-complain-span-{{ comment.pk }}">{{ comment.complain_count }}</span></div>
+        <div class="comment-current-complain" id="comment-current-complain-level-{{ comment.get_level }}-pk-{{ comment.pk }}">Жалоб: <span id="comment-current-complain-span-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.complain_count }}</span></div>
         {% if can_complain %}
-         <input class="comment-uncomplain-button hidden" type="button" id="comment-uncomplain-button-{{ comment.pk }}" value='Отозвать жалобу'>
-         <input class="comment-complain-button" type="button" id="comment-complain-button-{{ comment.pk }}" value='Пожаловаться на отзыв'>
+         <input class="comment-uncomplain-button hidden" type="button" id="comment-uncomplain-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
+         <input class="comment-complain-button" type="button" id="comment-complain-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% elif can_uncomplain %}
-        <input class="comment-uncomplain-button" type="button" id="comment-uncomplain-button-{{ comment.pk }}" value='Отозвать жалобу'>
-        <input class="comment-complain-button hidden" type="button" id="comment-complain-button-{{ comment.pk }}" value='Пожаловаться на отзыв'>
+        <input class="comment-uncomplain-button" type="button" id="comment-uncomplain-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
+        <input class="comment-complain-button hidden" type="button" id="comment-complain-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% endif %}
 
-        <input type="button" class="answer-to-comment" id="answer-to-comment-{{ comment.pk }}" value="Ответить">
-
+        <input type="button" class="answer-to-comment" id="answer-to-comment-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Ответить">
+</div>
 

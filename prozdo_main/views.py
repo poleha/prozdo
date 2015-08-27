@@ -42,6 +42,30 @@ class PostDetail(generic.TemplateView):
             comment_form = forms.CommentForm(user=self.request.user, post=self.post)
         context['comment_form'] = comment_form
 
+        comments_options_form = forms.CommentsOptionsForm(self.request.GET)
+        comments_options_form.full_clean()
+        context['comments_options_form'] = comments_options_form
+
+        show_type = int(comments_options_form.cleaned_data.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
+        order_by_created = int(comments_options_form.cleaned_data.get('order_by_created', forms.COMMENTS_ORDER_BY_CREATED_DEC))
+
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
+            context['show_tree'] = True
+
+        else:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
+            context['show_tree'] = False
+
+        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = comments.order_by('-created')
+        else:
+            comments = comments.order_by('created')
+
+        context['comments'] = comments
+
+
+
         return context
 
     @transaction.atomic()
@@ -53,6 +77,7 @@ class PostDetail(generic.TemplateView):
             comment_form.instance.ip = get_client_ip(request)
             if request.user.is_authenticated():
                 comment_form.instance.user = request.user
+            comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
             return HttpResponseRedirect(self.obj.get_absolute_url())
