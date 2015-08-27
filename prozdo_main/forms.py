@@ -5,4 +5,4 @@ from . import models
 class CommentForm(forms.ModelForm):
     class Meta:
         model = models.Comment
-        fields = ('username', 'email', 'body','post_mark' )
+        fields = ('username', 'email', 'body','post_mark', 'consult_required', 'parent' )

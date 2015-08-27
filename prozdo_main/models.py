@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, pre_save
 from .helper import make_alias, get_client_ip
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
-from django.db.models.aggregates import Sum
+from django.db.models.aggregates import Sum, Count
 
 #<Constants***********************************************************
 
@@ -221,6 +221,8 @@ class Comment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, null=True, blank=True)
     ip = models.CharField(max_length=15)
+    consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
+    parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True)
 
     @property
     def comment_mark(self):
@@ -232,21 +234,50 @@ class Comment(models.Model):
             mark = 0
         return mark
 
+    @property
+    def complain_count(self):
+        try:
+            count = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_COMPLAINT).aggregate(Count('pk'))['pk__count']
+            if count is None:
+                count = 0
+        except:
+            count = 0
+        return count
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, user=self.user)
 
-    def voted(self, user=None, ip=None, request=None):
+
+
+
+
+
+    def performed_action(self, history_type, user=None, ip=None, request=None):
         if not ip and request:
             ip = get_client_ip(request)
         if not user and request:
             user = request.user
 
         if user and user.is_authenticated():
-            hist_exists = History.objects.filter(history_type=HISTORY_TYPE_COMMENT_RATED, comment=self, user=user).exists()
+            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
         else:
-            hist_exists = History.objects.filter(history_type=HISTORY_TYPE_COMMENT_RATED, comment=self, ip=ip).exists()
+            hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
+            hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self).exists()
+            hist_exists = hist_exists_by_ip or hist_exists_by_key
+
         return hist_exists
+
+    def can_perform_action(self, history_type, user=None, ip=None, request=None):
+        return not self.performed_action(history_type=history_type, user=user, ip=ip, request=request) and not self.is_author(user=user, ip=ip, request=request)
+
+    def can_undo_action(self, history_type, user):
+        if user.is_authenticated():
+            res = self.performed_action(history_type=history_type, user=user)
+        else:
+            res = False
+        return res
+
 
     def is_author(self, user=None, ip=None, request=None):
         if not ip and request:
@@ -319,6 +350,9 @@ class History(models.Model):
         else:
             post_author = None
 
+        if not user.is_authenticated():
+            user = None
+
         if history_type == HISTORY_TYPE_POST_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, post=post).exists()
             if not hist_exists:
@@ -339,8 +373,14 @@ class History(models.Model):
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
             History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                    user_points=History.get_points(history_type), author=post_author)
-        elif history_type == HISTORY_TYPE_COMMENT_RATED:
+        elif history_type in [HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]:
+            if history_type == HISTORY_TYPE_COMMENT_RATED:
+                author_points = 1
+            else:
+                author_points = 0
 
-            if not comment.voted(user=user, ip=ip) and not comment.is_author(user=user, ip=ip):
+            if comment.can_perform_action(history_type=history_type, user=user, ip=ip):
                 History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
-                                       user_points=History.get_points(history_type), author=comment.user, author_points=1)
+                                       user_points=History.get_points(history_type),
+                                       author=comment.user, author_points=author_points)
+

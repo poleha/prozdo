@@ -51,10 +51,14 @@ def get_comment(context):
     res = {}
     request = context['request']
     comment = context['comment']
-    voted = comment.voted(request=request)
-    is_author = comment.is_author(request=request)
     res['comment'] = comment
-    res['voted'] = voted
-    res['is_author'] = is_author
+    res['is_author'] = comment.is_author(request=request)
+
+    res['can_mark'] = comment.can_perform_action(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    res['can_unmark'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user)
+
+    res['can_complain'] = comment.can_perform_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_uncomplain'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user)
+
     return res
 

@@ -79,3 +79,22 @@ class HistoryAjaxSave(generic.View):
             comment = models.Comment.objects.get(pk=pk)
             models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment)
             return HttpResponse(comment.comment_mark)
+        elif action == 'comment-unmark':
+            comment = models.Comment.objects.get(pk=pk)
+            if request.user.is_authenticated():
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment).delete()
+            else:
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).delete()
+            return HttpResponse(comment.comment_mark)
+        elif action == 'comment-complain':
+            comment = models.Comment.objects.get(pk=pk)
+            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment)
+            return HttpResponse(comment.complain_count)
+        elif action == 'comment-uncomplain':
+            comment = models.Comment.objects.get(pk=pk)
+            if request.user.is_authenticated():
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment).delete()
+            else:
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment).delete()
+            return HttpResponse(comment.complain_count)
+
