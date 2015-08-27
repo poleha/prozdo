@@ -39,7 +39,7 @@ class PostDetail(generic.TemplateView):
         context['obj'] = self.obj
 
         if comment_form is None:
-            comment_form = forms.CommentForm()
+            comment_form = forms.CommentForm(user=self.request.user, post=self.post)
         context['comment_form'] = comment_form
 
         return context
@@ -47,11 +47,12 @@ class PostDetail(generic.TemplateView):
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         self.set_obj()
-        comment_form = forms.CommentForm(request.POST)
+        comment_form = forms.CommentForm(request.POST, user=request.user, post=self.post)
         if comment_form.is_valid():
             comment_form.instance.post = self.post
-            comment_form.instance.user = request.user
             comment_form.instance.ip = get_client_ip(request)
+            if request.user.is_authenticated():
+                comment_form.instance.user = request.user
             comment = comment_form.save()
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
             return HttpResponseRedirect(self.obj.get_absolute_url())

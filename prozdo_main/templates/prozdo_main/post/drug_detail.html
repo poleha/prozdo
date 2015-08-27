@@ -1,5 +1,5 @@
 {% extends 'prozdo_main/base/base.html' %}
-{% load prozdo_tags %}
+{% load prozdo_main_tags %}
 
 {% block content %}
 <div>
@@ -70,13 +70,7 @@
     {% endfor %}
     </div>
 
-    <div>
-    <h4>Отзывы:</h4>
-    {% for comment in obj.comment_set.all %}
-        {% get_comment %}
-
-    {% endfor %}
-    </div>
+    {% get_comments obj %}
 <div>
 
 <div id="answer-to-block" class="hidden">
@@ -150,8 +144,6 @@
                     }
                 });
 
-
-
                    }
 
 
@@ -173,11 +165,6 @@
                 $('#answer-to-span').html('');
 
             });
-
-
-
-
-
 
 
          });

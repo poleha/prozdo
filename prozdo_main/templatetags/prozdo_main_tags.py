@@ -46,11 +46,21 @@ def get_verbose_field_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name.title()
 
 
+@register.inclusion_tag('prozdo_main/widgets/_get_comments.html', takes_context=True)
+def get_comments(context, post):
+    res = {}
+    comments = post.comments.all()
+    res['comments'] = comments
+    res['request'] = context['request']
+    return res
+
+
+
 @register.inclusion_tag('prozdo_main/widgets/_get_comment.html', takes_context=True)
-def get_comment(context):
+def get_comment(context, comment):
     res = {}
     request = context['request']
-    comment = context['comment']
+
     res['comment'] = comment
     res['is_author'] = comment.is_author(request=request)
 

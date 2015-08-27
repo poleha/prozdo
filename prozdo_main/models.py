@@ -210,9 +210,17 @@ POST_MARKS_FOR_COMMENT = (
     (5, '5'),
 )
 
+COMMENT_STATUS_PENDING_APPROVAL = 1
+COMMENT_STATUS_PUBLISHED = 2
+
+COMMENT_STATUSES = (
+    (COMMENT_STATUS_PENDING_APPROVAL, 'На согласовании'),
+    (COMMENT_STATUS_PUBLISHED, 'Опубликован'),
+)
+
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post)
+    post = models.ForeignKey(Post, related_name='comments')
     username = models.CharField(max_length=256, verbose_name='Имя')
     email = models.EmailField(verbose_name='E-Mail')
     post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
@@ -222,7 +230,8 @@ class Comment(models.Model):
     user = models.ForeignKey(User, null=True, blank=True)
     ip = models.CharField(max_length=15)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
-    parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True)
+    parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True, related_name='childs')
+    status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
 
     @property
     def comment_mark(self):
@@ -247,11 +256,6 @@ class Comment(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, user=self.user)
-
-
-
-
-
 
     def performed_action(self, history_type, user=None, ip=None, request=None):
         if not ip and request:

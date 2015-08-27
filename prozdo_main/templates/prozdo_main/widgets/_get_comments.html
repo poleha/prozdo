@@ -1,0 +1,8 @@
+{% load prozdo_main_tags %}
+<div>
+    <h4>Отзывы:</h4>
+    {% for comment in comments %}
+        {% get_comment comment%}
+
+    {% endfor %}
+    </div>
