@@ -6,8 +6,16 @@ from .helper import get_client_ip
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
+#from django.utils.decorators import method_decorator
+from django.conf import settings
 
-class PostDetail(generic.TemplateView):
+class PostDetail(generic.ListView):
+    context_object_name = 'comments'
+    paginate_by = settings.POST_COMMENTS_PAGE_SIZE
+
+    def get_queryset(self):
+        return self.comments
+
     def get_template_names(self):
         if self.obj.post_type == models.POST_TYPE_DRUG:
             return 'prozdo_main/post/drug_detail.html'
@@ -22,6 +30,32 @@ class PostDetail(generic.TemplateView):
 
     def get(self, request, *args, **kwargs):
         self.set_obj()
+        try:
+            show_type = int(request.GET.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
+        except:
+            show_type = forms.COMMENTS_SHOW_TYPE_PLAIN
+        try:
+            order_by_created = int(request.GET.get('order_by_created', forms.COMMENTS_ORDER_BY_CREATED_DEC))
+        except:
+            order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
+
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
+            self.show_tree = True
+
+        else:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
+            self.show_tree = False
+
+        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = comments.order_by('-created')
+        else:
+            comments = comments.order_by('created')
+
+        self.comments = comments
+
+
+
         return super().get(request, *args, **kwargs)
 
     def set_obj(self):
@@ -43,28 +77,9 @@ class PostDetail(generic.TemplateView):
         context['comment_form'] = comment_form
 
         comments_options_form = forms.CommentsOptionsForm(self.request.GET)
-        comments_options_form.full_clean()
+
         context['comments_options_form'] = comments_options_form
-
-        show_type = int(comments_options_form.cleaned_data.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
-        order_by_created = int(comments_options_form.cleaned_data.get('order_by_created', forms.COMMENTS_ORDER_BY_CREATED_DEC))
-
-        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
-            context['show_tree'] = True
-
-        else:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
-            context['show_tree'] = False
-
-        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-            comments = comments.order_by('-created')
-        else:
-            comments = comments.order_by('created')
-
-        context['comments'] = comments
-
-
+        context['show_tree'] = self.show_tree
 
         return context
 
@@ -92,10 +107,11 @@ class DrugList(generic.ListView):
     context_object_name = 'drugs'
 
 
+
 class HistoryAjaxSave(generic.View):
     @csrf_exempt
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         pk = request.POST['pk']
@@ -123,4 +139,47 @@ class HistoryAjaxSave(generic.View):
             else:
                 models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment).delete()
             return HttpResponse(comment.complain_count)
+
+
+
+
+
+
+class CommentGetTreeAjax(generic.TemplateView):
+    template_name = 'prozdo_main/widgets/_get_child_comments.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.request.POST['pk']
+        comment = models.Comment.objects.get(pk=pk)
+        action = self.request.POST['action']
+
+        if action == 'comment-tree-show':
+            childs_list = comment.get_childs_tree()
+            context['show_tree'] = False
+            context['childs'] = childs_list
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+
+class CommentGetTinyAjax(generic.View):
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def post(self, request, *args, **kwargs):
+        pk = self.request.POST['pk']
+        comment = models.Comment.objects.get(pk=pk)
+        return HttpResponse(comment.body)
+
 

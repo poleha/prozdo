@@ -2,7 +2,8 @@
 {% load prozdo_main_tags %}
 
 {% block content %}
-<div>
+
+    <div>
     <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
     </div>
 
@@ -76,15 +77,26 @@
     <div>
     <h4>Отзывы:</h4>
     {% for comment in comments %}
+
+        <div class="full-comment">
         {% get_comment comment%}
+
+        <div class="comment-childs-block">
+
 
 {% if show_tree %}
     {% get_child_comments %}
 
 {% endif %}
-
+</div>
+</div>
     {% endfor %}
     </div>
+
+   {% if comments.count > 0 %}
+                    {% include 'prozdo_main/base/_pager.html' %}
+                    {% endif %}
+
 <div>
 
 <div id="answer-to-block" class="hidden">
@@ -102,21 +114,19 @@
 </div>
 <script>
          $(function() {
-            $('.comment-mark-button').click(function(e) {
+            $(document).on('click', '.comment-mark-button', function(e) {
                 $(this).addClass('hidden');
-                var id = this.id;
-                var level = $(this).closest('.full-comment').find('.comment-level').val();
-                var pk = id.replace('comment-mark-button-level-' + level + '-pk-', '');
+                var level = $(this).closest('.single-comment').find('.comment-level').val();
+                var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                 $('#comment-unmark-button-level-' + level + '-pk-' + pk).removeClass('hidden');
                 var data = {'pk': pk, 'action': 'comment-mark'};
                 commentAjaxAction(data, '#comment-current-mark-span-level-' + level + '-pk-');
             });
 
-            $('.comment-unmark-button').click(function(e) {
+            $(document).on('click', '.comment-unmark-button', function(e) {
                 $(this).addClass('hidden');
-                var id = this.id;
-                var level = $(this).closest('.full-comment').find('.comment-level').val();
-                var pk = id.replace('comment-unmark-button-level-' + level + '-pk-', '');
+                var level = $(this).closest('.single-comment').find('.comment-level').val();
+                var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                 $('#comment-mark-button-level-' + level + '-pk-' + pk).removeClass('hidden');
                 var data = {'pk': pk, 'action': 'comment-unmark'};
                 commentAjaxAction(data, '#comment-current-mark-span-level-' + level + '-pk-');
@@ -124,21 +134,19 @@
 
 
 
-            $('.comment-complain-button').click(function(e) {
+            $(document).on('click', '.comment-complain-button', function(e) {
                 $(this).addClass('hidden');
-                var id = this.id;
-                var level = $(this).closest('.full-comment').find('.comment-level').val();
-                var pk = id.replace('comment-complain-button-level-' + level + '-pk-', '');
+                var level = $(this).closest('.single-comment').find('.comment-level').val();
+                var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                 $('#comment-uncomplain-button-level-' + level + '-pk-' + pk).removeClass('hidden');
                 var data = {'pk': pk, 'action': 'comment-complain'};
                 commentAjaxAction(data, '#comment-current-complain-span-level-' + level + '-pk-');
             });
 
-            $('.comment-uncomplain-button').click(function(e) {
+            $(document).on('click', '.comment-uncomplain-button', function(e) {
                 $(this).addClass('hidden');
-                var id = this.id;
-                var level = $(this).closest('.full-comment').find('.comment-level').val();
-                var pk = id.replace('comment-uncomplain-button-level-' + level + '-pk-', '');
+                var level = $(this).closest('.single-comment').find('.comment-level').val();
+                var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                 $('#comment-complain-button-level-' + level + '-pk-' + pk).removeClass('hidden');
                 var data = {'pk': pk, 'action': 'comment-uncomplain'};
                 commentAjaxAction(data, '#comment-current-complain-span-level-' + level + '-pk-');
@@ -146,16 +154,16 @@
 
 
 
-         function commentAjaxAction(action_data, selector){
+         function commentAjaxAction(actionData, selector){
 
 
 
                 $.ajax({
-                    type: 'POST',//$(frm).attr('method'),
+                    type: 'POST',
                     url: '{% url 'history-ajax-save' %}',
-                    data: action_data,
+                    data: actionData,
                     success: function (data) {
-                    $(selector + action_data.pk).html(data);
+                    $(selector + actionData.pk).html(data);
                     },
                     error: function (data) {
 
@@ -165,10 +173,10 @@
                    }
 
 
-        $('.answer-to-comment').click(function(e) {
-                var id = this.id;
-            var level = $(this).closest('.full-comment').find('.comment-level').val();
-            var pk = id.replace('answer-to-comment-level-' + level + '-pk-', '');
+        $(document).on('click', '.answer-to-comment', function(e) {
+            var level = $(this).closest('.single-comment').find('.comment-level').val();
+            var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+
 
 
             $('#id_parent').val(pk);
@@ -186,6 +194,60 @@
                 $('#answer-to-span').html('');
 
             });
+
+
+             $(document).on('click', '.show-comment-tree', function(e) {
+                var id = this.id;
+                var level = $(this).closest('.full-comment').find('.comment-level').val();
+                var pk = $(this).closest('.full-comment').find('.comment-pk').val();
+                var childsBlock = $(this).closest('.full-comment').find('.comment-childs-block');
+                var actionData = {'pk': pk, 'action': 'comment-tree-show'};
+                var cur = this;
+                 $.ajax({
+                    type: 'POST',
+                    url: '{% url 'get-comment-tree-ajax' %}',
+                    data: actionData,
+                    success: function (data) {
+                    $(cur).closest('.full-comment').find('.show-comment-tree').addClass('hidden');
+                    $(cur).closest('.full-comment').find('.hide-comment-tree').removeClass('hidden');
+                    childsBlock.fadeTo('slow', 1, function() {
+                    childsBlock.html(data);
+                    });
+                    },
+                    error: function (data) {
+                    //childsBlock.html('');
+                    }
+                });
+                 
+             });
+
+             $(document).on('click', '.hide-comment-tree', function(e) {
+             $(this).closest('.full-comment').find('.comment-childs-block').fadeTo('slow', 0, function () {
+             $(this).closest('.full-comment').find('.comment-childs-block').html('');
+             });
+             $(this).closest('.full-comment').find('.show-comment-tree').removeClass('hidden');
+             $(this).closest('.full-comment').find('.hide-comment-tree').addClass('hidden');
+             });
+
+
+             $(document).on('click', '.tiny-comment-read-full', function(e) {
+             var block = $(this).closest('.tiny-comment');
+             var pk = block.find('.tiny-comment-pk').val();
+              $.ajax({
+                    type: 'POST',
+                    url: '{% url 'comment-get-tiny-ajax' %}',
+                    data: {'pk': pk},
+                    success: function (data) {
+                    block.find('.tiny-comment-body').html(data);
+
+                    },
+                    error: function (data) {
+                    }
+                });
+
+             });
+
+
 
 
          });

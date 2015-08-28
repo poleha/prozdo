@@ -1,10 +1,10 @@
 {% load prozdo_main_tags %}
-<div class="full-comment">
-DEBUG{{ comment.get_level }}DEBUG
+<div class="single-comment single-comment-with-level-{{ comment.get_level }}">
 
-{% if comment.parent %}
+
+{% if comment.parent and not show_tree and comment.get_level == 1 %}
 <div>
-    <label>В ответ на:</label><a href="{{ comment.parent.get_absolute_url }}">{{ comment.parent.body }}</a>
+    <label>В ответ на:</label>{% include 'prozdo_main/widgets/_tiny_comment.html' with comment=comment.parent %}
 </div>
 {% endif %}
 {% if comment.user %}
@@ -19,6 +19,7 @@ DEBUG{{ comment.get_level }}DEBUG
 
 
 <input type="hidden" value="{{ comment.get_level }}" class="comment-level">
+<input type="hidden" value="{{ comment.pk }}" class="comment-pk">
 <div class="comment-current-mark" id="comment-current-mark-level-{{ comment.get_level }}-pk-{{ comment.pk }}">Отзыв сочли полезным: <span id="comment-current-mark-span-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
         {% if can_mark %}
          <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
@@ -40,5 +41,23 @@ DEBUG{{ comment.get_level }}DEBUG
         {% endif %}
 
         <input type="button" class="answer-to-comment" id="answer-to-comment-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Ответить">
+
+ {% if comment.childs.get_available.exists and comment.get_level == 1%}
+     {% if show_tree %}
+     <input type="button" class="show-comment-tree hidden" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.childs.count }})">
+    <input type="button" class="hide-comment-tree" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.childs.count }})">
+
+     {% else %}
+    {% if comment.childs.get_available.exists %}
+        <div>Ответы на отзыв:</div>
+         {% for child in comment.childs.get_available %}
+         {% include 'prozdo_main/widgets/_tiny_comment.html' with comment=child %}
+         {% endfor %}
+{% endif %}
+    <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.childs.count }})">
+    <input type="button" class="hide-comment-tree hidden" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.childs.count }})">
+     {% endif %}
+{% endif %}
 </div>
+
 

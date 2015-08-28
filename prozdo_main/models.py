@@ -219,6 +219,32 @@ COMMENT_STATUSES = (
 )
 
 
+
+
+
+
+class CommentQueryset(models.QuerySet):
+    #def filter(self, *args, **kwargs):
+    #    queryset = super().filter(*args, **kwargs)
+    #    return queryset
+
+    def get_available(self):
+        queryset = self.filter(status=COMMENT_STATUS_PUBLISHED)
+        return queryset
+
+
+
+
+
+class CommentManager(models.manager.BaseManager.from_queryset(CommentQueryset)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset
+
+
+
 class Comment(models.Model):
     class Meta:
         ordering = ['created']
@@ -234,6 +260,8 @@ class Comment(models.Model):
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
     parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True, related_name='childs')
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
+
+    objects = CommentManager()
 
     def __str__(self):
         return cut_text(self.body)
@@ -262,7 +290,7 @@ class Comment(models.Model):
             cur = self
         else:
             tree.append(cur)
-        for child in cur.childs.filter(status=COMMENT_STATUS_PUBLISHED):
+        for child in cur.childs.get_available().order_by('created'):
             child.level = level
             tree += child.get_childs_tree(child, level+1)
         return tree

@@ -104,3 +104,11 @@ STATIC_URL = '/static/'
 
 
 #SESSION_SAVE_EVERY_REQUEST = True
+
+
+#**************<<<<<
+POST_COMMENTS_PAGE_SIZE = 3
+
+
+
+#**************>>>>>>>>>>

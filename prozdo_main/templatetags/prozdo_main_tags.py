@@ -56,13 +56,11 @@ def get_child_comments(context):
     return res
 
 
-
-
-
 @register.inclusion_tag('prozdo_main/widgets/_get_comment.html', takes_context=True)
 def get_comment(context, comment):
     res = {}
     request = context['request']
+    res['show_tree'] = context.get('show_tree', False)
 
     res['comment'] = comment
     res['is_author'] = comment.is_author(request=request)
@@ -74,4 +72,29 @@ def get_comment(context, comment):
     res['can_uncomplain'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user)
 
     return res
+
+
+@register.simple_tag(takes_context=True)
+def get_get_parameters_exclude(context, exclude=('page',), page=None):
+    request = context['request']
+    params = ''
+    for key in request.GET:
+        if key in exclude:
+            continue
+        if params == '':
+            params = '?'
+        lst = request.GET.getlist(key)
+        if len(lst) == 1:
+            params +="&{0}={1}".format(key, request.GET[key])
+        else:
+            for item in lst:
+                params +="&{0}={1}".format(key, item)
+    if page is not None and page > 1:
+        if params == '':
+            params += '?page=' + str(page)
+        elif params == '?':
+            params += 'page=' + str(page)
+        else:
+            params += '&page=' + str(page)
+    return params
 

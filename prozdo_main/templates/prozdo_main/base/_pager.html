@@ -1,0 +1,22 @@
+{% load prozdo_main_tags %}
+<div class="pagination">
+
+        <ul class="inline-b">
+        {% for page in paginator.page_range %}
+
+        {% if page ==  page_obj.number %}
+
+            <li class="active">
+                <span>{{ page }}</span>
+            </li>
+
+        {% else %}
+        <li>
+        <a class="pager_link" id="pager-link-{{ page }}" href="{{ request.path }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
+        {% endif %}
+        </li>
+        {% endfor %}
+        </ul>
+
+
+    </div>
