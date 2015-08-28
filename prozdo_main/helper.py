@@ -1,3 +1,4 @@
+import string
 def transliterate(text):
     text = text.lower()
     mapping = {
@@ -98,4 +99,89 @@ def get_client_ip(request):
     return ip
 
 def cut_text(text, length=100):
-    return text[:length]
+    res = text[:length]
+    if not res == text:
+        res += '...'
+    return res
+
+
+
+def check_bad_words(text):
+    bad_words = (
+          '<',
+        '>',
+        'www',
+        'http',
+        'href',
+        'icq',
+        'skype',
+        'mail',
+        'телефон',
+        '@',
+        'бля',
+        'хуй',
+        'хуя',
+        'чмо',
+        'мудак',
+        'гандон',
+        'трахн',
+        'ебать',
+        'ебал',
+        'оттрах',
+        'стояк',
+        'ебок',
+        'прода',
+        'куплю',
+        'руб.',
+        'рублей',
+        'рубля',
+        '00',
+       )
+    for bad_word in bad_words:
+        if bad_word in text:
+            return True
+    return False
+
+
+
+
+
+def get_digits_percent(text):
+    total = len(text)
+    digits_count = 0
+    digits = map(str, range(10))
+
+
+    for digit in digits:
+        if digit in text:
+            digits_count += text.count(digit)
+
+    return (digits_count / total) * 100
+
+def get_endlish_letters_percent(text):
+    text = text.lower()
+
+    total = len(text)
+    engs_count = 0
+    engs = string.ascii_lowercase
+
+    for eng in engs:
+        if eng in text:
+            engs_count += text.count(eng)
+
+    return (engs_count / total) * 100
+
+
+
+def comment_body_ok(text):
+    if get_digits_percent(text) > 60 or get_endlish_letters_percent(text) > 60 or check_bad_words(text):
+        return False
+    else:
+        return True
+
+
+def comment_author_ok(text):
+    if check_bad_words(text):
+        return False
+    else:
+        return True

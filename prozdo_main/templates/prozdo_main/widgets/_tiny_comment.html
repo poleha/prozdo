@@ -1,6 +1,10 @@
 <div class="tiny-comment">
 <span class='tiny-comment-body'>{{ comment }}</span>
 <a href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>
-<input type="button" value="Прочитать отзыв целиком" class="tiny-comment-read-full">
-<input type="hidden" value="{{ comment.pk }}" class="tiny-comment-pk">
+{% if not comment.body == comment.short_body %}
+    <input type="button" value="Прочитать отзыв целиком" class="tiny-comment-show-full">
+<input type="button" value="Скрыть" class="tiny-comment-hide-full hidden">
+    {% endif %}
+
+    <input type="hidden" value="{{ comment.pk }}" class="tiny-comment-pk">
 </div>

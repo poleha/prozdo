@@ -1,3 +1,11 @@
-from django.test import TestCase
+from django_webtest import WebTest
+from . import models
 
-# Create your tests here.
+
+"""
+class BaseTest(WebTest):
+    def setUp(self):
+        self.user =
+
+class CommentTests(WebTest):
+"""

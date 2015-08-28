@@ -115,55 +115,59 @@
 <script>
          $(function() {
             $(document).on('click', '.comment-mark-button', function(e) {
-                $(this).addClass('hidden');
                 var level = $(this).closest('.single-comment').find('.comment-level').val();
                 var pk = $(this).closest('.single-comment').find('.comment-pk').val();
-                $('#comment-unmark-button-level-' + level + '-pk-' + pk).removeClass('hidden');
+                var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
+                var toHide = $(this).closest('.single-comment').find('.comment-mark-button');
+                var toShow = $(this).closest('.single-comment').find('.comment-unmark-button');
                 var data = {'pk': pk, 'action': 'comment-mark'};
-                commentAjaxAction(data, '#comment-current-mark-span-level-' + level + '-pk-');
+                commentAjaxAction(data, targetSpan, toHide, toShow);
             });
 
             $(document).on('click', '.comment-unmark-button', function(e) {
-                $(this).addClass('hidden');
                 var level = $(this).closest('.single-comment').find('.comment-level').val();
                 var pk = $(this).closest('.single-comment').find('.comment-pk').val();
-                $('#comment-mark-button-level-' + level + '-pk-' + pk).removeClass('hidden');
+                var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
+                var toHide = $(this).closest('.single-comment').find('.comment-unmark-button');
+                var toShow = $(this).closest('.single-comment').find('.comment-mark-button');
                 var data = {'pk': pk, 'action': 'comment-unmark'};
-                commentAjaxAction(data, '#comment-current-mark-span-level-' + level + '-pk-');
+                commentAjaxAction(data, targetSpan, toHide, toShow);
             });
 
 
 
             $(document).on('click', '.comment-complain-button', function(e) {
-                $(this).addClass('hidden');
                 var level = $(this).closest('.single-comment').find('.comment-level').val();
                 var pk = $(this).closest('.single-comment').find('.comment-pk').val();
-                $('#comment-uncomplain-button-level-' + level + '-pk-' + pk).removeClass('hidden');
+                var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
+                var toHide = $(this).closest('.single-comment').find('.comment-complain-button');
+                var toShow = $(this).closest('.single-comment').find('.comment-uncomplain-button');
                 var data = {'pk': pk, 'action': 'comment-complain'};
-                commentAjaxAction(data, '#comment-current-complain-span-level-' + level + '-pk-');
+                commentAjaxAction(data, targetSpan, toHide, toShow);
+
             });
 
             $(document).on('click', '.comment-uncomplain-button', function(e) {
-                $(this).addClass('hidden');
                 var level = $(this).closest('.single-comment').find('.comment-level').val();
                 var pk = $(this).closest('.single-comment').find('.comment-pk').val();
-                $('#comment-complain-button-level-' + level + '-pk-' + pk).removeClass('hidden');
+                var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
+                var toHide = $(this).closest('.single-comment').find('.comment-uncomplain-button');
+                var toShow = $(this).closest('.single-comment').find('.comment-complain-button');
                 var data = {'pk': pk, 'action': 'comment-uncomplain'};
-                commentAjaxAction(data, '#comment-current-complain-span-level-' + level + '-pk-');
+                commentAjaxAction(data, targetSpan, toHide, toShow);
             });
 
 
 
-         function commentAjaxAction(actionData, selector){
-
-
-
+         function commentAjaxAction(actionData, targetSpan, toHide, toShow){
                 $.ajax({
                     type: 'POST',
                     url: '{% url 'history-ajax-save' %}',
                     data: actionData,
                     success: function (data) {
-                    $(selector + actionData.pk).html(data);
+                    targetSpan.html(data);
+                    toHide.addClass('hidden');
+                    toShow.removeClass('hidden');
                     },
                     error: function (data) {
 
@@ -230,15 +234,28 @@
              });
 
 
-             $(document).on('click', '.tiny-comment-read-full', function(e) {
+             $(document).on('click', '.tiny-comment-show-full, .tiny-comment-hide-full', function(e) {
              var block = $(this).closest('.tiny-comment');
+             var cls = $(this).attr('class');
+             if (cls=='tiny-comment-show-full') {
+                 var action = 'show';
+                 var toHide = block.find('.tiny-comment-show-full');
+                 var toShow = block.find('.tiny-comment-hide-full');
+             }
+             else{
+                 var action = 'hide';
+                 var toHide = block.find('.tiny-comment-hide-full');
+                 var toShow = block.find('.tiny-comment-show-full');
+             }
              var pk = block.find('.tiny-comment-pk').val();
               $.ajax({
                     type: 'POST',
                     url: '{% url 'comment-get-tiny-ajax' %}',
-                    data: {'pk': pk},
+                    data: {'pk': pk, 'action': action},
                     success: function (data) {
                     block.find('.tiny-comment-body').html(data);
+                    toHide.addClass('hidden');
+                    toShow.removeClass('hidden');
 
                     },
                     error: function (data) {

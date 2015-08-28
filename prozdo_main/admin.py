@@ -38,3 +38,8 @@ class PostAdmin(PostAdminMixin):
 @admin.register(models.History)
 class HistoryAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(models.UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    pass

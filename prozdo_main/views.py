@@ -8,13 +8,33 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 #from django.utils.decorators import method_decorator
 from django.conf import settings
+from prozdo_main.helper import cut_text
 
 class PostDetail(generic.ListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
 
     def get_queryset(self):
-        return self.comments
+        request = self.request
+        try:
+            show_type = int(request.GET.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
+        except:
+            show_type = forms.COMMENTS_SHOW_TYPE_PLAIN
+        try:
+            order_by_created = int(request.GET.get('order_by_created', forms.COMMENTS_ORDER_BY_CREATED_DEC))
+        except:
+            order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
+
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
+        else:
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
+        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = comments.order_by('-created')
+        else:
+            comments = comments.order_by('created')
+
+        return comments
 
     def get_template_names(self):
         if self.obj.post_type == models.POST_TYPE_DRUG:
@@ -30,33 +50,8 @@ class PostDetail(generic.ListView):
 
     def get(self, request, *args, **kwargs):
         self.set_obj()
-        try:
-            show_type = int(request.GET.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
-        except:
-            show_type = forms.COMMENTS_SHOW_TYPE_PLAIN
-        try:
-            order_by_created = int(request.GET.get('order_by_created', forms.COMMENTS_ORDER_BY_CREATED_DEC))
-        except:
-            order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
-
-        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
-            self.show_tree = True
-
-        else:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
-            self.show_tree = False
-
-        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-            comments = comments.order_by('-created')
-        else:
-            comments = comments.order_by('created')
-
-        self.comments = comments
-
-
-
         return super().get(request, *args, **kwargs)
+
 
     def set_obj(self):
         if 'alias' in self.kwargs:
@@ -70,6 +65,19 @@ class PostDetail(generic.ListView):
 
     def get_context_data(self, comment_form=None, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        request = self.request
+        try:
+            show_type = int(request.GET.get('show_type', forms.COMMENTS_SHOW_TYPE_PLAIN))
+        except:
+            show_type = forms.COMMENTS_SHOW_TYPE_PLAIN
+
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+            context['show_tree'] = True
+
+        else:
+            context['show_tree'] = False
+
         context['obj'] = self.obj
 
         if comment_form is None:
@@ -79,13 +87,14 @@ class PostDetail(generic.ListView):
         comments_options_form = forms.CommentsOptionsForm(self.request.GET)
 
         context['comments_options_form'] = comments_options_form
-        context['show_tree'] = self.show_tree
+
 
         return context
 
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         self.set_obj()
+        self.object_list = self.get_queryset()
         comment_form = forms.CommentForm(request.POST, user=request.user, post=self.post)
         if comment_form.is_valid():
             comment_form.instance.post = self.post
@@ -141,10 +150,6 @@ class HistoryAjaxSave(generic.View):
             return HttpResponse(comment.complain_count)
 
 
-
-
-
-
 class CommentGetTreeAjax(generic.TemplateView):
     template_name = 'prozdo_main/widgets/_get_child_comments.html'
 
@@ -169,9 +174,7 @@ class CommentGetTreeAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-
 class CommentGetTinyAjax(generic.View):
-
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -179,7 +182,10 @@ class CommentGetTinyAjax(generic.View):
 
     def post(self, request, *args, **kwargs):
         pk = self.request.POST['pk']
+        action = self.request.POST['action']
         comment = models.Comment.objects.get(pk=pk)
-        return HttpResponse(comment.body)
-
-
+        if action == 'show':
+            res = comment.body
+        else:
+            res = comment.short_body
+        return HttpResponse(res)

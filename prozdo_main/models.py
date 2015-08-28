@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
-from .helper import make_alias, get_client_ip, cut_text
+from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
@@ -37,21 +37,26 @@ POST_TYPES = (
     (POST_TYPE_CATEGORY, 'Категория'),
 )
 
+USER_ROLE_REGULAR = 1
+USER_ROLE_AUTHOR = 2
+USER_ROLE_DOCTOR = 3
+USER_ROLE_ADMIN = 33
+
+USER_ROLES = (
+    (USER_ROLE_REGULAR, 'Обычный пользователь'),
+    (USER_ROLE_AUTHOR, 'Автор'),
+    (USER_ROLE_DOCTOR, 'Врач'),
+    (USER_ROLE_ADMIN, 'Админ'),
+)
+
+
+
 #Constants>***********************************************************
 
 #<Posts******************************************************************
-
-
-class AbstractModel(models.Model):
+class SuperModel(models.Model):
     class Meta:
         abstract = True
-    title = models.CharField(max_length=500, verbose_name='Название')
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.title
-
     @property
     def saved_version(self):
         if self.pk:
@@ -62,6 +67,18 @@ class AbstractModel(models.Model):
         else:
             saved_version = None
         return saved_version
+
+class AbstractModel(SuperModel):
+    class Meta:
+        abstract = True
+    title = models.CharField(max_length=500, verbose_name='Название')
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
 
 
 class Post(AbstractModel):
@@ -264,8 +281,13 @@ class Comment(models.Model):
     objects = CommentManager()
 
     def __str__(self):
-        return cut_text(self.body)
+        return self.short_body
 
+
+
+    @property
+    def short_body(self):
+        return cut_text(self.body)
 
     @property
     def get_level(self):
@@ -300,10 +322,13 @@ class Comment(models.Model):
 
 
     def get_status(self):
-        if self.user.is_authenticated():
+        if self.user and self.user.is_authenticated():
             return COMMENT_STATUS_PUBLISHED
         else:
-            raise Exception('Доделать')
+            if comment_body_ok(self.body) and comment_author_ok(self.username):
+                return COMMENT_STATUS_PUBLISHED
+            else:
+                return COMMENT_STATUS_PENDING_APPROVAL
 
     @property
     def complain_count(self):
@@ -454,3 +479,35 @@ class History(models.Model):
                                        user_points=History.get_points(history_type),
                                        author=comment.user, author_points=author_points)
 
+
+
+class UserProfile(SuperModel):
+    # required by the auth model
+    user = models.OneToOneField(User, related_name='user_profile')  # reverse returns single object, not queryset
+    role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
+
+    def __str__(self):
+        return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)
+
+    @classmethod
+    def get_profile(cls, user):
+        user_profile, created = cls.objects.get_or_create(user=user)
+        if created:
+            user_profile.save()
+        return user_profile
+
+    def save(self, *args, **kwargs):
+        self.role = USER_ROLE_REGULAR
+        if self.user.is_staff:
+            self.role = USER_ROLE_ADMIN
+
+        super().save(*args, **kwargs)
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    profile, created = UserProfile.objects.get_or_create(user=instance)
+    if created:
+        profile.save()
+
+
+post_save.connect(create_user_profile, sender=User)
