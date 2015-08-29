@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseRedirect
 from .helper import get_client_ip
 from django.db import transaction
+from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 #from django.utils.decorators import method_decorator
@@ -88,6 +89,7 @@ class PostDetail(generic.ListView):
 
         context['comments_options_form'] = comments_options_form
 
+        context['mark'] = self.post.get_mark_by_request(request)
 
         return context
 
@@ -115,18 +117,6 @@ class PostDetail(generic.ListView):
                 return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
 
 
-class CommentSubmitAjax(generic.TemplateView):
-    def set_obj(self):
-        if 'alias' in self.kwargs:
-            alias = self.kwargs['alias']
-            post = get_object_or_404(models.Post, alias=alias)
-        else:
-            pk = self.kwargs['pk']
-            post = get_object_or_404(models.Post, pk=pk)
-        self.post = post
-        self.obj = post.obj
-
-
 class DrugList(generic.ListView):
     template_name = 'prozdo_main/post/drug_list.html'
     model = models.Drug
@@ -142,29 +132,46 @@ class HistoryAjaxSave(generic.View):
     def post(self, request, *args, **kwargs):
         pk = request.POST['pk']
         action = request.POST['action']
+        ip = get_client_ip(request)
+        user = request.user
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
-            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment)
+            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip)
             return HttpResponse(comment.comment_mark)
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
                 models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment).delete()
             else:
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).delete()
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None).delete()
             return HttpResponse(comment.comment_mark)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment)
+            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip)
             return HttpResponse(comment.complain_count)
         elif action == 'comment-uncomplain':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
                 models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment).delete()
             else:
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment).delete()
+                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None).delete()
             return HttpResponse(comment.complain_count)
+
+        elif action == 'post-mark':
+            mark = request.POST.get('mark', None)
+            post = models.Post.objects.get(pk=pk)
+            models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip)
+            return HttpResponse()
+
+        elif action == 'post-cancel-mark':
+            post = models.Post.objects.get(pk=pk)
+            if request.user.is_authenticated():
+                models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post).delete()
+            else:
+                models.History.objects.filter(ip=ip, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None).delete()
+            return HttpResponse()
+
 
 
 class CommentGetTreeAjax(generic.TemplateView):
@@ -206,3 +213,30 @@ class CommentGetTinyAjax(generic.View):
         else:
             res = comment.short_body
         return HttpResponse(res)
+
+
+class CommentShowMarkedUsersAjax(generic.TemplateView):
+    template_name = 'prozdo_main/comment/_comment_show_marked_users_ajax.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request = self.request
+        pk = request.POST['pk']
+        comment = models.Comment.objects.get(pk=pk)
+
+        user_pks = models.History.objects.filter(~Q(user=None), history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).values_list('user', flat=True)
+        context['users'] = models.User.objects.filter(pk__in=user_pks)
+        context['guest_count'] = models.History.objects.filter(user=None, history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).count()
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+
+

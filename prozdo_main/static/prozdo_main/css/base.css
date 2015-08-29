@@ -93,3 +93,10 @@ margin-left: 199px;
 .single-comment-with-level-21{
 margin-left: 202px;
 }
+
+#sidebar-right {
+    float: left;
+    width: 300px;
+    margin-left: -315px;
+    position: relative;
+}

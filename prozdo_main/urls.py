@@ -17,4 +17,10 @@ urlpatterns = [
 
     url(r'^comment/get_tiny_ajax', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
 
+    url(r'^comment/get_tiny_ajax', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
+
+    url(r'^comment/show_marked_users_ajax', views.CommentShowMarkedUsersAjax.as_view(), name='comment-show-marked-users-ajax'),
+
+
+
 ]

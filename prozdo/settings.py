@@ -39,7 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
-    'prozdo_main',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -49,6 +49,9 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid',
     'allauth.socialaccount.providers.google',
     #'allauth.socialaccount.providers.facebook',
+
+    'prozdo_main',
+    'multi_image_upload',
 
 )
 
@@ -125,6 +128,9 @@ STATIC_URL = '/static/'
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 3
 
+DRUG_THUMB_SETTINGS = {'thumb220': (220, 800)}
+BLOG_THUMB_SETTINGS = {'thumb220': (220, 800)}
+COSMETICS_THUMB_SETTINGS = {'thumb220': (220, 800)}
 
 BAD_WORDS = (
           '<',

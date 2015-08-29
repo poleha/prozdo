@@ -5,6 +5,9 @@ from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, commen
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
+from multi_image_upload.models import MyImageField
+from django.conf import settings
+
 
 #<Constants***********************************************************
 
@@ -145,6 +148,22 @@ class Post(AbstractModel):
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
+    def get_mark_by_request(self,request):
+        user = request.user
+        if user.is_authenticated():
+            try:
+                mark = History.objects.get(user=user, history_type=HISTORY_TYPE_POST_RATED).mark
+            except:
+                mark = None
+        else:
+            try:
+                mark = History.objects.get(ip=get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+            except:
+                mark = None
+        return mark
+
+
+
     def save(self, *args, **kwargs):
         #saved_version = self.saved_version
         if hasattr(self, 'title') and self.title and not self.alias:
@@ -195,6 +214,8 @@ class Drug(Post):
     contra_indications = models.TextField(verbose_name='Противопоказания', blank=True)
     side_effects = models.TextField(verbose_name='Побочные эффекты', blank=True)
     compound = models.TextField(verbose_name='Состав', blank=True)
+    image = MyImageField(verbose_name='Изображение', upload_to='drug',
+                         thumb_settings=settings.DRUG_THUMB_SETTINGS)
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
@@ -203,6 +224,8 @@ class Drug(Post):
 
 class Cosmetics(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
+    image = MyImageField(verbose_name='Изображение', upload_to='cosmetics',
+                         thumb_settings=settings.COSMETICS_THUMB_SETTINGS)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд')
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линия')
@@ -212,6 +235,8 @@ class Cosmetics(Post):
 
 class Blog(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
+    image = MyImageField(verbose_name='Изображение', upload_to='blog',
+                         thumb_settings=settings.BLOG_THUMB_SETTINGS)
 
 class Forum(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
@@ -426,6 +451,7 @@ class History(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     ip = models.CharField(max_length=15, null=True, blank=True)
+    mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
 
     @staticmethod
     def get_points(history_type):
@@ -435,7 +461,7 @@ class History(models.Model):
         return "{0} - {1} - {2}".format(self.history_type, self.post, self.comment)
 
     @staticmethod
-    def save_history(history_type, post, user=None, ip=None, comment=None):
+    def save_history(history_type, post, user=None, ip=None, comment=None, mark=None):
         if hasattr(post, 'user'):
             post_author = post.user
         else:
@@ -457,12 +483,12 @@ class History(models.Model):
             hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
             if not hist_exists:
                 if comment.post_mark:
-                    author_points = comment.post_mark
+                    mark = comment.post_mark
                 else:
-                    author_points = 0
+                    mark = 0
                 History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author_points=author_points, author=post_author)
+                                       mark=mark, author=post_author)
             else:
                 History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
@@ -478,6 +504,15 @@ class History(models.Model):
                 History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
                                        author=comment.user, author_points=author_points)
+        elif history_type == HISTORY_TYPE_POST_RATED:
+            if user and user.is_authenticated():
+                hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
+            else:
+                hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
+
+            if not hist_exists:
+                History.objects.create(history_type=history_type, post=post, user=user, ip=ip,
+                                   user_points=History.get_points(history_type), author=post_author, mark=mark)
 
 
 

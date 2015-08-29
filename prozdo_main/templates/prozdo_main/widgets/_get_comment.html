@@ -13,7 +13,6 @@
         <div> {% get_verbose_field_name comment 'username' %}:
             {{ comment.username }}
         </div>
-        <div> {% get_verbose_field_name comment 'email' %}: {{ comment.email }}</div>
         <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.body }}</span></div>
 
 
@@ -21,6 +20,13 @@
 <input type="hidden" value="{{ comment.get_level }}" class="comment-level">
 <input type="hidden" value="{{ comment.pk }}" class="comment-pk">
 <div class="comment-current-mark" id="comment-current-mark-level-{{ comment.get_level }}-pk-{{ comment.pk }}">Отзыв сочли полезным: <span class="comment-current-mark-span" id="comment-current-mark-span-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
+{% if comment.comment_mark %}
+    <div class="comment-show-marked-buttons">
+<input type="button" value="Показать кто" class="comment-show-marked-users">
+<input type="button" value="Скрыть" class="comment-hide-marked-users hidden">
+</div>
+{% endif %}
+<div class="comment-show-marked"></div>
         {% if can_mark %}
          <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
          <input class="comment-mark-button" type="button" id="comment-mark-button-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
