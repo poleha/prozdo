@@ -1,4 +1,6 @@
 import string
+from django.conf import settings
+
 def transliterate(text):
     text = text.lower()
     mapping = {
@@ -107,36 +109,7 @@ def cut_text(text, length=100):
 
 
 def check_bad_words(text):
-    bad_words = (
-          '<',
-        '>',
-        'www',
-        'http',
-        'href',
-        'icq',
-        'skype',
-        'mail',
-        'телефон',
-        '@',
-        'бля',
-        'хуй',
-        'хуя',
-        'чмо',
-        'мудак',
-        'гандон',
-        'трахн',
-        'ебать',
-        'ебал',
-        'оттрах',
-        'стояк',
-        'ебок',
-        'прода',
-        'куплю',
-        'руб.',
-        'рублей',
-        'рубля',
-        '00',
-       )
+    bad_words = settings.BAD_WORDS
     for bad_word in bad_words:
         if bad_word in text:
             return True

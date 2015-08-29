@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, pre_save
 from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok
 from django.core.urlresolvers import reverse
@@ -511,3 +511,14 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 post_save.connect(create_user_profile, sender=User)
+
+
+
+def is_regular(self):
+    if self.user_profile.role == USER_ROLE_REGULAR:
+        return True
+    else:
+        return False
+
+User.is_regular = property(is_regular)
+AnonymousUser.is_regular = True

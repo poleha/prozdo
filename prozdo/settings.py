@@ -37,7 +37,19 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'prozdo_main',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.odnoklassniki',
+    'allauth.socialaccount.providers.openid',
+    'allauth.socialaccount.providers.google',
+    #'allauth.socialaccount.providers.facebook',
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -72,6 +84,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
 
+
+
+
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
@@ -96,6 +111,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = '1'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -110,5 +126,61 @@ STATIC_URL = '/static/'
 POST_COMMENTS_PAGE_SIZE = 3
 
 
+BAD_WORDS = (
+          '<',
+        '>',
+        'www',
+        'http',
+        'href',
+        'icq',
+        'skype',
+        'mail',
+        'телефон',
+        '@',
+        'бля',
+        'хуй',
+        'хуя',
+        'чмо',
+        'мудак',
+        'гандон',
+        'трахн',
+        'ебать',
+        'ебал',
+        'оттрах',
+        'стояк',
+        'ебок',
+        'прода',
+        'куплю',
+        'руб.',
+        'рублей',
+        'рубля',
+        '00',
+       )
+
+
 
 #**************>>>>>>>>>>
+
+
+#allauth
+LOGIN_REDIRECT_URLNAME = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_MIN_LENGTH = 5
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 30
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_PASSWORD_MIN_LENGTH = 6
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)

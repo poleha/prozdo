@@ -18,6 +18,11 @@ class CommentForm(forms.ModelForm):
             self.fields['email'].widget = forms.HiddenInput()
             self.fields['email'].initial = user.email
 
+        if not user.is_regular:
+            del self.fields['consult_required']
+            del self.fields['post_mark']
+
+
 
 
 COMMENTS_ORDER_BY_CREATED_DEC = 1

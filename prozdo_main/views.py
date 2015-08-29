@@ -104,10 +104,27 @@ class PostDetail(generic.ListView):
             comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
-            return HttpResponseRedirect(self.obj.get_absolute_url())
+            if request.is_ajax():
+                return JsonResponse({'href': comment.get_absolute_url(), 'status': 1})
+            else:
+                return HttpResponseRedirect(self.obj.get_absolute_url())
         else:
-            return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
+            if request.is_ajax():
+                return JsonResponse({'comment_form': comment_form.as_p(), 'status': 2})
+            else:
+                return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
 
+
+class CommentSubmitAjax(generic.TemplateView):
+    def set_obj(self):
+        if 'alias' in self.kwargs:
+            alias = self.kwargs['alias']
+            post = get_object_or_404(models.Post, alias=alias)
+        else:
+            pk = self.kwargs['pk']
+            post = get_object_or_404(models.Post, pk=pk)
+        self.post = post
+        self.obj = post.obj
 
 
 class DrugList(generic.ListView):

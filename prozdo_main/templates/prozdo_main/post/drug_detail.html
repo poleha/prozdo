@@ -105,10 +105,11 @@
 </div>
 
 
-<form method="post">
+<form method="post" id="comment-form">
 {% csrf_token %}
+    <div id="comment-form-inner">
     {{ comment_form.as_p }}
-
+    </div>
 <input type="submit" value="Отправить">
 </form>
 </div>
@@ -263,6 +264,31 @@
                 });
 
              });
+
+
+             $(document).on('submit', '#comment-form', function(e) {
+             var frm = $('#comment-form');
+             var innerForm = frm.find('#comment-form-inner');
+              $.ajax({
+                    type: 'POST',
+                    url: frm.action,
+                    data: frm.serialize(),
+                    success: function (data) {
+                    if(data.status == 1) {
+                    location.href = data.href;
+                    }
+                        else {
+                        innerForm.html(data.comment_form);
+                    }
+
+                    },
+                    error: function (data) {
+                    }
+                });
+
+                 e.preventDefault();
+             });
+
 
 
 
