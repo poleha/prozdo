@@ -309,7 +309,6 @@ class Comment(models.Model):
         return self.short_body
 
 
-
     @property
     def short_body(self):
         return cut_text(self.body)

@@ -74,6 +74,15 @@ def get_comment(context, comment):
     return res
 
 
+@register.inclusion_tag('prozdo_main/widgets/_recent_comments.html')
+def recent_comments():
+    res = {}
+    comments = models.Comment.objects.get_available().order_by('-created')[:10]
+    res['comments'] = comments
+    return res
+
+
+
 @register.simple_tag(takes_context=True)
 def get_get_parameters_exclude(context, exclude=('page',), page=None):
     request = context['request']

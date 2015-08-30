@@ -2,7 +2,8 @@
 {% load prozdo_main_tags %}
 
 {% block content %}
-<div class="col-lg-12">
+
+
  <div id="full-drug">
  <input id="drug-pk" type="hidden" value="{{ obj.pk }}">
  <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
@@ -138,6 +139,12 @@
 <input type="submit" value="Отправить">
 </form>
 </div>
+
+
+
+{% endblock content %}
+
+{% block footer %}
 <script>
  $(function() {
  $(document).on('click', '.comment-mark-button', function(e) {
@@ -248,7 +255,7 @@
  //childsBlock.html('');
  }
  });
- 
+
  });
 
  $(document).on('click', '.hide-comment-tree', function(e) {
@@ -414,6 +421,4 @@ $(document).on('click', '#post-mark > span', function(e) {
  });
 
 </script>
-</div>
-{% endblock content %}
-
+{% endblock footer %}
