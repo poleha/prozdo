@@ -82,7 +82,7 @@ class PostDetail(generic.ListView):
         context['obj'] = self.obj
 
         if comment_form is None:
-            comment_form = forms.CommentForm(user=self.request.user, post=self.post)
+            comment_form = forms.CommentForm(request=self.request, post=self.post)
         context['comment_form'] = comment_form
 
         comments_options_form = forms.CommentsOptionsForm(self.request.GET)
@@ -97,7 +97,7 @@ class PostDetail(generic.ListView):
     def post(self, request, *args, **kwargs):
         self.set_obj()
         self.object_list = self.get_queryset()
-        comment_form = forms.CommentForm(request.POST, user=request.user, post=self.post)
+        comment_form = forms.CommentForm(request.POST, request=request, post=self.post)
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
@@ -162,15 +162,17 @@ class HistoryAjaxSave(generic.View):
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
             models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip)
-            return HttpResponse()
+            data = {'average_mark': post.average_mark, 'marks_count':post.marks_count }
+            return JsonResponse(data)
 
-        elif action == 'post-cancel-mark':
+        elif action == 'post-unmark':
             post = models.Post.objects.get(pk=pk)
             if request.user.is_authenticated():
                 models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post).delete()
             else:
                 models.History.objects.filter(ip=ip, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None).delete()
-            return HttpResponse()
+            data = {'average_mark': post.average_mark, 'marks_count':post.marks_count }
+            return JsonResponse(data)
 
 
 

@@ -148,7 +148,7 @@ class Post(AbstractModel):
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
-    def get_mark_by_request(self,request):
+    def get_mark_by_request(self, request):
         user = request.user
         if user.is_authenticated():
             try:
@@ -162,7 +162,38 @@ class Post(AbstractModel):
                 mark = None
         return mark
 
+    @property
+    def average_mark(self):
+        try:
+            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Sum('mark'))['mark__sum']
+            if mark is None:
+                mark = 0
+        except:
+            mark = 0
+        return mark
 
+    @property
+    def marks_count(self):
+        try:
+            count = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('mark'))['mark__count']
+            if count is None:
+                count = 0
+        except:
+            count = 0
+        return count
+
+    @property
+    def published_comments_count(self):
+        return self.comments.get_available().count()
+
+    @property
+    def last_comment_date(self):
+        try:
+            last_comment = self.comments.get_available().latest('created')
+            date = last_comment.created
+        except:
+            date = None
+        return date
 
     def save(self, *args, **kwargs):
         #saved_version = self.saved_version
@@ -307,7 +338,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.short_body
-
 
     @property
     def short_body(self):
@@ -469,6 +499,12 @@ class History(models.Model):
         if user and not user.is_authenticated():
             user = None
 
+        if isinstance(mark, str):
+            mark = int(mark)
+
+        if mark is None and comment is not None and comment.post_mark:
+            mark = comment.post_mark
+
         if history_type == HISTORY_TYPE_POST_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, post=post).exists()
             if not hist_exists:
@@ -481,13 +517,10 @@ class History(models.Model):
         elif history_type == HISTORY_TYPE_COMMENT_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
             if not hist_exists:
-                if comment.post_mark:
-                    mark = comment.post_mark
-                else:
-                    mark = 0
+
                 History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       mark=mark, author=post_author)
+                                       author=post_author)
             else:
                 History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
@@ -509,11 +542,15 @@ class History(models.Model):
             else:
                 hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
 
-            if not hist_exists:
-                History.objects.create(history_type=history_type, post=post, user=user, ip=ip,
+            if not hist_exists and mark and mark > 0:
+                History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
                                    user_points=History.get_points(history_type), author=post_author, mark=mark)
 
+        #При сохранении отзыва сохраняем оценку поста
+        if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
 
+
+            History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
 
 class UserProfile(SuperModel):
     # required by the auth model

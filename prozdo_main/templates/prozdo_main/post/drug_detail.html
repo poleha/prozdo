@@ -6,34 +6,75 @@
 
  <div id="full-drug">
  <input id="drug-pk" type="hidden" value="{{ obj.pk }}">
- <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
- </div>
+ <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
+    <div class="row">
+<div class="col-lg-6 col-md-6">
 
+
+
+  <div>
+  <a href="{{ obj.get_absolute_url }}">
+      <img src="{{ obj.image.thumb220 }}">
+      </a>
+
+  </div>
+</div>
+    <div class="col-lg-6 col-md-6">
  <div id="post-mark-block>">
  {% if mark %}
+ <div id="current-post-mark-block"><label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
      {% if user.is_authenticated %}
-     <input type="button" value="Отменить оценку" id="cancel-mark-button">
+     <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning">
        {% endif %}
- <div id="current-post-mark-block"><label>Ваша оценка: </label><span id="current-post-mark">{{ mark }}</span></div>
+
  {% else %}
- <input type="button" value="Отменить оценку" class="hidden" id="cancel-mark-button">
+
  <div id="current-post-mark-block" class="hidden"><label>Ваша оценка: </label><span id="current-post-mark">{{ mark }}</span></div>
+  <input type="button" value="Отменить оценку" class="hidden btn btn-warning" id="cancel-mark-button">
  {% endif %}
  {% if mark %}
  <div id="post-mark" class="hidden">
  {% else %}
  <div id="post-mark">
  {% endif %}
- 
- <span id="post-mark-1">1</span>
- <span id="post-mark-2">2</span>
- <span id="post-mark-3">3</span>
- <span id="post-mark-4">4</span>
- <span id="post-mark-5">5</span>
+
+
+ <label>Оцените препарат: </label>
+ <span id="post-mark-1">
+     <span class="glyphicon glyphicon-star"></span>
+ </span>
+ <span id="post-mark-2">
+     <span class="glyphicon glyphicon-star"></span>
+ </span>
+ <span id="post-mark-3">
+     <span class="glyphicon glyphicon-star"></span>
+ </span>
+ <span id="post-mark-4">
+     <span class="glyphicon glyphicon-star"></span>
+ </span>
+ <span id="post-mark-5">
+     <span class="glyphicon glyphicon-star"></span>
+ </span>
  </div>
 
 </div>
- <div>
+
+
+        <div>
+         <label>Средняя оценка: </label><span id="post-average-mark">{{ obj.average_mark }}</span>(количество оценок: <span id="post-marks-count">{{ obj.marks_count }})</span>
+         </div>
+
+    <div>
+         <label>Количество отзывов: </label><span>{{ obj.published_comments_count }}</span>
+         </div>
+<div>
+         <label>Последний отзыв оставлен: </label><span>{{ obj.last_comment_date }}</span>
+         </div>
+</div>
+</div>
+    <div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+    <div>
  <h4>{% get_verbose_field_name obj 'body' %}:</h4>
  {{ obj.body }}
  </div>
@@ -141,10 +182,13 @@
 </div>
 
 
-
+</div>
+    </div>
+    </div>
 {% endblock content %}
 
 {% block footer %}
+    {{ block.super }}
 <script>
  $(function() {
  $(document).on('click', '.comment-mark-button', function(e) {
@@ -325,7 +369,7 @@
 $(document).on('click', '#post-mark > span', function(e) {
  var mark = e.currentTarget.id.replace('post-mark-', '');
  var pk = $('#drug-pk').val();
- var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk }
+ var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk };
  $.ajax({
  type: 'POST',
  url: '{% url 'history-ajax-save' %}',
@@ -335,6 +379,11 @@ $(document).on('click', '#post-mark > span', function(e) {
  $('#post-mark').addClass('hidden');
  $('#current-post-mark').html(mark);
  $('#cancel-mark-button').removeClass('hidden');
+
+ $('#id_post_mark').closest('p').addClass('hidden');
+ $('#id_post_mark').closest('p').find('select').val('');
+ $('#post-average-mark').html(data['average_mark']);
+ $('#post-marks-count').html(data['marks_count']);
  //targetSpan.html(data);
  //toHide.addClass('hidden');
  //toShow.removeClass('hidden');
@@ -353,7 +402,7 @@ $(document).on('click', '#post-mark > span', function(e) {
      $(document).on('click', '#cancel-mark-button', function(e) {
 
  var pk = $('#drug-pk').val();
- var actionData = {'action': 'post-cancel-mark', 'pk': pk }
+ var actionData = {'action': 'post-unmark', 'pk': pk }
  $.ajax({
  type: 'POST',
  url: '{% url 'history-ajax-save' %}',
@@ -363,9 +412,9 @@ $(document).on('click', '#post-mark > span', function(e) {
  $('#post-mark').removeClass('hidden');
  $('#current-post-mark').html('');
  $('#cancel-mark-button').addClass('hidden');
- //targetSpan.html(data);
- //toHide.addClass('hidden');
- //toShow.removeClass('hidden');
+ $('#id_post_mark').closest('p').removeClass('hidden');
+ $('#post-average-mark').html(data['average_mark']);
+ $('#post-marks-count').html(data['marks_count']);
  },
  error: function (data) {
 

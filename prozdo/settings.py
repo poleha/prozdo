@@ -120,6 +120,10 @@ SITE_ID = '1'
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'  # URL для медии в шаблонах
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 
 #SESSION_SAVE_EVERY_REQUEST = True

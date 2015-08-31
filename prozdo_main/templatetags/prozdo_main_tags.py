@@ -1,5 +1,9 @@
 from django import template
 from prozdo_main import models
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models.aggregates import Count
+from django.core.urlresolvers import reverse
 
 register = template.Library()
 
@@ -80,6 +84,25 @@ def recent_comments():
     comments = models.Comment.objects.get_available().order_by('-created')[:10]
     res['comments'] = comments
     return res
+
+
+@register.inclusion_tag('prozdo_main/widgets/_best_comments.html')
+def best_comments():
+    res = {}
+    date = timezone.now() - timedelta(days=30)
+    comments = models.Comment.objects.filter(history_comment__history_type=models.HISTORY_TYPE_COMMENT_RATED, history_comment__created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
+
+    res['comments'] = comments
+    return res
+
+
+@register.inclusion_tag('prozdo_main/widgets/_top_menu.html')
+def top_menu():
+    res = {}
+    res['main'] = '/'
+    res['drugs'] = reverse('drug-list')
+    return res
+
 
 
 

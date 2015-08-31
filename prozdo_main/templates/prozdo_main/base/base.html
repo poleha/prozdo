@@ -28,13 +28,25 @@
 
 <body>
 <div class="container-fluid">
-    <div class="row">
+
 
 
 {% block header  %}
-
-{% endblock header  %}
+<div class="row" id="header">
+<div class="col-lg-3 col-md-4 col-sm-4 col-xs-6" id="top-logo">
+<a href="/"></a>
 </div>
+<div class="col-lg-6 col-md-8 col-sm-8 hidden-xs" id="top-consult-banner">
+<div class="row1">Теперь на сайте “Про Здоровье” Вы можете</div>
+<div class="row2">ПОЛУЧИТЬ КОНСУЛЬТАЦИЮ ПРОВИЗОРА</div>
+<div class="row3">Для этого установите флажок "Нужна консультация провизора" перед отправкой вопроса о препарате</div>
+</div>
+</div>
+ <div class="row" id="top-menu">
+{% top_menu %}
+</div>
+{% endblock header  %}
+
 
 <div class="row">
 <div class="col-lg-9 col-md-9 col-sm-8 col-xs-12">
@@ -44,16 +56,29 @@
 
 <div class="col-lg-3 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
 {% block sidebar_right %}
-{% recent_comments %}
+{% best_comments %}
+    {% recent_comments %}
+
 {% endblock sidebar_right %}
 </div>
 </div>
 
     <div class="row">
 {% block footer %}
+<div class="clearfix">
+    <div id="footer-info">
+    Вся информация на сайте предоставляется исключительно в справочных целях. Напоминаем, что самолечение недопустимо и в случае заболевания рекомендуем обратиться к врачу.
+Информация о препаратах на сайте не является инструкцией по применению, а содержит лишь общие сведения. Перед применением любого препарата обязательно ознакомьтесь с инструкцией и проконсультируйтесь с врачом.
+</div>
 
+<div id="site-info">
+    Авторское право © 2010-2015 ProZdo.Ru. Все права на материалы, размещенные на сайте, защищены в соответствии с российским и международным законодательством об авторском праве и смежных правах. При любом использовании материалов сайта ссылка (для интернет-сайтов — гиперссылка) на ProZdo.Ru обязательна. По вопросам работы сайта обращайтесь на info@prozdo.ru
+</div>
+    </div>
 {% endblock footer %}
 
+{% block bottom_scripts %}
+{% endblock bottom_scripts %}
 </div>
 </div>
 </body>

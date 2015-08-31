@@ -7,8 +7,9 @@ class CommentForm(forms.ModelForm):
         model = models.Comment
         fields = ('username', 'email', 'body','post_mark', 'consult_required', 'parent' )
 
-    def __init__(self, *args, user=None, post=None, **kwargs):
+    def __init__(self, *args, request=None, post=None, **kwargs):
         super().__init__(*args, **kwargs)
+        user = request.user
         self.fields['parent'].widget = forms.HiddenInput()
         self.fields['parent'].queryset = post.comments.all()
 
@@ -20,6 +21,8 @@ class CommentForm(forms.ModelForm):
 
         if not user.is_regular:
             del self.fields['consult_required']
+
+        if post.get_mark_by_request(request):
             del self.fields['post_mark']
 
 
