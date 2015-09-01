@@ -198,4 +198,29 @@ margin-left: 202px;
 #cancel-mark-button {
 }
 
+.drug-info-grid {
+    border-bottom: 1px dotted #c7dcd9;
+}
+
+.drug-comment-count-grid a:hover {
+    background: url(../images/comment_count_hover.png) no-repeat center;
+    color: #0ba11a;
+
+}
+
+.drug-comment-count-grid a {
+    background: url(../images/comment_count.png) no-repeat center;
+    float: right;
+    display: block;
+    padding-left: 40px;
+    color: #0bc17f;
+}
+
+
+
 /*</DRUG> */
+
+/*<MAIN PAGE> */
+
+
+/*</MAIN PAGE> */

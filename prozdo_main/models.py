@@ -53,6 +53,36 @@ USER_ROLES = (
 )
 
 
+POST_MARKS_FOR_COMMENT = (
+    (1, '1'),
+    (1, '2'),
+    (3, '3'),
+    (4, '4'),
+    (5, '5'),
+)
+
+COMMENT_STATUS_PENDING_APPROVAL = 1
+COMMENT_STATUS_PUBLISHED = 2
+
+COMMENT_STATUSES = (
+    (COMMENT_STATUS_PENDING_APPROVAL, 'На согласовании'),
+    (COMMENT_STATUS_PUBLISHED, 'Опубликован'),
+)
+
+
+POST_STATUS_PROJECT = 1
+POST_STATUS_PUBLISHED = 2
+
+
+POST_STATUSES = (
+    (POST_STATUS_PROJECT, 'Проект'),
+    (POST_STATUS_PUBLISHED, 'Опубликован'),
+)
+
+
+
+
+
 
 #Constants>***********************************************************
 
@@ -82,11 +112,25 @@ class AbstractModel(SuperModel):
         return self.title
 
 
+class PostQueryset(models.QuerySet):
+    def get_available(self):
+        queryset = self.filter(status=POST_STATUS_PUBLISHED)
+        return queryset
+
+
+class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset
 
 
 class Post(AbstractModel):
     alias = models.CharField(max_length=800, blank=True)
     post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
+    status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
+    objects = PostManager()
 
     def get_post_type(self):
         if type(self) == Drug:
@@ -251,6 +295,7 @@ class Drug(Post):
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
     components = models.ManyToManyField(Component, verbose_name='Состав')
+    objects = PostManager()
 
 
 class Cosmetics(Post):
@@ -275,38 +320,11 @@ class Forum(Post):
 #Post>*******************************************************************
 
 
-POST_MARKS_FOR_COMMENT = (
-    (1, '1'),
-    (1, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-)
-
-COMMENT_STATUS_PENDING_APPROVAL = 1
-COMMENT_STATUS_PUBLISHED = 2
-
-COMMENT_STATUSES = (
-    (COMMENT_STATUS_PENDING_APPROVAL, 'На согласовании'),
-    (COMMENT_STATUS_PUBLISHED, 'Опубликован'),
-)
-
-
-
-
-
 
 class CommentQueryset(models.QuerySet):
-    #def filter(self, *args, **kwargs):
-    #    queryset = super().filter(*args, **kwargs)
-    #    return queryset
-
     def get_available(self):
         queryset = self.filter(status=COMMENT_STATUS_PUBLISHED)
         return queryset
-
-
-
 
 
 class CommentManager(models.manager.BaseManager.from_queryset(CommentQueryset)):
@@ -338,6 +356,26 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.short_body
+
+
+    def all_childs_pks(self, cur=None, pks=None):
+        if cur is None:
+            cur = self
+            pks = []
+        else:
+            pks.append(cur.pk)
+        for child in cur.childs.all():
+            self.all_childs_pks(cur=child, pks=pks)
+        return pks
+
+    @property
+    def all_childs(self):
+        return type(self).objects.filter(pk__in=self.all_childs_pks())
+
+    @property
+    def available_childs(self):
+        return self.all_childs.get_available()
+
 
     @property
     def short_body(self):
@@ -556,6 +594,8 @@ class UserProfile(SuperModel):
     # required by the auth model
     user = models.OneToOneField(User, related_name='user_profile')  # reverse returns single object, not queryset
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
+    image = MyImageField(verbose_name='Изображение', upload_to='user_profile',
+                         thumb_settings=settings.USER_PROFILE_THUMB_SETTINGS, null=True, blank=True)
 
     def __str__(self):
         return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)

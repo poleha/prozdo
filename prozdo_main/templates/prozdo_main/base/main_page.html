@@ -1,0 +1,11 @@
+{% extends 'prozdo_main/base/base.html' %}
+
+{% block content %}
+    <div class="row">
+<h2>Популярные препараты</h2>
+        {% for drug in popular_drugs %}
+   {% include 'prozdo_main/post/_drug_list_grid.html' with drug=drug %}
+{% endfor %}
+
+    </div>
+{% endblock content %}

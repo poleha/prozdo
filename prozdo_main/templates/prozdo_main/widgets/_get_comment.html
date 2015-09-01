@@ -4,7 +4,7 @@
 
 {% if comment.parent and not show_tree and comment.get_level == 1 %}
 <div>
-    <label>В ответ на:</label>{% include 'prozdo_main/widgets/_tiny_comment.html' with comment=comment.parent %}
+    <label>В ответ на:</label>{% include 'prozdo_main/widgets/../comment/_tiny_comment.html' with comment=comment.parent %}
 </div>
 {% endif %}
 {% if comment.user %}
@@ -50,18 +50,18 @@
 
  {% if comment.childs.get_available.exists and comment.get_level == 1%}
      {% if show_tree %}
-     <input type="button" class="show-comment-tree hidden" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.childs.count }})">
-    <input type="button" class="hide-comment-tree" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.childs.count }})">
+     <input type="button" class="show-comment-tree hidden" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_childs.count }})">
+    <input type="button" class="hide-comment-tree" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_childs.count }})">
 
      {% else %}
     {% if comment.childs.get_available.exists %}
         <div>Ответы на отзыв:</div>
          {% for child in comment.childs.get_available %}
-         {% include 'prozdo_main/widgets/_tiny_comment.html' with comment=child %}
+         {% include 'prozdo_main/comment/_tiny_comment.html' with comment=child %}
          {% endfor %}
 {% endif %}
-    <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.childs.count }})">
-    <input type="button" class="hide-comment-tree hidden" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.childs.count }})">
+    <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_childs.count }})">
+    <input type="button" class="hide-comment-tree hidden" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_childs.count }})">
      {% endif %}
 {% endif %}
 </div>

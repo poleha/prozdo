@@ -10,6 +10,9 @@ from django.http import JsonResponse, HttpResponse
 #from django.utils.decorators import method_decorator
 from django.conf import settings
 from prozdo_main.helper import cut_text
+from allauth.account.views import SignupView
+from django.db.models.aggregates import Sum, Count
+
 
 class PostDetail(generic.ListView):
     context_object_name = 'comments'
@@ -121,6 +124,7 @@ class DrugList(generic.ListView):
     template_name = 'prozdo_main/post/drug_list.html'
     model = models.Drug
     context_object_name = 'drugs'
+    paginate_by = settings.DRUG_LIST_PAGE_SIZE
 
 
 
@@ -240,5 +244,22 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
+class ProzdoSignupView(SignupView):
+    template_name = 'prozdo_main/user/signup.html'
+    form_class = forms.ProzdoSignupForm
 
 
+
+
+class MainPageView(generic.TemplateView):
+    template_name = 'prozdo_main/base/main_page.html'
+
+    def get_popular_drugs(self):
+        drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:18]
+        return drugs
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['popular_drugs'] = self.get_popular_drugs()
+        return context

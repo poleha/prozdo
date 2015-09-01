@@ -1,6 +1,9 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% block content %}
-{% for drug in drugs %}
-{{ drug }}
+<div class="clearfix">
+    {% for drug in drugs %}
+{% include 'prozdo_main/post/_drug_list_grid.html' with drug=drug %}
 {% endfor %}
+</div>
+ {% include 'prozdo_main/base/_pager.html' %}
 {% endblock content %}

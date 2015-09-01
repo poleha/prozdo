@@ -130,11 +130,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 #**************<<<<<
-POST_COMMENTS_PAGE_SIZE = 3
+POST_COMMENTS_PAGE_SIZE = 10
+DRUG_LIST_PAGE_SIZE = 10
 
-DRUG_THUMB_SETTINGS = {'thumb220': (220, 800)}
+DRUG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
 BLOG_THUMB_SETTINGS = {'thumb220': (220, 800)}
 COSMETICS_THUMB_SETTINGS = {'thumb220': (220, 800)}
+USER_PROFILE_THUMB_SETTINGS = {'thumb100': (100, 100)}
+
 
 BAD_WORDS = (
           '<',
@@ -194,3 +197,4 @@ AUTHENTICATION_BACKENDS = (
     # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+

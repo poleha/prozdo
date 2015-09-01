@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
 from prozdo_main import models
 
+"""
 components = []
 drug_dosage_forms = []
 drug_usage_areas = []
@@ -47,4 +48,19 @@ for n in range(10):
         body='body' + str(n),
 
     )
+
+
+
+from copy import deepcopy
+d = models.Drug.objects.get(pk=8)
+
+for i in range(15):
+    d.title = 'Тестовый препарат к {0}'.format(str(i))
+    d.alias = None
+    d.pk = None
+    d.id = None
+    d.save()
+
+"""
+
 
