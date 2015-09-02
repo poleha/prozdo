@@ -43,11 +43,11 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.vk',
-    'allauth.socialaccount.providers.twitter',
-    'allauth.socialaccount.providers.odnoklassniki',
-    'allauth.socialaccount.providers.openid',
-    'allauth.socialaccount.providers.google',
+    #'allauth.socialaccount.providers.vk',
+    #'allauth.socialaccount.providers.twitter',
+    #'allauth.socialaccount.providers.odnoklassniki',
+    #'allauth.socialaccount.providers.openid',
+    #'allauth.socialaccount.providers.google',
     #'allauth.socialaccount.providers.facebook',
 
     'prozdo_main',
@@ -79,6 +79,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'discount.context_processors.debug',
             ],
         },
     },
@@ -104,9 +105,9 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

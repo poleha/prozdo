@@ -1,0 +1,27 @@
+{% extends "prozdo_main/base/base.html" %}
+
+
+{% load account %}
+
+
+{% block content %}
+<div class="full-login">
+<h1>Войти</h1>
+
+<p>Если Вы еще не зарегистрированы, пожалуйста,
+<a href="{% url 'signup' %}">зарегистрируйтесь</a></p>
+
+
+<form class="login form" method="POST" action="{% url 'login' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+
+  <button class="primaryAction" type="submit">Войти</button>
+  <a class="forget button secondaryAction" href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+
+</form>
+</div>
+{% endblock %}

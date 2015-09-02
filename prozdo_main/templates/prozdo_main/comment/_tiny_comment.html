@@ -1,4 +1,10 @@
 <div class="tiny-comment">
+     <div>
+<a href="{{ comment.user.get_absolute_url }}">
+    <img src="{{ comment.user.image.thumb100 }}">
+    {{ comment.user }}</a>
+
+</div>
     <span class='tiny-comment-body'>{{ comment }}</span>
 <a href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>
 {% if not comment.body == comment.short_body %}

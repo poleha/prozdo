@@ -7,6 +7,7 @@ from django.utils.html import conditional_escape, format_html
 from django.utils.translation import ugettext_lazy
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from multi_image_upload.models import save_thumbs
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -114,7 +115,7 @@ def validate_username(value):
 
 
 
-from multi_image_upload.models import save_thumbs
+
 """
 class UserProfileForm(forms.ModelForm):
     class Meta:
@@ -145,3 +146,7 @@ class ProzdoSignupForm(SignupForm):
             save_thumbs(storage, settings.USER_PROFILE_THUMB_SETTINGS, path, 'discount_shop',  name)
         return user
 
+
+class DrugFilterForm(forms.Form):
+    dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
+    usage_areas = forms.ModelMultipleChoiceField(queryset=models.DrugUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)

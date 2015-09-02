@@ -19,9 +19,11 @@ urlpatterns = [
     url(r'^comment/show_marked_users_ajax', views.CommentShowMarkedUsersAjax.as_view(), name='comment-show-marked-users-ajax'),
 
     url(r'^signup', views.ProzdoSignupView.as_view(), name='signup'),
+    url(r'^login', views.ProzdoLoginView.as_view(), name='login'),
 
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
 ]
 
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), name='post-detail-alias'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})/comment/(?P<pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))

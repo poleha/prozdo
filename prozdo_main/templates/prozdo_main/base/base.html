@@ -4,7 +4,7 @@
 <html lang="ru">
 {% block head %}
  <head>
-    <meta charset="utf-8">
+     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
@@ -19,7 +19,28 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 <!-- Optional theme -->
 <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
- <link rel="stylesheet" type="text/css" href="{% static "prozdo_main/css/base.css" %}">
+
+    {% if debug %}
+     <!-- set options before less.js script -->
+<script>
+  less = {
+    env: "development",
+    async: false,
+    fileAsync: false,
+    poll: 1000,
+    functions: {},
+    dumpLineNumbers: "comments",
+  };
+</script>
+<link rel="stylesheet/less" type="text/css" href="{% static "prozdo_main/css/styles.less" %}" />
+<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.5.1/less.min.js"></script>
+
+    {% else %}
+    <link rel="stylesheet" type="text/css" href="{% static "prozdo_main/css/styles.css" %}">
+    {% endif %}
+
+
+
  </head>
 {% endblock head %}
 

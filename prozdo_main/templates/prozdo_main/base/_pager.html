@@ -1,7 +1,7 @@
 {% load prozdo_main_tags %}
-<div class="pagination">
+<div class="pager">
 
-        <ul class="inline-b">
+        <ul class="pagination">
         {% for page in paginator.page_range %}
 
         {% if page ==  page_obj.number %}
@@ -12,7 +12,11 @@
 
         {% else %}
         <li>
-        <a class="pager_link" id="pager-link-{{ page }}" href="{{ request.path }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
+         {% if url %}
+        <a class="pager_link" id="pager-link-{{ page }}" href="{{ url }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
+         {% else %}
+         <a class="pager_link" id="pager-link-{{ page }}" href="{{ request.path }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
+             {% endif %}
         {% endif %}
         </li>
         {% endfor %}

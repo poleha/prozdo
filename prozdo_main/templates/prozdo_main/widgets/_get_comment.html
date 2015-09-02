@@ -1,18 +1,31 @@
 {% load prozdo_main_tags %}
 <div class="single-comment single-comment-with-level-{{ comment.get_level }}">
 
+<a href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a>
+{% if comment.get_level == 1 %}
+<div id="c{{ comment.pk }}"></div>
 
-{% if comment.parent and not show_tree and comment.get_level == 1 %}
-<div>
-    <label>В ответ на:</label>{% include 'prozdo_main/widgets/../comment/_tiny_comment.html' with comment=comment.parent %}
+{% if comment.parent and not show_tree %}
+    <div>
+    <label>В ответ на:</label>{% include 'prozdo_main/comment/_tiny_comment.html' with comment=comment.parent %}
 </div>
 {% endif %}
-{% if comment.user %}
-<div> {% get_verbose_field_name comment 'user' %}: {{ comment.user }}</div>
+
 {% endif %}
-        <div> {% get_verbose_field_name comment 'username' %}:
+
+{% if comment.user %}
+<div>
+<a href="{{ comment.user.get_absolute_url }}">
+    <img src="{{ comment.user.image.thumb100 }}">
+    {{ comment.user }}</a>
+
+</div>
+{% else %}
+
             {{ comment.username }}
         </div>
+{% endif %}
+
         <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.body }}</span></div>
 
 

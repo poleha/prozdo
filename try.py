@@ -63,4 +63,5 @@ for i in range(15):
 
 """
 
-
+c = models.Comment.objects.get(pk=26)
+page = c.page

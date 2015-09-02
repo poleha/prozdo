@@ -1,6 +1,10 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% block content %}
-<div class="clearfix">
+<form>
+    {{   drug_filter_form }}
+    <input type="submit">
+</form>
+    <div class="clearfix">
     {% for drug in drugs %}
 {% include 'prozdo_main/post/_drug_list_grid.html' with drug=drug %}
 {% endfor %}

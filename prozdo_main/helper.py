@@ -158,3 +158,7 @@ def comment_author_ok(text):
         return False
     else:
         return True
+
+
+def myround(x, base):
+    return int(base * round(float(x)/base))

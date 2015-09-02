@@ -10,7 +10,7 @@ from django.http import JsonResponse, HttpResponse
 #from django.utils.decorators import method_decorator
 from django.conf import settings
 from prozdo_main.helper import cut_text
-from allauth.account.views import SignupView
+from allauth.account.views import SignupView, LoginView
 from django.db.models.aggregates import Sum, Count
 
 
@@ -54,6 +54,7 @@ class PostDetail(generic.ListView):
 
     def get(self, request, *args, **kwargs):
         self.set_obj()
+        self.set_comment_page()
         return super().get(request, *args, **kwargs)
 
 
@@ -66,6 +67,11 @@ class PostDetail(generic.ListView):
             post = get_object_or_404(models.Post, pk=pk)
         self.post = post
         self.obj = post.obj
+
+    def set_comment_page(self):
+        if self.kwargs['action'] == 'comment':
+            comment = models.Comment.objects.get(pk=self.kwargs['pk'])
+            self.kwargs[self.page_kwarg] = comment.page
 
     def get_context_data(self, comment_form=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -125,6 +131,33 @@ class DrugList(generic.ListView):
     model = models.Drug
     context_object_name = 'drugs'
     paginate_by = settings.DRUG_LIST_PAGE_SIZE
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['drug_filter_form'] = self.get_drug_filter_form()
+        return context
+
+    def get_queryset(self):
+        drug_filter_form = self.get_drug_filter_form()
+        drug_filter_form.full_clean()
+        dosage_forms = drug_filter_form.cleaned_data['dosage_forms']
+        usage_areas = drug_filter_form.cleaned_data['usage_areas']
+        queryset = super().get_queryset()
+        if dosage_forms.exists():
+            queryset = queryset.filter(dosage_forms__in=dosage_forms)
+        if usage_areas.exists():
+            queryset = queryset.filter(usage_areas__in=usage_areas)
+        return queryset
+
+
+
+    def get_drug_filter_form(self):
+        if not hasattr(self, '_drug_filter_form'):
+            self._drug_filter_form = forms.DrugFilterForm(self.request.GET)
+        return self._drug_filter_form
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 
@@ -247,6 +280,10 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
 class ProzdoSignupView(SignupView):
     template_name = 'prozdo_main/user/signup.html'
     form_class = forms.ProzdoSignupForm
+
+class ProzdoLoginView(LoginView):
+    template_name = 'prozdo_main/user/login.html'
+    #form_class = forms.ProzdoSignupForm
 
 
 

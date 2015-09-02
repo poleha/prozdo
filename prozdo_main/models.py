@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
 from multi_image_upload.models import MyImageField
 from django.conf import settings
+from math import ceil
 
 
 #<Constants***********************************************************
@@ -358,6 +359,19 @@ class Comment(models.Model):
         return self.short_body
 
 
+    @property
+    def page(self):
+        comments = self.post.comments.get_available().order_by('-created')
+        #count = comments.count()
+        #pages_count = ceil(count / page_size)
+        page_size = settings.POST_COMMENTS_PAGE_SIZE
+        comments_tuple = tuple(comments)
+        index = comments_tuple.index(self) + 1
+        current_page = ceil(index / page_size)
+        return current_page
+
+
+
     def all_childs_pks(self, cur=None, pks=None):
         if cur is None:
             cur = self
@@ -410,7 +424,7 @@ class Comment(models.Model):
         return tree
 
     def get_absolute_url(self):
-        return self.post.get_absolute_url()
+        return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
 
 
     def get_status(self):
@@ -631,5 +645,10 @@ def is_regular(self):
     else:
         return False
 
+def get_user_image(self):
+    return self.user_profile.image
+
 User.is_regular = property(is_regular)
+User.image = property(get_user_image)
 AnonymousUser.is_regular = True
+AnonymousUser.image = None
