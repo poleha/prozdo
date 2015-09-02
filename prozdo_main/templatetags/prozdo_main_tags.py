@@ -4,6 +4,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse
+from string import ascii_lowercase, digits
+from collections import OrderedDict
 
 register = template.Library()
 
@@ -130,3 +132,18 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
             params += '&page=' + str(page)
     return params
 
+
+@register.inclusion_tag('prozdo_main/widgets/_post_alphabet.html')
+def post_alphabet(post_type_text):
+    if post_type_text == 'drug':
+        post_type = models.POST_TYPE_DRUG
+        url = reverse('drug-list')
+    alph = OrderedDict()
+    letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
+    for letter in letters:
+        posts = models.Post.objects.filter(post_type=post_type, title__istartswith=letter)
+        count = posts.count()
+        if count > 0:
+            alph[letter] = count
+    total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
+    return {'alph': alph, 'url': url, 'total_count': total_count}

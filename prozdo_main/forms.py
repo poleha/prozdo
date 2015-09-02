@@ -10,6 +10,7 @@ from django.core.files.storage import FileSystemStorage
 from multi_image_upload.models import save_thumbs
 
 class CommentForm(forms.ModelForm):
+    required_css_class = 'required'
     class Meta:
         model = models.Comment
         fields = ('username', 'email', 'body','post_mark', 'consult_required', 'parent' )
@@ -31,8 +32,6 @@ class CommentForm(forms.ModelForm):
 
         if post.get_mark_by_request(request):
             del self.fields['post_mark']
-
-
 
 
 COMMENTS_ORDER_BY_CREATED_DEC = 1
@@ -125,7 +124,7 @@ class UserProfileForm(forms.ModelForm):
 
 class ProzdoSignupForm(SignupForm):
     required_css_class = 'required'
-    image = forms.ImageField(label='Изображение', widget=KulikImageClearableFileInput(thumb_name='thumb100', attrs={'class': 'image-input'}))
+    image = forms.ImageField(label='Изображение', widget=KulikImageClearableFileInput(thumb_name='thumb100', attrs={'class': 'image-input'}), required=False)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

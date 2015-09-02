@@ -1,0 +1,6 @@
+<form>
+{% for letter, count in alph.items %}
+    <a class="btn btn-success" href="{{ url }}/?letter={{ letter }}">{{ letter }}({{ count }})</a>
+{% endfor %}
+<a class="btn btn-success" href="{{ url }}">Все({{ total_count }})</a>
+</form>

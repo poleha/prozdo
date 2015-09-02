@@ -147,6 +147,10 @@ class DrugList(generic.ListView):
             queryset = queryset.filter(dosage_forms__in=dosage_forms)
         if usage_areas.exists():
             queryset = queryset.filter(usage_areas__in=usage_areas)
+
+        letter = self.request.GET.get('letter', None)
+        if letter:
+            queryset = queryset.filter(title__istartswith=letter)
         return queryset
 
 

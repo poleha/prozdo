@@ -295,7 +295,7 @@ class Drug(Post):
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
-    components = models.ManyToManyField(Component, verbose_name='Состав')
+    components = models.ManyToManyField(Component, verbose_name='Состав', blank=True)
     objects = PostManager()
 
 

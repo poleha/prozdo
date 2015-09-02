@@ -23,7 +23,7 @@
 {% else %}
 
             {{ comment.username }}
-        </div>
+
 {% endif %}
 
         <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_level }}-pk-{{ comment.pk }}">{{ comment.body }}</span></div>
@@ -63,20 +63,25 @@
 
  {% if comment.childs.get_available.exists and comment.get_level == 1%}
      {% if show_tree %}
+         <div>
      <input type="button" class="show-comment-tree hidden" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_childs.count }})">
     <input type="button" class="hide-comment-tree" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_childs.count }})">
-
+        </div>
      {% else %}
+
     {% if comment.childs.get_available.exists %}
-        <div>Ответы на отзыв:</div>
+        <div>
+        <label>Ответы на отзыв:</label>
          {% for child in comment.childs.get_available %}
          {% include 'prozdo_main/comment/_tiny_comment.html' with comment=child %}
+         </div>
          {% endfor %}
+
 {% endif %}
     <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_childs.count }})">
     <input type="button" class="hide-comment-tree hidden" id="hide-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_childs.count }})">
      {% endif %}
 {% endif %}
-</div>
 
+</div>
 
