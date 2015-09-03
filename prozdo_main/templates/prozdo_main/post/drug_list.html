@@ -1,10 +1,12 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% load prozdo_main_tags %}
 {% block content %}
-<form>
+<div>
+    <form>
     {{   drug_filter_form }}
-    <input type="submit">
+    <input type="submit" class="btn btn-success">
 </form>
+</div>
     {% post_alphabet 'drug' %}
     <div class="clearfix">
     {% for drug in drugs %}

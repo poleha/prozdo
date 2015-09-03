@@ -137,7 +137,6 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
 def post_alphabet(post_type_text):
     if post_type_text == 'drug':
         post_type = models.POST_TYPE_DRUG
-        url = reverse('drug-list')
     alph = OrderedDict()
     letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
     for letter in letters:
@@ -146,4 +145,8 @@ def post_alphabet(post_type_text):
         if count > 0:
             alph[letter] = count
     total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
-    return {'alph': alph, 'url': url, 'total_count': total_count}
+    return {'alph': alph, 'total_count': total_count}
+
+@register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
+def user_detail(user):
+    return {'user': user}

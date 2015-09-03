@@ -7,11 +7,10 @@ from django.db import transaction
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
-#from django.utils.decorators import method_decorator
 from django.conf import settings
-from prozdo_main.helper import cut_text
-from allauth.account.views import SignupView, LoginView
+from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
 from django.db.models.aggregates import Sum, Count
+from django.core.urlresolvers import reverse_lazy
 
 
 class PostDetail(generic.ListView):
@@ -148,7 +147,7 @@ class DrugList(generic.ListView):
         if usage_areas.exists():
             queryset = queryset.filter(usage_areas__in=usage_areas)
 
-        letter = self.request.GET.get('letter', None)
+        letter = self.kwargs.get('letter', None)
         if letter:
             queryset = queryset.filter(title__istartswith=letter)
         return queryset
@@ -281,15 +280,6 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-class ProzdoSignupView(SignupView):
-    template_name = 'prozdo_main/user/signup.html'
-    form_class = forms.ProzdoSignupForm
-
-class ProzdoLoginView(LoginView):
-    template_name = 'prozdo_main/user/login.html'
-    #form_class = forms.ProzdoSignupForm
-
-
 
 
 class MainPageView(generic.TemplateView):
@@ -303,4 +293,126 @@ class MainPageView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_drugs'] = self.get_popular_drugs()
+        return context
+
+#*********************************<Account
+
+class ProzdoSignupView(SignupView):
+    template_name = 'prozdo_main/user/signup.html'
+    form_class = forms.ProzdoSignupForm
+
+class ProzdoLoginView(LoginView):
+    template_name = 'prozdo_main/user/login.html'
+    #form_class = forms.ProzdoSignupForm
+
+
+class ProzdoLogoutView(LogoutView):
+    pass
+
+
+class ProzdoPasswordChangeView(PasswordChangeView):
+    template_name = 'prozdo_main/user/password_change.html'
+    success_url = reverse_lazy("user-profile")
+
+class ProzdoPasswordResetView(PasswordResetView):
+    template_name = 'prozdo_main/user/password_reset.html'
+    success_url = reverse_lazy("password-reset-done")
+
+class ProzdoPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'prozdo_main/user/password_reset_done.html'
+
+
+
+class ProzdoPasswordResetFromKeyView(PasswordResetFromKeyView):
+    template_name = 'prozdo_main/user/password_reset_from_key.html'
+    success_url = reverse_lazy('password-reset-from-key-done')
+
+
+class ProzdoPasswordResetFromKeyDoneView(PasswordResetFromKeyDoneView):
+    template_name = 'prozdo_main/user/password_reset_from_key_done.html'
+
+
+
+#*********************************Account>
+
+
+class UserProfileView(generic.TemplateView):
+    template_name = 'prozdo_main/user/user_profile.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated():
+            return HttpResponseRedirect(reverse_lazy('login'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, form=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_profile = self.request.user.user_profile
+        context['user'] = user
+        #context['user_profile'] = user_profile
+        if form is None:
+            form = forms.UserProfileForm(instance=user_profile)
+        context['form'] = form
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        user_profile = self.request.user.user_profile
+        form = forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('user-profile'))
+        else:
+            return self.render_to_response(self.get_context_data(form=form, **kwargs))
+
+
+class UserDetailView(generic.TemplateView):
+    template_name = 'prozdo_main/user/user_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        context['current_user'] = user
+        #context['comments'] = user.comments.get_available()
+        return context
+
+
+class UserCommentsView(generic.ListView):
+    template_name = 'prozdo_main/user/user_comments.html'
+    context_object_name = 'comments'
+    paginate_by = 5
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        return user.comments.get_available().order_by('-created')
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        context['current_user'] = user
+
+        return context
+
+class UserKarmaView(generic.ListView):
+    template_name = 'prozdo_main/user/user_karma.html'
+    context_object_name = 'hists'
+    paginate_by = 5
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        return user.karm_history
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        context['current_user'] = user
         return context

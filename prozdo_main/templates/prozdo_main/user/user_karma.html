@@ -1,0 +1,32 @@
+{% extends 'prozdo_main/base/base.html' %}
+{% load prozdo_main_tags %}
+{% block content %}
+{% user_detail current_user%}
+<a href="{% url 'user-comments' current_user.pk %}">Отзывы</a>
+<a href="{% url 'user-karma' current_user.pk %}">Карма</a>
+
+
+<div>
+<h2>Карма</h2>
+ <table class="table">
+ <thead>
+ <tr>
+     <th>Дата</th><th>Отзыв</th><th>Тема</th><th>Пользователь</th>
+ </tr>
+ </thead>
+ <tbody>
+     {% for hist in current_user.karm_history %}
+<tr>
+<td>{{ hist.created }}</td>
+<td><a href="{{ hist.comment.get_absolute_url }}">{{ hist.comment }}</a></td>
+<td><a href="{{ hist.post.get_absolute_url }}">{{ hist.post }}</a></td>
+<td><a href="{{ hist.user.get_absolute_url }}">{{ hist.user }}</a></td>
+</tr>
+
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+
+{% include 'prozdo_main/base/_pager.html' %}
+{% endblock content %}

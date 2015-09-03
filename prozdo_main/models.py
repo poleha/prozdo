@@ -2,13 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, pre_save
 from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok
-from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
 from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
-
+from django.core.urlresolvers import reverse_lazy
 
 #<Constants***********************************************************
 
@@ -189,9 +188,9 @@ class Post(AbstractModel):
     def get_absolute_url(self):
         alias = self.alias
         if alias:
-            return reverse('post-detail-alias', kwargs={'alias': alias})
+            return reverse_lazy('post-detail-alias', kwargs={'alias': alias})
         else:
-            return reverse('post-detail-pk', kwargs={'pk': self.pk})
+            return reverse_lazy('post-detail-pk', kwargs={'pk': self.pk})
 
     def get_mark_by_request(self, request):
         user = request.user
@@ -347,7 +346,7 @@ class Comment(models.Model):
     body = models.TextField(verbose_name='Сообщение')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, null=True, blank=True)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='comments')
     ip = models.CharField(max_length=15)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
     parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True, related_name='childs')
@@ -541,6 +540,7 @@ class History(models.Model):
     def __str__(self):
         return "{0} - {1} - {2}".format(self.history_type, self.post, self.comment)
 
+
     @staticmethod
     def save_history(history_type, post, user=None, ip=None, comment=None, mark=None):
         if hasattr(post, 'user'):
@@ -610,6 +610,9 @@ class UserProfile(SuperModel):
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
     image = MyImageField(verbose_name='Изображение', upload_to='user_profile',
                          thumb_settings=settings.USER_PROFILE_THUMB_SETTINGS, null=True, blank=True)
+    receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True)
+    first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
+    last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
 
     def __str__(self):
         return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)
@@ -648,7 +651,20 @@ def is_regular(self):
 def get_user_image(self):
     return self.user_profile.image
 
+
+def karm_history(self):
+    hists = History.objects.filter(author=self, author_points__gt=0)
+    return hists
+
+def get_user_activity(self):
+    return History.objects.filter(user=self).count()
+
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
+User.karm_history = property(karm_history)
+User.get_karm = property(lambda self: self.karm_history.count())
+User.get_absolute_url = lambda self: reverse_lazy('user-detail', kwargs={'pk': self.pk})
+User.activity = property(get_user_activity)
+
 AnonymousUser.is_regular = True
 AnonymousUser.image = None

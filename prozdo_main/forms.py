@@ -60,43 +60,26 @@ class CommentsOptionsForm(forms.Form):
 
 
 
-class KulikImageClearableFileInput(forms.FileInput):
-    initial_text = ''
-    input_text = ugettext_lazy('Change')
-    clear_checkbox_label = ugettext_lazy('Clear')
+class ProzdoImageClearableFileInput(forms.ClearableFileInput):
+    template_with_initial = (
+        '%(initial_text)s: <img src="%(initial_url)s"> '
+        '%(clear_template)s<br />%(input_text)s: %(input)s'
+    )
 
-    template_with_initial = '<div class="image-initial-block">%(initial)s </div> <div class="image-input-block">%(clear_template)s<label class="image-input-label">%(input_text)s:</label> %(input)s</div>'
+    def get_template_substitution_values(self, value):
+        """
+        Return value-related substitutions.
+        """
+        return {
+            'initial': conditional_escape(value),
+            'initial_url': conditional_escape(getattr(value, self._thumb_name)),
+        }
 
-    #template_with_clear = '%(clear)s <label for="%(clear_checkbox_id)s">%(clear_checkbox_label)s</label>'
-
-    url_markup_template = '<img src="{0}" id="{1}">' #1191
 
     def __init__(self, thumb_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._thumb_name = thumb_name
 
-    def render(self, name, value, attrs=None):
-        substitutions = {
-            'initial_text': self.initial_text,
-            'input_text': self.input_text,
-            'clear_template': '',
-            'clear_checkbox_label': '', #self.clear_checkbox_label,
-        }
-        template = '%(input)s'
-        substitutions['input'] = super().render(name, value, attrs)
-
-        if value and hasattr(value, "url"):
-            template = self.template_with_initial
-            substitutions['initial'] = format_html(self.url_markup_template, getattr(value, self._thumb_name), name + '-image') #1191
-            if not self.is_required:
-                checkbox_name = self.clear_checkbox_name(name)
-                checkbox_id = self.clear_checkbox_id(checkbox_name)
-                substitutions['clear_checkbox_name'] = conditional_escape(checkbox_name)
-                substitutions['clear_checkbox_id'] = conditional_escape(checkbox_id)
-                substitutions['clear'] = forms.CheckboxInput().render(checkbox_name, False, attrs={'id': checkbox_id})
-                substitutions['clear_template'] = self.template_with_clear % substitutions
-
-        return forms.widgets.mark_safe(template % substitutions)
 
 
 def validate_first_is_letter(value):
@@ -124,7 +107,7 @@ class UserProfileForm(forms.ModelForm):
 
 class ProzdoSignupForm(SignupForm):
     required_css_class = 'required'
-    image = forms.ImageField(label='Изображение', widget=KulikImageClearableFileInput(thumb_name='thumb100', attrs={'class': 'image-input'}), required=False)
+    image = forms.ImageField(label='Изображение', required=False)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -149,3 +132,11 @@ class ProzdoSignupForm(SignupForm):
 class DrugFilterForm(forms.Form):
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.DrugUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = models.UserProfile
+        exclude = ('role', 'user' )
+
+    image = forms.ImageField(label='Изображение', widget=ProzdoImageClearableFileInput(thumb_name='thumb100'), required=False)

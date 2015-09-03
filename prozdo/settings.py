@@ -71,7 +71,7 @@ ROOT_URLCONF = 'prozdo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'prozdo_main/templates/prozdo_main')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
