@@ -106,8 +106,6 @@ def top_menu():
     return res
 
 
-
-
 @register.simple_tag(takes_context=True)
 def get_get_parameters_exclude(context, exclude=('page', ), page=None):
     request = context['request']
