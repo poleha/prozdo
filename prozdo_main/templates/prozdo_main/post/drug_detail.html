@@ -7,6 +7,10 @@
  <div id="full-drug">
  <input id="drug-pk" type="hidden" value="{{ obj.pk }}">
  <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
+{% if user.is_admin or user.is_author %}
+    <a href="{% url 'drug-update' obj.pk %}">Редактировать</a>
+
+    {% endif %}
     <div class="row">
 <div class="col-lg-6 col-md-6">
 

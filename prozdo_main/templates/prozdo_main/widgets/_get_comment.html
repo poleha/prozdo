@@ -74,8 +74,8 @@
         <label>Ответы на отзыв:</label>
          {% for child in comment.childs.get_available %}
          {% include 'prozdo_main/comment/_tiny_comment.html' with comment=child %}
-         </div>
          {% endfor %}
+        </div>
 
 {% endif %}
     <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_childs.count }})">

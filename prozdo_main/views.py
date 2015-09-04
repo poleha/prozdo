@@ -416,3 +416,28 @@ class UserKarmaView(generic.ListView):
         user = models.User.objects.get(pk=pk)
         context['current_user'] = user
         return context
+
+
+def restrict_by_role_mixin(role):
+    class RoleOnlyMixin:
+        def dispatch(self, request, *args, **kwargs):
+            user = request.user
+            if not user.is_authenticated:
+                return HttpResponseRedirect('login')
+            elif not user.user_profile.role == role:
+                return HttpResponseRedirect('main-page')
+            return super().dispatch(request, *args, **kwargs)
+    return RoleOnlyMixin
+
+
+class DrugCreate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.CreateView):
+    template_name ='prozdo_main/post/drug_create.html'
+    model = models.Drug
+    form_class = forms.DrugForm
+
+
+class DrugUpdate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.UpdateView):
+    template_name ='prozdo_main/post/drug_create.html'
+    model = models.Drug
+    form_class = forms.DrugForm
+

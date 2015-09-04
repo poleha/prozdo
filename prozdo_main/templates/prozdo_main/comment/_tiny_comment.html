@@ -1,9 +1,12 @@
 <div class="tiny-comment">
      <div>
-<a href="{{ comment.user.get_absolute_url }}">
+{% if comment.user %}
+         <a href="{{ comment.user.get_absolute_url }}">
     <img src="{{ comment.user.image.thumb100 }}">
     {{ comment.user }}</a>
-
+    {% else %}
+    {{ comment.username }}
+{% endif %}
 </div>
     <span class='tiny-comment-body'>{{ comment }}</span>
 <a href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>

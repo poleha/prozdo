@@ -140,3 +140,15 @@ class UserProfileForm(forms.ModelForm):
         exclude = ('role', 'user' )
 
     image = forms.ImageField(label='Изображение', widget=ProzdoImageClearableFileInput(thumb_name='thumb100'), required=False)
+
+class DrugForm(forms.ModelForm):
+    class Meta:
+        model = models.Drug
+        exclude = ('post_type', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['dosage_forms'].widget = forms.CheckboxSelectMultiple(choices=self.fields['dosage_forms'].widget.choices)
+        self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
+        self.fields['components'].widget = forms.CheckboxSelectMultiple(choices=self.fields['components'].widget.choices)
+        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')

@@ -128,7 +128,10 @@ class MyImageFieldFile(ImageFieldFile):
         self.short_name = os.path.split(name_jpg)[-1]
         if self.instance.id is not None:
             #old_file1 = self.instance.__dict__.get(self.field.name)  #Не сработает, т.к. instance тут уже после изменений
-            old_model = self.instance.__class__.objects.get(pk=self.instance.id)
+            try:
+                old_model = self.instance.__class__.objects.get(pk=self.instance.id)
+            except:
+                old_model = None
             if old_model:
                 old_file = getattr(old_model, self.field.attname)
                 if old_file.name != '':

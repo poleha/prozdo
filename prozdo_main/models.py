@@ -127,7 +127,7 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
 
 
 class Post(AbstractModel):
-    alias = models.CharField(max_length=800, blank=True)
+    alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним')
     post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
     objects = PostManager()
@@ -665,6 +665,11 @@ User.karm_history = property(karm_history)
 User.get_karm = property(lambda self: self.karm_history.count())
 User.get_absolute_url = lambda self: reverse_lazy('user-detail', kwargs={'pk': self.pk})
 User.activity = property(get_user_activity)
+
+User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)
+User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHOR)
+User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGULAR)
+User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
 
 AnonymousUser.is_regular = True
 AnonymousUser.image = None
