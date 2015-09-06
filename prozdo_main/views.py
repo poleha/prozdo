@@ -414,36 +414,43 @@ class UserKarmaView(generic.ListView):
 
 
 def restrict_by_role_mixin(role):
-    class RoleOnlyMixin:
+    class RoleOnlyMixin():
         def dispatch(self, request, *args, **kwargs):
             user = request.user
-            if not user.is_authenticated:
-                return HttpResponseRedirect('login')
+            if not user.is_authenticated():
+                return HttpResponseRedirect(reverse_lazy('login'))
             elif not user.user_profile.role == role:
                 return HttpResponseRedirect('main-page')
             return super().dispatch(request, *args, **kwargs)
     return RoleOnlyMixin
 
 
-class PostCreate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.CreateView):
-    template_name ='prozdo_main/post/drug_create.html'
-    form_class = forms.DrugForm
-
-    def get_object(self, queryset=None):
+class PostCreateUpdateMixin(restrict_by_role_mixin(models.USER_ROLE_ADMIN)):
+    def set_model(self):
         if self.kwargs['post_type'] == 'drug':
             self.model =  models.Drug
         elif self.kwargs['post_type'] == 'cosmetics':
             self.model = models.Cosmetics
-        return super().get_object(queryset=queryset)
-
-
-class PostUpdate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.UpdateView):
-    template_name ='prozdo_main/post/drug_create.html'
-    form_class = forms.DrugForm
-
-    def get_object(self, queryset=None):
-        if self.kwargs['post_type'] == 'drug':
-            self.model =  models.Drug
-        elif self.kwargs['post_type'] == 'cosmetics':
+        elif self.kwargs['post_type'] == 'blog':
             self.model = models.Cosmetics
-        return super().get_object(queryset=queryset)
+
+
+    def dispatch(self, request, *args, **kwargs):
+        self.set_model()
+        return super().dispatch(request, args, **kwargs)
+
+    def get_form_class(self):
+        if self.model == models.Drug:
+            return forms.DrugForm
+        elif self.model == models.Cosmetics:
+            return forms.CosmeticsForm
+        elif self.model == models.Blog:
+            return forms.BlogForm
+
+class PostCreate(PostCreateUpdateMixin, generic.CreateView):
+    template_name ='prozdo_main/post/post_create.html'
+
+
+class PostUpdate(PostCreateUpdateMixin, generic.UpdateView):
+    template_name ='prozdo_main/post/post_create.html'
+

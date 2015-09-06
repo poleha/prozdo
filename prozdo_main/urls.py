@@ -14,6 +14,10 @@ urlpatterns = [
     url(r'^cosmetics/create$', views.PostCreate.as_view(), name='cosmetics-create', kwargs={'post_type': 'cosmetics'}),
     url(r'^cosmetics/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='cosmetics-update', kwargs={'post_type': 'cosmetics'}),
 
+    url(r'^blog/list$', views.PostList.as_view(), name='blog-list', kwargs={'post_type': 'blog'}),
+    url(r'^blog/create$', views.PostCreate.as_view(), name='blog-create', kwargs={'post_type': 'blog'}),
+    url(r'^blog/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='blog-update', kwargs={'post_type': 'blog'}),
+
 
     url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), name='post-detail-pk'),
 

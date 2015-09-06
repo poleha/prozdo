@@ -152,3 +152,23 @@ class DrugForm(forms.ModelForm):
         self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
         self.fields['components'].widget = forms.CheckboxSelectMultiple(choices=self.fields['components'].widget.choices)
         self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+
+class CosmeticsForm(forms.ModelForm):
+    class Meta:
+        model = models.Cosmetics
+        exclude = ('post_type', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['dosage_forms'].widget = forms.CheckboxSelectMultiple(choices=self.fields['dosage_forms'].widget.choices)
+        self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
+        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+
+class BlogForm(forms.ModelForm):
+    class Meta:
+        model = models.Blog
+        exclude = ('post_type', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
