@@ -43,3 +43,22 @@ class HistoryAdmin(admin.ModelAdmin):
 @admin.register(models.UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(models.Brand)
+class BrandAdmin(PostAdminMixin):
+    pass
+
+
+@admin.register(models.CosmeticsUsageArea)
+class CosmeticsUsageAreaAdmin(PostAdminMixin):
+    pass
+
+@admin.register(models.CosmeticsDosageForm)
+class CosmeticsDosageFormAdmin(PostAdminMixin):
+    pass
+
+
+@admin.register(models.CosmeticsLine)
+class CosmeticsLineAdmin(PostAdminMixin):
+    pass

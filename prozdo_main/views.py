@@ -16,6 +16,7 @@ from django.core.urlresolvers import reverse_lazy
 class PostDetail(generic.ListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
+    template_name = 'prozdo_main/post/post_detail.html'
 
     def get_queryset(self):
         request = self.request
@@ -39,17 +40,17 @@ class PostDetail(generic.ListView):
 
         return comments
 
-    def get_template_names(self):
-        if self.obj.post_type == models.POST_TYPE_DRUG:
-            return 'prozdo_main/post/drug_detail.html'
-        elif self.obj.post_type == models.POST_TYPE_COMPONENT:
-            return 'prozdo_main/post/component_detail.html'
-        elif self.obj.post_type == models.POST_TYPE_BLOG:
-            return 'prozdo_main/post/blog_detail.html'
-        elif self.obj.post_type == models.POST_TYPE_FORUM:
-            return 'prozdo_main/post/forum_detail.html'
-        elif self.obj.post_type == models.POST_TYPE_COSMETICS:
-            return 'prozdo_main/post/cosmetics_detail.html'
+    #def get_template_names(self):
+        #if self.obj.post_type == models.POST_TYPE_DRUG:
+        #    return 'prozdo_main/post/drug_detail.html'
+        #elif self.obj.post_type == models.POST_TYPE_COMPONENT:
+        #    return 'prozdo_main/post/component_detail.html'
+        #elif self.obj.post_type == models.POST_TYPE_BLOG:
+        #    return 'prozdo_main/post/blog_detail.html'
+        #elif self.obj.post_type == models.POST_TYPE_FORUM:
+        #    return 'prozdo_main/post/forum_detail.html'
+        #elif self.obj.post_type == models.POST_TYPE_COSMETICS:
+        #    return 'prozdo_main/post/cosmetics_detail.html'
 
     def get(self, request, *args, **kwargs):
         self.set_obj()
@@ -125,43 +126,68 @@ class PostDetail(generic.ListView):
                 return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
 
 
-class PostList(generic.ListView):
-    template_name = 'prozdo_main/post/drug_list.html'
-    model = models.Drug
-    context_object_name = 'drugs'
-    paginate_by = settings.DRUG_LIST_PAGE_SIZE
+class PostViewMixin:
+    def set_model(self):
+        if self.kwargs['post_type'] == 'drug':
+            self.model =  models.Drug
+        elif self.kwargs['post_type'] == 'cosmetics':
+            self.model = models.Cosmetics
+        elif self.kwargs['post_type'] == 'blog':
+            self.model = models.Blog
+        elif self.kwargs['post_type'] == 'component':
+            self.model = models.Component
+
+
+    def dispatch(self, request, *args, **kwargs):
+        self.set_model()
+        return super().dispatch(request, args, **kwargs)
+
+
+class PostList(PostViewMixin, generic.ListView):
+    template_name = 'prozdo_main/post/post_list.html'
+    context_object_name = 'objs'
+    paginate_by = settings.POST_LIST_PAGE_SIZE
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['drug_filter_form'] = self.get_drug_filter_form()
+        if self.model == models.Drug:
+            context['filter_form'] = self.get_drug_filter_form()
+            context['post_type'] = 'drug'
+        elif self.model == models.Cosmetics:
+            context['filter_form'] = self.get_cosmetics_filter_form()
+            context['post_type'] = 'cosmetics'
+        elif self.model == models.Component:
+            context['post_type'] = 'component'
+        elif self.model == models.Blog:
+            context['post_type'] = 'blog'
         return context
 
     def get_queryset(self):
-        drug_filter_form = self.get_drug_filter_form()
-        drug_filter_form.full_clean()
-        dosage_forms = drug_filter_form.cleaned_data['dosage_forms']
-        usage_areas = drug_filter_form.cleaned_data['usage_areas']
         queryset = super().get_queryset()
-        if dosage_forms.exists():
-            queryset = queryset.filter(dosage_forms__in=dosage_forms)
-        if usage_areas.exists():
-            queryset = queryset.filter(usage_areas__in=usage_areas)
+        if self.model == models.Drug:
+            drug_filter_form = self.get_drug_filter_form()
+            drug_filter_form.full_clean()
+            dosage_forms = drug_filter_form.cleaned_data['dosage_forms']
+            usage_areas = drug_filter_form.cleaned_data['usage_areas']
+            if dosage_forms.exists():
+                queryset = queryset.filter(dosage_forms__in=dosage_forms)
+            if usage_areas.exists():
+                queryset = queryset.filter(usage_areas__in=usage_areas)
 
-        letter = self.kwargs.get('letter', None)
-        if letter:
-            queryset = queryset.filter(title__istartswith=letter)
+            letter = self.kwargs.get('letter', None)
+            if letter:
+                queryset = queryset.filter(title__istartswith=letter)
         return queryset
-
-
 
     def get_drug_filter_form(self):
         if not hasattr(self, '_drug_filter_form'):
             self._drug_filter_form = forms.DrugFilterForm(self.request.GET)
         return self._drug_filter_form
 
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
+    def get_cosmetics_filter_form(self):
+        if not hasattr(self, '_cosmetics_filter_form'):
+            self._cosmetics_filter_form = forms.CosmeticsFilterForm(self.request.GET)
+        return self._cosmetics_filter_form
 
 
 class HistoryAjaxSave(generic.View):
@@ -318,8 +344,6 @@ class ProzdoPasswordResetView(PasswordResetView):
 class ProzdoPasswordResetDoneView(PasswordResetDoneView):
     template_name = 'prozdo_main/user/password_reset_done.html'
 
-
-
 class ProzdoPasswordResetFromKeyView(PasswordResetFromKeyView):
     template_name = 'prozdo_main/user/password_reset_from_key.html'
     success_url = reverse_lazy('password-reset-from-key-done')
@@ -425,20 +449,8 @@ def restrict_by_role_mixin(role):
     return RoleOnlyMixin
 
 
-class PostCreateUpdateMixin(restrict_by_role_mixin(models.USER_ROLE_ADMIN)):
-    def set_model(self):
-        if self.kwargs['post_type'] == 'drug':
-            self.model =  models.Drug
-        elif self.kwargs['post_type'] == 'cosmetics':
-            self.model = models.Cosmetics
-        elif self.kwargs['post_type'] == 'blog':
-            self.model = models.Cosmetics
 
-
-    def dispatch(self, request, *args, **kwargs):
-        self.set_model()
-        return super().dispatch(request, args, **kwargs)
-
+class PostCreateUpdateMixin(restrict_by_role_mixin(models.USER_ROLE_ADMIN), PostViewMixin):
     def get_form_class(self):
         if self.model == models.Drug:
             return forms.DrugForm

@@ -4,7 +4,7 @@
     <div class="row">
 <h2>Популярные препараты</h2>
         {% for drug in popular_drugs %}
-   {% include 'prozdo_main/post/_drug_list_grid.html' with drug=drug %}
+   {% include 'prozdo_main/post/_post_list_grid.html' with obj=drug %}
 {% endfor %}
 
     </div>

@@ -3,7 +3,7 @@ from prozdo_main import models
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.aggregates import Count
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy
 from string import ascii_lowercase, digits
 from collections import OrderedDict
 
@@ -101,8 +101,11 @@ def best_comments():
 @register.inclusion_tag('prozdo_main/widgets/_top_menu.html')
 def top_menu():
     res = {}
-    res['main'] = '/'
-    res['drugs'] = reverse('drug-list')
+    res['main'] = reverse_lazy('main-page')
+    res['drugs'] = reverse_lazy('drug-list')
+    res['cosmetics'] = reverse_lazy('cosmetics-list')
+    res['blog'] = reverse_lazy('blog-list')
+    res['components'] = reverse_lazy('component-list')
     return res
 
 
@@ -135,6 +138,8 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
 def post_alphabet(post_type_text):
     if post_type_text == 'drug':
         post_type = models.POST_TYPE_DRUG
+    elif post_type_text == 'cosmetics':
+        post_type = models.POST_TYPE_COSMETICS
     alph = OrderedDict()
     letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
     for letter in letters:

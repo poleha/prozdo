@@ -18,6 +18,10 @@ urlpatterns = [
     url(r'^blog/create$', views.PostCreate.as_view(), name='blog-create', kwargs={'post_type': 'blog'}),
     url(r'^blog/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='blog-update', kwargs={'post_type': 'blog'}),
 
+    url(r'^component/list$', views.PostList.as_view(), name='component-list', kwargs={'post_type': 'component'}),
+    url(r'^component/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'component'}, name='component-list-letter'),
+    url(r'^component/create$', views.PostCreate.as_view(), name='component-create', kwargs={'post_type': 'component'}),
+    url(r'^component/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='component-update', kwargs={'post_type': 'component'}),
 
     url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), name='post-detail-pk'),
 

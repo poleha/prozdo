@@ -133,6 +133,11 @@ class DrugFilterForm(forms.Form):
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.DrugUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
 
+class CosmeticsFilterForm(forms.Form):
+    dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
+    usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
+    lines = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линмя', widget=forms.CheckboxSelectMultiple(), required=False)
+    brands = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
 
 class UserProfileForm(forms.ModelForm):
     class Meta:

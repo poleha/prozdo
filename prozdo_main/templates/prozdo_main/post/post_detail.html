@@ -4,11 +4,11 @@
 {% block content %}
 
 
- <div id="full-drug">
- <input id="drug-pk" type="hidden" value="{{ obj.pk }}">
+ <div id="full-post">
+ <input id="post-pk" type="hidden" value="{{ obj.pk }}">
  <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
 {% if user.is_admin or user.is_author %}
-    <a href="{% url 'drug-update' obj.pk %}">Редактировать</a>
+    <a href="{{ obj.update_url }}">Редактировать</a>
 
     {% endif %}
     <div class="row">
@@ -71,9 +71,11 @@
     <div>
          <label>Количество отзывов: </label><span>{{ obj.published_comments_count }}</span>
          </div>
-<div>
+{% if obj.last_comment_date %}
+     <div>
          <label>Последний отзыв оставлен: </label><span>{{ obj.last_comment_date }}</span>
          </div>
+ {% endif %}
 <a href="#comment-form" class="btn btn-success">Оставить отзыв</a>
  </div>
 
@@ -87,6 +89,7 @@
  {{ obj.body }}
  </div>
 
+ {% if obj.is_post %}
  <div>
  <h4>{% get_verbose_field_name obj 'features' %}:</h4>
  {{ obj.features }}
@@ -145,7 +148,50 @@
 
  {% endfor %}
  </div>
- <form method="get">
+ {% elif obj.is_cosmetics %}
+
+      <div>
+ <h4>Формы выпуска:</h4>
+ {% for dosage_form in obj.dosage_forms.all %}
+ <div> {{ dosage_form }}</div>
+
+ {% endfor %}
+ </div>
+
+ <div>
+ <h4>Области применения:</h4>
+ {% for usage_area in obj.usage_areas.all %}
+ <div> {{ usage_area }}</div>
+
+ {% endfor %}
+ </div>
+
+      <div>
+ <h4>Линия:</h4>
+ {{ obj.line }}
+ </div>
+
+           <div>
+ <h4>Бренд:</h4>
+ {{ obj.brand }}
+ </div>
+
+
+
+ <div>
+ <h4>Области применения:</h4>
+ {% for usage_area in obj.usage_areas.all %}
+ <div> {{ usage_area }}</div>
+
+ {% endfor %}
+ </div>
+
+
+
+
+ {% endif %}
+
+        <form method="get">
  {{ comments_options_form.as_p }}
  <input type="submit" value="Отправить">
  </form>
@@ -376,7 +422,7 @@
 
 $(document).on('click', '#post-mark > span', function(e) {
  var mark = e.currentTarget.id.replace('post-mark-', '');
- var pk = $('#drug-pk').val();
+ var pk = $('#post-pk').val();
  var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk };
  $.ajax({
  type: 'POST',
@@ -409,7 +455,7 @@ $(document).on('click', '#post-mark > span', function(e) {
 
      $(document).on('click', '#cancel-mark-button', function(e) {
 
- var pk = $('#drug-pk').val();
+ var pk = $('#post-pk').val();
  var actionData = {'action': 'post-unmark', 'pk': pk }
  $.ajax({
  type: 'POST',

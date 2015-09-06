@@ -1,16 +1,18 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% load prozdo_main_tags %}
 {% block content %}
-<div>
+{% if post_type == 'drug' or post_type == 'cosmetics' %}
+    <div>
     <form>
-    {{   drug_filter_form }}
+    {{   filter_form }}
     <input type="submit" class="btn btn-success">
 </form>
+    {% post_alphabet post_type %}
 </div>
-    {% post_alphabet 'drug' %}
+    {% endif %}
     <div class="clearfix">
-    {% for drug in drugs %}
-{% include 'prozdo_main/post/_drug_list_grid.html' with drug=drug %}
+    {% for obj in objs %}
+{% include 'prozdo_main/post/_post_list_grid.html' with obj=obj %}
 {% endfor %}
 </div>
  {% include 'prozdo_main/base/_pager.html' %}

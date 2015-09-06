@@ -159,6 +159,39 @@ class Post(AbstractModel):
             return POST_TYPE_CATEGORY
 
     @property
+    def is_drug(self):
+        return self.post_type == POST_TYPE_DRUG
+
+    @property
+    def is_blog(self):
+        return self.post_type == POST_TYPE_BLOG
+
+    @property
+    def is_forum(self):
+        return self.post_type == POST_TYPE_FORUM
+
+    @property
+    def is_component(self):
+        return self.post_type == POST_TYPE_COMPONENT
+
+    @property
+    def is_cosmetics(self):
+        return self.post_type == POST_TYPE_COSMETICS
+
+    @property
+    def update_url(self):
+        if self.is_drug:
+            return reverse_lazy('drug-update', kwargs={'pk': self.pk})
+        elif self.is_blog:
+            return reverse_lazy('blog-update', kwargs={'pk': self.pk})
+        if self.is_component:
+            return reverse_lazy('component-update', kwargs={'pk': self.pk})
+        elif self.is_cosmetics:
+            return reverse_lazy('cosmetics-update', kwargs={'pk': self.pk})
+        elif self.is_forum:
+            return reverse_lazy('forum-update', kwargs={'pk': self.pk})
+
+    @property
     def obj(self):
         if self.post_type == POST_TYPE_DRUG:
             return self.drug
@@ -252,6 +285,8 @@ class Post(AbstractModel):
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
 
+
+
 class Brand(Post):
     pass
 
@@ -310,12 +345,21 @@ class Cosmetics(Post):
 
 
 class Blog(Post):
+    short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = models.TextField(verbose_name='Содержимое', blank=True)
     image = MyImageField(verbose_name='Изображение', upload_to='blog',
                          thumb_settings=settings.BLOG_THUMB_SETTINGS)
 
+    @property
+    def anons(self):
+        if self.short_body:
+            return self.short_body
+        else:
+            return cut_text(self.body, 200)
+
 class Forum(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
+
 
 #Post>*******************************************************************
 
