@@ -1,5 +1,5 @@
 <form enctype="multipart/form-data" id="drug-create-form" method="post">
-    {% csrf_token %}
+{% csrf_token %}
 {{ form.as_p }}
 
 <input type="submit" value="Сохранить">

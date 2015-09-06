@@ -125,7 +125,7 @@ class PostDetail(generic.ListView):
                 return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
 
 
-class DrugList(generic.ListView):
+class PostList(generic.ListView):
     template_name = 'prozdo_main/post/drug_list.html'
     model = models.Drug
     context_object_name = 'drugs'
@@ -215,7 +215,6 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
 
 
-
 class CommentGetTreeAjax(generic.TemplateView):
     template_name = 'prozdo_main/widgets/_get_child_comments.html'
 
@@ -280,8 +279,6 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-
-
 class MainPageView(generic.TemplateView):
     template_name = 'prozdo_main/base/main_page.html'
 
@@ -332,9 +329,7 @@ class ProzdoPasswordResetFromKeyDoneView(PasswordResetFromKeyDoneView):
     template_name = 'prozdo_main/user/password_reset_from_key_done.html'
 
 
-
 #*********************************Account>
-
 
 class UserProfileView(generic.TemplateView):
     template_name = 'prozdo_main/user/user_profile.html'
@@ -430,14 +425,25 @@ def restrict_by_role_mixin(role):
     return RoleOnlyMixin
 
 
-class DrugCreate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.CreateView):
+class PostCreate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.CreateView):
     template_name ='prozdo_main/post/drug_create.html'
-    model = models.Drug
     form_class = forms.DrugForm
 
+    def get_object(self, queryset=None):
+        if self.kwargs['post_type'] == 'drug':
+            self.model =  models.Drug
+        elif self.kwargs['post_type'] == 'cosmetics':
+            self.model = models.Cosmetics
+        return super().get_object(queryset=queryset)
 
-class DrugUpdate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.UpdateView):
+
+class PostUpdate(restrict_by_role_mixin(models.USER_ROLE_ADMIN), generic.UpdateView):
     template_name ='prozdo_main/post/drug_create.html'
-    model = models.Drug
     form_class = forms.DrugForm
 
+    def get_object(self, queryset=None):
+        if self.kwargs['post_type'] == 'drug':
+            self.model =  models.Drug
+        elif self.kwargs['post_type'] == 'cosmetics':
+            self.model = models.Cosmetics
+        return super().get_object(queryset=queryset)

@@ -4,10 +4,16 @@ from . import views
 
 urlpatterns = [
     #url(r'^drug/detail/(?P<pk>\d+)$', views.DrugDetail.as_view(), name='drug-detail'),
-    url(r'^drug/list$', views.DrugList.as_view(), name='drug-list'),
-    url(r'^drug/list/letter/(?P<letter>[a-zа-я0-9])$', views.DrugList.as_view(), kwargs={'action': 'alphabet'}, name='drug-list-letter'),
-    url(r'^drug/create$', views.DrugCreate.as_view(), name='drug-create'),
-    url(r'^drug/update/(?P<pk>\d+)$', views.DrugUpdate.as_view(), name='drug-update'),
+    url(r'^drug/list$', views.PostList.as_view(), name='drug-list', kwargs={'post_type': 'drug'}),
+    url(r'^drug/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'drug'}, name='drug-list-letter'),
+    url(r'^drug/create$', views.PostCreate.as_view(), name='drug-create', kwargs={'post_type': 'drug'}),
+    url(r'^drug/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='drug-update', kwargs={'post_type': 'drug'}),
+
+    url(r'^cosmetics/list$', views.PostList.as_view(), name='cosmetics-list', kwargs={'post_type': 'cosmetics'}),
+    url(r'^cosmetics/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'cosmetics'}, name='cosmetics-list-letter'),
+    url(r'^cosmetics/create$', views.PostCreate.as_view(), name='cosmetics-create', kwargs={'post_type': 'cosmetics'}),
+    url(r'^cosmetics/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='cosmetics-update', kwargs={'post_type': 'cosmetics'}),
+
 
     url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), name='post-detail-pk'),
 
