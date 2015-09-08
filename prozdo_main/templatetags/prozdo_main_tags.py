@@ -109,6 +109,22 @@ def top_menu():
     return res
 
 
+@register.inclusion_tag('prozdo_main/widgets/_bottom_menu.html', takes_context=True)
+def bottom_menu(context):
+    user = context['request'].user
+    res = {}
+    res['main'] = reverse_lazy('main-page')
+    res['drugs'] = reverse_lazy('drug-list')
+    res['cosmetics'] = reverse_lazy('cosmetics-list')
+    res['blog'] = reverse_lazy('blog-list')
+    res['components'] = reverse_lazy('component-list')
+    res['user_profile'] = reverse_lazy('user-profile')
+    res['current_user'] = user
+    res['logout'] = reverse_lazy('logout')
+    res['login'] = reverse_lazy('login')
+    res['signup'] = reverse_lazy('signup')
+    return res
+
 @register.simple_tag(takes_context=True)
 def get_get_parameters_exclude(context, exclude=('page', ), page=None):
     request = context['request']
@@ -138,8 +154,13 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
 def post_alphabet(post_type_text):
     if post_type_text == 'drug':
         post_type = models.POST_TYPE_DRUG
+        url = models.Drug.get_list_url()
     elif post_type_text == 'cosmetics':
         post_type = models.POST_TYPE_COSMETICS
+        url = models.Cosmetics.get_list_url()
+    elif post_type_text == 'component':
+        post_type = models.POST_TYPE_COMPONENT
+        url = models.Component.get_list_url()
     alph = OrderedDict()
     letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
     for letter in letters:
@@ -148,7 +169,7 @@ def post_alphabet(post_type_text):
         if count > 0:
             alph[letter] = count
     total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
-    return {'alph': alph, 'total_count': total_count}
+    return {'alph': alph, 'total_count': total_count, 'url': url}
 
 @register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
 def user_detail(user):

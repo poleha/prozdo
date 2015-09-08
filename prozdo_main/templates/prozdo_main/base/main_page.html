@@ -3,9 +3,6 @@
 {% block content %}
     <div class="row">
 <h2>Популярные препараты</h2>
-        {% for drug in popular_drugs %}
-   {% include 'prozdo_main/post/_post_list_grid.html' with obj=drug %}
-{% endfor %}
-
+   {% include 'prozdo_main/post/_post_list_grid.html' with objs=popular_drugs %}
     </div>
 {% endblock content %}

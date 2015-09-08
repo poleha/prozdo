@@ -62,3 +62,8 @@ class CosmeticsDosageFormAdmin(PostAdminMixin):
 @admin.register(models.CosmeticsLine)
 class CosmeticsLineAdmin(PostAdminMixin):
     pass
+
+from mptt.admin import MPTTModelAdmin
+@admin.register(models.Category)
+class CategoryAdmin(MPTTModelAdmin, PostAdmin):
+    pass

@@ -24,23 +24,11 @@
   </div>
 </div>
     <div class="col-lg-6 col-md-6">
+    {% if obj.is_drug %}
  <div id="post-mark-block>">
- {% if mark %}
- <div id="current-post-mark-block"><label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
-     {% if user.is_authenticated %}
-     <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning">
-       {% endif %}
-
- {% else %}
-
- <div id="current-post-mark-block" class="hidden"><label>Ваша оценка: </label><span id="current-post-mark">{{ mark }}</span></div>
-  <input type="button" value="Отменить оценку" class="hidden btn btn-warning" id="cancel-mark-button">
- {% endif %}
- {% if mark %}
- <div id="post-mark" class="hidden">
- {% else %}
- <div id="post-mark">
- {% endif %}
+ <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}"><label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
+ <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning {{ show_your_mark_block_cls }}">
+ <div id="post-mark" class="{{ show_make_mark_block_cls }}">
 
 
  <label>Оцените препарат: </label>
@@ -77,6 +65,7 @@
          </div>
  {% endif %}
 <a href="#comment-form" class="btn btn-success">Оставить отзыв</a>
+ {% endif %}
  </div>
 
 
@@ -85,7 +74,9 @@
     <div class="row">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
     <div>
- <h4>{% get_verbose_field_name obj 'body' %}:</h4>
+ {% if obj.show_body_label %}
+        <h4>{% get_verbose_field_name obj 'body' %}:</h4>
+  {% endif %}
  {{ obj.body }}
  </div>
 
@@ -136,7 +127,7 @@
  <div>
  <h4>Формы выпуска:</h4>
  {% for dosage_form in obj.dosage_forms.all %}
- <div> {{ dosage_form }}</div>
+ <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
 
  {% endfor %}
  </div>
@@ -144,7 +135,7 @@
  <div>
  <h4>Области применения:</h4>
  {% for usage_area in obj.usage_areas.all %}
- <div> {{ usage_area }}</div>
+ <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
 
  {% endfor %}
  </div>
@@ -153,7 +144,7 @@
       <div>
  <h4>Формы выпуска:</h4>
  {% for dosage_form in obj.dosage_forms.all %}
- <div> {{ dosage_form }}</div>
+  <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
 
  {% endfor %}
  </div>
@@ -161,19 +152,19 @@
  <div>
  <h4>Области применения:</h4>
  {% for usage_area in obj.usage_areas.all %}
- <div> {{ usage_area }}</div>
+ <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
 
  {% endfor %}
  </div>
 
       <div>
  <h4>Линия:</h4>
- {{ obj.line }}
+ <div><a href="{{ obj.line.get_absolute_url }}">{{ obj.line }}</a></div>
  </div>
 
            <div>
  <h4>Бренд:</h4>
- {{ obj.brand }}
+ <div><a href="{{ obj.brand.get_absolute_url }}">{{ obj.brand }}</a></div>
  </div>
 
 
@@ -181,16 +172,26 @@
  <div>
  <h4>Области применения:</h4>
  {% for usage_area in obj.usage_areas.all %}
- <div> {{ usage_area }}</div>
+ <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
 
  {% endfor %}
  </div>
+{% elif obj.is_blog %}
 
+     <div>
+ <h4>Категории:</h4>
+ {% for category in obj.category.all %}
+ <div> {{ category }}</div>
 
-
-
+ {% endfor %}
+ </div>
+{% elif obj.is_component %}
+      <div>
+ <h4>Тип компонента:</h4>
+ {{ obj.component_type_text }}
+ </div>
  {% endif %}
-
+{% if not obj.is_component %}
         <form method="get">
  {{ comments_options_form.as_p }}
  <input type="submit" value="Отправить">
@@ -235,7 +236,7 @@
 </form>
 </div>
 
-
+{% endif %}
 </div>
     </div>
     </div>

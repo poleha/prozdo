@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from multi_image_upload.models import save_thumbs
 
+
 class CommentForm(forms.ModelForm):
     required_css_class = 'required'
     class Meta:
@@ -129,11 +130,17 @@ class ProzdoSignupForm(SignupForm):
         return user
 
 
-class DrugFilterForm(forms.Form):
+class PostFilterForm(forms.Form):
+    title = forms.CharField(label='Название', required=False)
+
+class DrugFilterForm(PostFilterForm):
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.DrugUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
 
-class CosmeticsFilterForm(forms.Form):
+class ComponentFilterForm(PostFilterForm):
+    component_type = forms.MultipleChoiceField(choices=models.COMPONENT_TYPES, label='Тип компонента', widget=forms.CheckboxSelectMultiple(), required=False)
+
+class CosmeticsFilterForm(PostFilterForm):
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
     lines = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
@@ -177,3 +184,15 @@ class BlogForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+
+        self.fields['category'].widget = forms.CheckboxSelectMultiple(choices=self.fields['category'].widget.choices)
+
+
+class ComponentForm(forms.ModelForm):
+    class Meta:
+        model = models.Component
+        exclude = ('post_type', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        #self.fields['component_type'].widget = forms.CheckboxSelectMultiple(choices=self.fields['component_type'].widget.choices)

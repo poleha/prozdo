@@ -87,8 +87,14 @@
 </div>
 </div>
 
+    <div class="row" id="bottom-menu">
+{% block bottom_menu %}
+{% bottom_menu %}
+    {% endblock %}
+    </div>
+
     <div class="row">
-{% block footer %}
+        {% block footer %}
 <div class="clearfix">
     <div id="footer-info">
     Вся информация на сайте предоставляется исключительно в справочных целях. Напоминаем, что самолечение недопустимо и в случае заболевания рекомендуем обратиться к врачу.

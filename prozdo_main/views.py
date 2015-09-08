@@ -75,6 +75,7 @@ class PostDetail(generic.ListView):
 
     def get_context_data(self, comment_form=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
         request = self.request
         try:
@@ -93,12 +94,23 @@ class PostDetail(generic.ListView):
         if comment_form is None:
             comment_form = forms.CommentForm(request=self.request, post=self.post)
         context['comment_form'] = comment_form
-
         comments_options_form = forms.CommentsOptionsForm(self.request.GET)
-
         context['comments_options_form'] = comments_options_form
-
         context['mark'] = self.post.get_mark_by_request(request)
+
+        #visibility
+        if context['mark']:
+            if user.is_authenticated():
+                show_your_mark_block_cls = ''
+                show_make_mark_block_cls = 'hidden'
+            else:
+                show_your_mark_block_cls = 'hidden'
+                show_make_mark_block_cls = ''
+        else:
+            show_your_mark_block_cls = 'hidden'
+            show_make_mark_block_cls = ''
+        context['show_your_mark_block_cls'] = show_your_mark_block_cls
+        context['show_make_mark_block_cls'] = show_make_mark_block_cls
 
         return context
 
@@ -150,44 +162,54 @@ class PostList(PostViewMixin, generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['filter_form'] = self.get_filter_form()
         if self.model == models.Drug:
-            context['filter_form'] = self.get_drug_filter_form()
             context['post_type'] = 'drug'
         elif self.model == models.Cosmetics:
-            context['filter_form'] = self.get_cosmetics_filter_form()
             context['post_type'] = 'cosmetics'
         elif self.model == models.Component:
             context['post_type'] = 'component'
         elif self.model == models.Blog:
             context['post_type'] = 'blog'
+        context['list_view_default_template'] = self.model.list_view_default_template()
         return context
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.model == models.Drug:
-            drug_filter_form = self.get_drug_filter_form()
-            drug_filter_form.full_clean()
-            dosage_forms = drug_filter_form.cleaned_data['dosage_forms']
-            usage_areas = drug_filter_form.cleaned_data['usage_areas']
-            if dosage_forms.exists():
-                queryset = queryset.filter(dosage_forms__in=dosage_forms)
-            if usage_areas.exists():
-                queryset = queryset.filter(usage_areas__in=usage_areas)
+        filter_form = self.get_filter_form()
+        if filter_form:
+            filter_form.full_clean()
+            flt = {}
+            for field_name, field_value in filter_form.cleaned_data.items():
+            #usage_areas = drug_filter_form.cleaned_data['usage_areas']
+                if len(field_value) > 0: #не exists() поскольку может быть list для component_type
+                    if isinstance(field_value, str):
+                        flt[field_name + '__icontains'] = field_value
+                    else:
+                        flt[field_name + '__in'] = field_value
+            queryset = queryset.filter(**flt)
 
-            letter = self.kwargs.get('letter', None)
-            if letter:
-                queryset = queryset.filter(title__istartswith=letter)
+        letter = self.kwargs.get('letter', None)
+        if letter:
+            queryset = queryset.filter(title__istartswith=letter)
         return queryset
 
-    def get_drug_filter_form(self):
-        if not hasattr(self, '_drug_filter_form'):
-            self._drug_filter_form = forms.DrugFilterForm(self.request.GET)
-        return self._drug_filter_form
+    def get_filter_form(self):
+        if self.model == models.Drug:
+            if not hasattr(self, '_drug_filter_form'):
+                self._drug_filter_form = forms.DrugFilterForm(self.request.GET)
+            return self._drug_filter_form
+        elif self.model == models.Cosmetics:
+            if not hasattr(self, '_cosmetics_filter_form'):
+                self._cosmetics_filter_form = forms.CosmeticsFilterForm(self.request.GET)
+            return self._cosmetics_filter_form
+        elif self.model == models.Component:
+            if not hasattr(self, '_component_filter_form'):
+                self._component_filter_form = forms.ComponentFilterForm(self.request.GET)
+            return self._component_filter_form
+        else:
+            return None
 
-    def get_cosmetics_filter_form(self):
-        if not hasattr(self, '_cosmetics_filter_form'):
-            self._cosmetics_filter_form = forms.CosmeticsFilterForm(self.request.GET)
-        return self._cosmetics_filter_form
 
 
 class HistoryAjaxSave(generic.View):
@@ -458,6 +480,8 @@ class PostCreateUpdateMixin(restrict_by_role_mixin(models.USER_ROLE_ADMIN), Post
             return forms.CosmeticsForm
         elif self.model == models.Blog:
             return forms.BlogForm
+        elif self.model == models.Component:
+            return forms.ComponentForm
 
 class PostCreate(PostCreateUpdateMixin, generic.CreateView):
     template_name ='prozdo_main/post/post_create.html'

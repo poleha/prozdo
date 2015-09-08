@@ -1,7 +1,7 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% load prozdo_main_tags %}
 {% block content %}
-{% if post_type == 'drug' or post_type == 'cosmetics' %}
+{% if post_type == 'drug' or post_type == 'cosmetics' or post_type == 'component' %}
     <div>
     <form>
     {{   filter_form }}
@@ -11,9 +11,9 @@
 </div>
     {% endif %}
     <div class="clearfix">
-    {% for obj in objs %}
-{% include 'prozdo_main/post/_post_list_grid.html' with obj=obj %}
-{% endfor %}
+
+{% include list_view_default_template with objs=objs %}
+
 </div>
  {% include 'prozdo_main/base/_pager.html' %}
 {% endblock content %}

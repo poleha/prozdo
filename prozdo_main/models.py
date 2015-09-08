@@ -8,6 +8,8 @@ from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
 from django.core.urlresolvers import reverse_lazy
+from mptt.models import MPTTModel, TreeForeignKey, TreeManager
+from mptt.fields import TreeManyToManyField
 
 #<Constants***********************************************************
 
@@ -80,6 +82,16 @@ POST_STATUSES = (
 )
 
 
+COMPONENT_TYPE_VITAMIN = 1
+COMPONENT_TYPE_MINERAL = 2
+COMPONENT_TYPE_PLANT = 3
+COMPONENT_TYPE_OTHER = 4
+COMPONENT_TYPES = (
+    (COMPONENT_TYPE_VITAMIN, 'Витамин'),
+    (COMPONENT_TYPE_MINERAL, 'Минеральное вещество'),
+    (COMPONENT_TYPE_PLANT, 'Растение'),
+    (COMPONENT_TYPE_OTHER, 'Прочее'),
+)
 
 
 
@@ -132,30 +144,31 @@ class Post(AbstractModel):
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
     objects = PostManager()
 
-    def get_post_type(self):
-        if type(self) == Drug:
+    @classmethod
+    def get_post_type(cls):
+        if cls == Drug:
             return POST_TYPE_DRUG
-        elif type(self) == Blog:
+        elif cls == Blog:
             return POST_TYPE_BLOG
-        elif type(self) == Forum:
+        elif cls == Forum:
             return POST_TYPE_FORUM
-        elif type(self) == Component:
+        elif cls == Component:
             return POST_TYPE_COMPONENT
-        elif type(self) == Cosmetics:
+        elif cls == Cosmetics:
             return POST_TYPE_COSMETICS
-        elif type(self) == Brand:
+        elif cls == Brand:
             return POST_TYPE_BRAND
-        elif type(self) == DrugDosageForm:
+        elif cls == DrugDosageForm:
             return POST_TYPE_DRUG_DOSAGE_FORM
-        elif type(self) == CosmeticsDosageForm:
+        elif cls == CosmeticsDosageForm:
             return POST_TYPE_COSMETICS_DOSAGE_FORM
-        elif type(self) == CosmeticsLine:
+        elif cls == CosmeticsLine:
             return POST_TYPE_COSMETICS_LINE
-        elif type(self) == CosmeticsUsageArea:
+        elif cls == CosmeticsUsageArea:
             return POST_TYPE_COSMETICS_USAGE_AREA
-        elif type(self) == DrugUsageArea:
+        elif cls == DrugUsageArea:
             return POST_TYPE_DRUG_USAGE_AREA
-        elif type(self) == Category:
+        elif cls == Category:
             return POST_TYPE_CATEGORY
 
     @property
@@ -178,6 +191,26 @@ class Post(AbstractModel):
     def is_cosmetics(self):
         return self.post_type == POST_TYPE_COSMETICS
 
+
+    @classmethod
+    def list_view_default_template(cls):
+        if cls == Component:
+            return 'prozdo_main/post/_component_list.html'
+        else:
+            return 'prozdo_main/post/_post_list_grid.html'
+
+    @classmethod
+    def get_list_url(cls):
+        if cls == Component:
+            return reverse_lazy('component-list')
+        elif cls == Drug:
+            return reverse_lazy('drug-list')
+        elif cls == Blog:
+            return reverse_lazy('blog-list')
+        elif cls == Cosmetics:
+            return reverse_lazy('cosmetics-list')
+
+
     @property
     def update_url(self):
         if self.is_drug:
@@ -190,6 +223,14 @@ class Post(AbstractModel):
             return reverse_lazy('cosmetics-update', kwargs={'pk': self.pk})
         elif self.is_forum:
             return reverse_lazy('forum-update', kwargs={'pk': self.pk})
+
+    #Вообще неправильно и все это надо(как и get_post_type) делать в каждом дочернем классе. Но так удобнее...
+    @property
+    def show_body_label(self):
+        if self.is_drug:
+            return True
+        else:
+            return False
 
     @property
     def obj(self):
@@ -229,14 +270,14 @@ class Post(AbstractModel):
         user = request.user
         if user.is_authenticated():
             try:
-                mark = History.objects.get(user=user, history_type=HISTORY_TYPE_POST_RATED).mark
+                mark = History.objects.get(user=user, history_type=HISTORY_TYPE_POST_RATED, post=self).mark
             except:
-                mark = None
+                mark = ''
         else:
             try:
                 mark = History.objects.get(ip=get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
             except:
-                mark = None
+                mark = ''
         return mark
 
     @property
@@ -288,32 +329,46 @@ class Post(AbstractModel):
 
 
 class Brand(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?brands={1}".format(reverse_lazy('cosmetics-list'), self.pk)
 
 class DrugDosageForm(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?dosage_forms={1}".format(reverse_lazy('drug-list'), self.pk)
 
 
 class CosmeticsDosageForm(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?dosage_forms={1}".format(reverse_lazy('cosmetics-list'), self.pk)
 
 
 class CosmeticsLine(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?lines={1}".format(reverse_lazy('cosmetics-list'), self.pk)
 
 class CosmeticsUsageArea(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?usage_areas={1}".format(reverse_lazy('cosmetics-list'), self.pk)
 
 
 class DrugUsageArea(Post):
-    pass
+    def get_absolute_url(self):
+        return "{0}?usage_areas={1}".format(reverse_lazy('drug-list'), self.pk)
 
-class Category(Post):
-    pass
+class Category(Post, MPTTModel):  #Для блога
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
+    objects = TreeManager()
 
 
 class Component(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
+    component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента')
+
+    @property
+    def component_type_text(self):
+        for component_type in COMPONENT_TYPES:
+            if self.component_type == component_type[0]:
+                return component_type[1]
 
 class Drug(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
@@ -349,6 +404,7 @@ class Blog(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
     image = MyImageField(verbose_name='Изображение', upload_to='blog',
                          thumb_settings=settings.BLOG_THUMB_SETTINGS)
+    category = TreeManyToManyField(Category, verbose_name='Категория')
 
     @property
     def anons(self):
