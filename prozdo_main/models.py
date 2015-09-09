@@ -635,24 +635,28 @@ class History(models.Model):
         if history_type == HISTORY_TYPE_POST_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, post=post).exists()
             if not hist_exists:
-                History.objects.create(history_type=history_type, post=post, user=user,
+                h = History.objects.create(history_type=history_type, post=post, user=user,
                                        user_points=History.get_points(history_type), ip=ip, author=post_author)
             else:
-                History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, comment)
+                h = History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, comment)
+            return h
         elif history_type == HISTORY_TYPE_POST_SAVED:
-            History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author)
+            h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author)
+            return h
         elif history_type == HISTORY_TYPE_COMMENT_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
             if not hist_exists:
 
-                History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
                                        author=post_author)
             else:
-                History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
+                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
+            return h
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
-            History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+            h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                    user_points=History.get_points(history_type), author=post_author)
+            return h
         elif history_type in [HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]:
             if history_type == HISTORY_TYPE_COMMENT_RATED:
                 author_points = 1
@@ -660,9 +664,10 @@ class History(models.Model):
                 author_points = 0
 
             if comment.can_perform_action(history_type=history_type, user=user, ip=ip):
-                History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
                                        author=comment.user, author_points=author_points)
+                return h
         elif history_type == HISTORY_TYPE_POST_RATED:
             if user and user.is_authenticated():
                 hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
@@ -670,14 +675,15 @@ class History(models.Model):
                 hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
 
             if not hist_exists and mark and mark > 0:
-                History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
+                h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
                                    user_points=History.get_points(history_type), author=post_author, mark=mark)
-
+                return h
         #При сохранении отзыва сохраняем оценку поста
         if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
 
 
-            History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
+            h = History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
+            return h
 
 class UserProfile(SuperModel):
     # required by the auth model

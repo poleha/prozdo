@@ -297,9 +297,13 @@
  url: '{% url 'history-ajax-save' %}',
  data: actionData,
  success: function (data) {
- targetSpan.html(data);
- toHide.addClass('hidden');
- toShow.removeClass('hidden');
+     targetSpan.html(data.mark);
+
+         toHide.addClass('hidden');
+         toShow.removeClass('hidden');
+     if(!data.saved){
+     alert('Повторное действие не засчитано');
+     }
  },
  error: function (data) {
 
@@ -430,19 +434,19 @@ $(document).on('click', '#post-mark > span', function(e) {
  url: '{% url 'history-ajax-save' %}',
  data: actionData,
  success: function (data) {
- $('#current-post-mark-block').removeClass('hidden');
- $('#post-mark').addClass('hidden');
- $('#current-post-mark').html(mark);
- $('#cancel-mark-button').removeClass('hidden');
+     $('#post-average-mark').html(data['average_mark']);
+     $('#post-marks-count').html(data['marks_count']);
+         $('#current-post-mark-block').removeClass('hidden');
+         $('#post-mark').addClass('hidden');
+         $('#current-post-mark').html(data.mark);
+         $('#cancel-mark-button').removeClass('hidden');
+         $('#id_post_mark').closest('p').addClass('hidden');
+         $('#id_post_mark').closest('p').find('select').val('');
+     if(!data.saved){
+     alert('Повторное действие не засчитано');
+     }
 
- $('#id_post_mark').closest('p').addClass('hidden');
- $('#id_post_mark').closest('p').find('select').val('');
- $('#post-average-mark').html(data['average_mark']);
- $('#post-marks-count').html(data['marks_count']);
- //targetSpan.html(data);
- //toHide.addClass('hidden');
- //toShow.removeClass('hidden');
- },
+     },
  error: function (data) {
 
  }
@@ -470,6 +474,9 @@ $(document).on('click', '#post-mark > span', function(e) {
  $('#id_post_mark').closest('p').removeClass('hidden');
  $('#post-average-mark').html(data['average_mark']);
  $('#post-marks-count').html(data['marks_count']);
+ if(!data.saved){
+     alert('Повторное действие не засчитано');
+     }
  },
  error: function (data) {
 

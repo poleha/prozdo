@@ -225,41 +225,80 @@ class HistoryAjaxSave(generic.View):
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
-            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip)
-            return HttpResponse(comment.comment_mark)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip)
+            data = {'mark': comment.comment_mark}
+            if h:
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            return JsonResponse(data)
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment).delete()
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment)
             else:
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None).delete()
-            return HttpResponse(comment.comment_mark)
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None)
+            data = {}
+            if h.exists():
+                h.delete()
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            data['mark'] = comment.complain_count
+            return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip)
-            return HttpResponse(comment.complain_count)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip)
+            data = {'mark': comment.comment_mark}
+            if h:
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            return JsonResponse(data)
         elif action == 'comment-uncomplain':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment).delete()
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment)
             else:
-                models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None).delete()
-            return HttpResponse(comment.complain_count)
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None)
+            data = {}
+            if h.exists():
+                h.delete()
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            data['mark'] = comment.complain_count
+            return JsonResponse(data)
 
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip)
-            data = {'average_mark': post.average_mark, 'marks_count':post.marks_count }
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip)
+            data = {}
+            if h:
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            data['average_mark'] = post.average_mark,
+            data['marks_count'] = post.marks_count
+            data['mark'] = post.get_mark_by_request(request)
             return JsonResponse(data)
 
         elif action == 'post-unmark':
             post = models.Post.objects.get(pk=pk)
             if request.user.is_authenticated():
-                models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post).delete()
+                h = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post)
             else:
-                models.History.objects.filter(ip=ip, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None).delete()
-            data = {'average_mark': post.average_mark, 'marks_count':post.marks_count }
+                h = models.History.objects.filter(ip=ip, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
+            data = {}
+            if h.exists():
+                h.delete()
+                data['saved'] = True
+            else:
+                data['saved'] = False
+            data['average_mark'] = post.average_mark,
+            data['marks_count'] = post.marks_count
+            data['mark'] = 0
             return JsonResponse(data)
 
 
