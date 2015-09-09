@@ -18,6 +18,10 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from prozdo_main.sitemaps import sitemaps
+from django.views.decorators.cache import cache_page
+from django.contrib.sitemaps.views import sitemap
+
 
 urlpatterns = [
 
@@ -26,6 +30,8 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
     url(r'^', include('prozdo_main.urls')),
     #url(r'^', include('prozdo_main.urls')),
+    url(r'^sitemap\.xml$', cache_page(60 * 60)(sitemap), {'sitemaps': sitemaps},
+    name='django.contrib.sitemaps.views.sitemap')
 
 ]
 

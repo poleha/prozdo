@@ -117,6 +117,7 @@ class AbstractModel(SuperModel):
         abstract = True
     title = models.CharField(max_length=500, verbose_name='Название')
     created = models.DateTimeField(auto_now_add=True)
+    edited = models.DateField(auto_now=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -354,29 +355,19 @@ class DrugUsageArea(Post):
     def get_absolute_url(self):
         return "{0}?usage_areas={1}".format(reverse_lazy('drug-list'), self.pk)
 
+
+
+
 class Category(Post, MPTTModel):  #Для блога
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     objects = TreeManager()
 
 
-class ComponentTreeQueryset(TreeQuerySet):
-    def get_available(self):
-        queryset = self.filter(status=POST_STATUS_PUBLISHED)
-        return queryset
-
-
-class ComponentManager(models.manager.BaseManager.from_queryset(ComponentTreeQueryset)):
-    use_for_related_fields = True
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset
-
 
 class Component(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
     component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента')
-    objects = ComponentTreeQueryset()
+    objects = PostManager()
 
     @property
     def component_type_text(self):
@@ -411,6 +402,8 @@ class Cosmetics(Post):
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линия')
     dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
+    objects = PostManager()
+
 
 
 class Blog(Post):
@@ -419,6 +412,7 @@ class Blog(Post):
     image = MyImageField(verbose_name='Изображение', upload_to='blog',
                          thumb_settings=settings.BLOG_THUMB_SETTINGS)
     category = TreeManyToManyField(Category, verbose_name='Категория')
+    objects = PostManager()
 
     @property
     def anons(self):
