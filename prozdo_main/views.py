@@ -278,9 +278,8 @@ class CommentGetTreeAjax(generic.TemplateView):
         action = self.request.POST['action']
 
         if action == 'comment-tree-show':
-            childs_list = comment.get_childs_tree()
-            context['show_tree'] = False
-            context['childs'] = childs_list
+            context['show_as_child'] = True
+            context['children'] = comment.get_descendants()
         return context
 
     def post(self, request, *args, **kwargs):

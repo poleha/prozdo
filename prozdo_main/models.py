@@ -9,6 +9,7 @@ from django.conf import settings
 from math import ceil
 from django.core.urlresolvers import reverse_lazy
 from mptt.models import MPTTModel, TreeForeignKey, TreeManager
+from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
 
 #<Constants***********************************************************
@@ -92,8 +93,6 @@ COMPONENT_TYPES = (
     (COMPONENT_TYPE_PLANT, 'Растение'),
     (COMPONENT_TYPE_OTHER, 'Прочее'),
 )
-
-
 
 
 #Constants>***********************************************************
@@ -360,9 +359,24 @@ class Category(Post, MPTTModel):  #Для блога
     objects = TreeManager()
 
 
+class ComponentTreeQueryset(TreeQuerySet):
+    def get_available(self):
+        queryset = self.filter(status=POST_STATUS_PUBLISHED)
+        return queryset
+
+
+class ComponentManager(models.manager.BaseManager.from_queryset(ComponentTreeQueryset)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset
+
+
 class Component(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
     component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента')
+    objects = ComponentTreeQueryset()
 
     @property
     def component_type_text(self):
@@ -421,22 +435,18 @@ class Forum(Post):
 
 
 
-class CommentQueryset(models.QuerySet):
+class CommentTreeQueryset(TreeQuerySet):
     def get_available(self):
         queryset = self.filter(status=COMMENT_STATUS_PUBLISHED)
         return queryset
 
 
-class CommentManager(models.manager.BaseManager.from_queryset(CommentQueryset)):
+class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset)):
     use_for_related_fields = True
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset
 
 
-
-class Comment(models.Model):
+class Comment(MPTTModel):
     class Meta:
         ordering = ['created']
     post = models.ForeignKey(Post, related_name='comments')
@@ -449,7 +459,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, related_name='comments')
     ip = models.CharField(max_length=15)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
-    parent = models.ForeignKey('Comment', verbose_name='В ответ на', null=True, blank=True, related_name='childs')
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
 
     objects = CommentManager()
@@ -471,35 +481,16 @@ class Comment(models.Model):
 
 
 
-    def all_childs_pks(self, cur=None, pks=None):
-        if cur is None:
-            cur = self
-            pks = []
-        else:
-            pks.append(cur.pk)
-        for child in cur.childs.all():
-            self.all_childs_pks(cur=child, pks=pks)
-        return pks
 
     @property
-    def all_childs(self):
-        return type(self).objects.filter(pk__in=self.all_childs_pks())
-
-    @property
-    def available_childs(self):
-        return self.all_childs.get_available()
+    def available_children(self):
+        return self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED)
 
 
     @property
     def short_body(self):
         return cut_text(self.body)
 
-    @property
-    def get_level(self):
-        if hasattr(self, 'level') and self.level:
-            return self.level
-        else:
-            return 1
 
     @property
     def comment_mark(self):
@@ -511,16 +502,6 @@ class Comment(models.Model):
             mark = 0
         return mark
 
-    def get_childs_tree(self, cur=None, level=2):
-        tree = []
-        if cur is None:
-            cur = self
-        else:
-            tree.append(cur)
-        for child in cur.childs.get_available().order_by('created'):
-            child.level = level
-            tree += child.get_childs_tree(child, level+1)
-        return tree
 
     def get_absolute_url(self):
         return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)

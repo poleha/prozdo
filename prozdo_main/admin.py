@@ -1,6 +1,6 @@
 from django.contrib import admin
 from . import models
-
+from mptt.admin import MPTTModelAdmin
 
 class PostAdminMixin(admin.ModelAdmin):
     readonly_fields = ['post_type']
@@ -63,7 +63,7 @@ class CosmeticsDosageFormAdmin(PostAdminMixin):
 class CosmeticsLineAdmin(PostAdminMixin):
     pass
 
-from mptt.admin import MPTTModelAdmin
+
 @admin.register(models.Category)
 class CategoryAdmin(MPTTModelAdmin, PostAdmin):
     pass

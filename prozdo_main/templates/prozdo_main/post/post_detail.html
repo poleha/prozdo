@@ -203,7 +203,7 @@
  <div class="full-comment">
  {% get_comment comment%}
 
- <div class="comment-childs-block">
+ <div class="comment-children-block">
 
 
 {% if show_tree %}
@@ -336,7 +336,7 @@
  var id = this.id;
  var level = $(this).closest('.full-comment').find('.comment-level').val();
  var pk = $(this).closest('.full-comment').find('.comment-pk').val();
- var childsBlock = $(this).closest('.full-comment').find('.comment-childs-block');
+ var childrenBlock = $(this).closest('.full-comment').find('.comment-children-block');
  var actionData = {'pk': pk, 'action': 'comment-tree-show'};
  var cur = this;
  $.ajax({
@@ -346,20 +346,20 @@
  success: function (data) {
  $(cur).closest('.full-comment').find('.show-comment-tree').addClass('hidden');
  $(cur).closest('.full-comment').find('.hide-comment-tree').removeClass('hidden');
- childsBlock.fadeTo('slow', 1, function() {
- childsBlock.html(data);
+ childrenBlock.fadeTo('slow', 1, function() {
+ childrenBlock.html(data);
  });
  },
  error: function (data) {
- //childsBlock.html('');
+ //childrenBlock.html('');
  }
  });
 
  });
 
  $(document).on('click', '.hide-comment-tree', function(e) {
- $(this).closest('.full-comment').find('.comment-childs-block').fadeTo('slow', 0, function () {
- $(this).closest('.full-comment').find('.comment-childs-block').html('');
+ $(this).closest('.full-comment').find('.comment-children-block').fadeTo('slow', 0, function () {
+ $(this).closest('.full-comment').find('.comment-children-block').html('');
  });
  $(this).closest('.full-comment').find('.show-comment-tree').removeClass('hidden');
  $(this).closest('.full-comment').find('.hide-comment-tree').addClass('hidden');

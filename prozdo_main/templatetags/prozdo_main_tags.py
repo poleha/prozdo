@@ -56,9 +56,12 @@ def get_verbose_field_name(instance, field_name):
 def get_child_comments(context):
     res = {}
     comment = context['comment']
-    childs_list = comment.get_childs_tree()
-    res['childs'] = childs_list
-    res['request'] = context['request']
+    children_list = comment.get_descendants()
+    res['children'] = children_list
+    res['request'] = context['request'] #Поскольку мы будем вызывать get_comment, требующий request, нам нужно,
+    # чтобы request был доступен. Иначе _get_child_comments не получит request тк это inclusion tag, а request
+    # доступен в контексте view
+    res['show_as_child'] = True
     return res
 
 
@@ -66,6 +69,8 @@ def get_child_comments(context):
 def get_comment(context, comment):
     res = {}
     request = context['request']
+    show_as_child = context.get('show_as_child', False)
+    res['show_as_child'] = show_as_child
     res['show_tree'] = context.get('show_tree', False)
 
     res['comment'] = comment
@@ -77,6 +82,11 @@ def get_comment(context, comment):
     res['can_complain'] = comment.can_perform_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
     res['can_uncomplain'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user)
 
+
+    if show_as_child:
+        res['comment_class'] = 'single-comment-with-level-{0}'.format(comment.level)
+    else:
+        res['comment_class'] = 'single-comment-with-level-{0}'.format(0)
     return res
 
 

@@ -63,5 +63,5 @@ for i in range(15):
 
 """
 
-c = models.Comment.objects.get(pk=26)
-page = c.page
+for c in models.Comment.objects.all():
+    print(c.level)
