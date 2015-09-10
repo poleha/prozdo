@@ -2,7 +2,7 @@
 <div class="single-comment {{ comment_class }}">
 
 <a href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a>
-{% if comment.level == 0 %}
+{% if comment.level == 0 or not show_tree %}
 <div id="c{{ comment.pk }}"></div>
 {% endif %}
 {% if comment.parent and not show_tree and not show_as_child %}

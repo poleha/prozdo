@@ -23,7 +23,8 @@ urlpatterns = [
     url(r'^component/create$', views.PostCreate.as_view(), name='component-create', kwargs={'post_type': 'component'}),
     url(r'^component/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='component-update', kwargs={'post_type': 'component'}),
 
-    url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), name='post-detail-pk'),
+    url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-pk'),
+    url(r'^post/(?P<pk>\d+)/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-pk-comment'),
 
     url(r'^history/ajax_save$', views.HistoryAjaxSave.as_view(), name='history-ajax-save'),
 
@@ -57,4 +58,4 @@ urlpatterns = [
 ]
 
 urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})/comment/(?P<pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))

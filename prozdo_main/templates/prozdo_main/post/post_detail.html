@@ -409,7 +409,11 @@
  url: frm.action,
  data: frm.serialize(),
  success: function (data) {
+
  if(data.status == 1) {
+     if(!data.published){
+ alert('Ваш отзыв будет опубликован после проверки модератором');
+         }
  location.href = data.href;
  }
  else {

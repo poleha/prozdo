@@ -13,6 +13,7 @@ class BaseTest(WebTest):
         self.component = models.Component.objects.create(
             body='body',
             title = 'title_component',
+            component_type = models.COMPONENT_TYPE_MINERAL,
         )
 
 
@@ -227,7 +228,7 @@ class HistoryTests(BaseTest):
 
         result_hist_count = models.History.objects.all().count()
 
-        self.assertEqual(start_hist_count + 2, result_hist_count)
+        self.assertEqual(start_hist_count + 1, result_hist_count)
 
         comment = models.Comment.objects.latest('created')
 
@@ -235,13 +236,6 @@ class HistoryTests(BaseTest):
         self.assertEqual(h.post, drug.post_ptr)
         self.assertEqual(h.comment, comment)
         self.assertEqual(h.mark, 4)
-        self.assertEqual(comment.post_mark, 4)
-        self.assertEqual(h.history_type, models.HISTORY_TYPE_POST_RATED)
-
-        h = models.History.objects.get(post=drug.post_ptr, history_type=models.HISTORY_TYPE_COMMENT_CREATED)
-        self.assertEqual(h.post, drug.post_ptr)
-        self.assertEqual(h.comment, comment)
-        self.assertEqual(h.mark, None)
         self.assertEqual(comment.post_mark, 4)
         self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_CREATED)
 
@@ -397,3 +391,79 @@ class HistoryAjaxSaveTests(BaseTest):
             page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
             result_hist_count = models.History.objects.all().count()
             self.assertEqual(start_hist_count, result_hist_count)
+
+
+class PostPagesTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+        comments0 = []
+        comments1 = []
+        comments2 = []
+        self.drug.alias = 'fsdsdfgsdfgshgfd'
+        self.drug.save()
+        for k in range(settings.POST_COMMENTS_PAGE_SIZE * 3 + 1):
+
+            comment = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='авырлпоырваыпиорвполривапрва-level0-{0}'.format(k),
+                status=models.COMMENT_STATUS_PUBLISHED,
+
+            )
+            comments0.append(comment)
+
+        for k in range(settings.POST_COMMENTS_PAGE_SIZE * 3 + 1):
+            comment = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='авырлпоырваыпиорвполривапрва-level1-{0}'.format(k),
+                status=models.COMMENT_STATUS_PUBLISHED,
+                parent=comments0[k]
+
+            )
+            comments1.append(comment)
+
+        for k in range(settings.POST_COMMENTS_PAGE_SIZE * 3 + 1):
+            comment = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='авырлпоырваыпиорвполривапрва-level2-{0}'.format(k),
+                status=models.COMMENT_STATUS_PUBLISHED,
+                parent=comments1[k]
+
+            )
+            comments2.append(comment)
+            self.comments0 = comments0
+            self.comments1 = comments1
+            self.comments2 = comments2
+
+    def test_comment_is_found_on_proper_page_for_alias_and_pk(self):
+        for k in range(settings.POST_COMMENTS_PAGE_SIZE * 3 + 1):
+            self.renew_app()
+            comment = self.comments0[k]
+            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level0-{0}'.format(k), page)
+
+            comment = self.comments1[k]
+            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level1-{0}'.format(k), page)
+
+            comment = self.comments2[k]
+            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
+
+            comment = self.comments0[k]
+            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level0-{0}'.format(k), page)
+
+            comment = self.comments1[k]
+            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level1-{0}'.format(k), page)
+
+            comment = self.comments2[k]
+            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
+

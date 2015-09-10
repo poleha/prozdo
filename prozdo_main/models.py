@@ -7,7 +7,7 @@ from django.db.models.aggregates import Sum, Count
 from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse
 from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
@@ -202,27 +202,27 @@ class Post(AbstractModel):
     @classmethod
     def get_list_url(cls):
         if cls == Component:
-            return reverse_lazy('component-list')
+            return reverse('component-list')
         elif cls == Drug:
-            return reverse_lazy('drug-list')
+            return reverse('drug-list')
         elif cls == Blog:
-            return reverse_lazy('blog-list')
+            return reverse('blog-list')
         elif cls == Cosmetics:
-            return reverse_lazy('cosmetics-list')
+            return reverse('cosmetics-list')
 
 
     @property
     def update_url(self):
         if self.is_drug:
-            return reverse_lazy('drug-update', kwargs={'pk': self.pk})
+            return reverse('drug-update', kwargs={'pk': self.pk})
         elif self.is_blog:
-            return reverse_lazy('blog-update', kwargs={'pk': self.pk})
+            return reverse('blog-update', kwargs={'pk': self.pk})
         if self.is_component:
-            return reverse_lazy('component-update', kwargs={'pk': self.pk})
+            return reverse('component-update', kwargs={'pk': self.pk})
         elif self.is_cosmetics:
-            return reverse_lazy('cosmetics-update', kwargs={'pk': self.pk})
+            return reverse('cosmetics-update', kwargs={'pk': self.pk})
         elif self.is_forum:
-            return reverse_lazy('forum-update', kwargs={'pk': self.pk})
+            return reverse('forum-update', kwargs={'pk': self.pk})
 
     #Вообще неправильно и все это надо(как и get_post_type) делать в каждом дочернем классе. Но так удобнее...
     @property
@@ -262,9 +262,9 @@ class Post(AbstractModel):
     def get_absolute_url(self):
         alias = self.alias
         if alias:
-            return reverse_lazy('post-detail-alias', kwargs={'alias': alias})
+            return reverse('post-detail-alias', kwargs={'alias': alias})
         else:
-            return reverse_lazy('post-detail-pk', kwargs={'pk': self.pk})
+            return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
     def get_mark_by_request(self, request):
         user = request.user
@@ -283,7 +283,7 @@ class Post(AbstractModel):
     @property
     def average_mark(self):
         try:
-            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Sum('mark'))['mark__sum']
+            mark = History.objects.filter(post=self).aggregate(Sum('mark'))['mark__sum']
             if mark is None:
                 mark = 0
         except:
@@ -330,30 +330,30 @@ class Post(AbstractModel):
 
 class Brand(Post):
     def get_absolute_url(self):
-        return "{0}?brands={1}".format(reverse_lazy('cosmetics-list'), self.pk)
+        return "{0}?brands={1}".format(reverse('cosmetics-list'), self.pk)
 
 class DrugDosageForm(Post):
     def get_absolute_url(self):
-        return "{0}?dosage_forms={1}".format(reverse_lazy('drug-list'), self.pk)
+        return "{0}?dosage_forms={1}".format(reverse('drug-list'), self.pk)
 
 
 class CosmeticsDosageForm(Post):
     def get_absolute_url(self):
-        return "{0}?dosage_forms={1}".format(reverse_lazy('cosmetics-list'), self.pk)
+        return "{0}?dosage_forms={1}".format(reverse('cosmetics-list'), self.pk)
 
 
 class CosmeticsLine(Post):
     def get_absolute_url(self):
-        return "{0}?lines={1}".format(reverse_lazy('cosmetics-list'), self.pk)
+        return "{0}?lines={1}".format(reverse('cosmetics-list'), self.pk)
 
 class CosmeticsUsageArea(Post):
     def get_absolute_url(self):
-        return "{0}?usage_areas={1}".format(reverse_lazy('cosmetics-list'), self.pk)
+        return "{0}?usage_areas={1}".format(reverse('cosmetics-list'), self.pk)
 
 
 class DrugUsageArea(Post):
     def get_absolute_url(self):
-        return "{0}?usage_areas={1}".format(reverse_lazy('drug-list'), self.pk)
+        return "{0}?usage_areas={1}".format(reverse('drug-list'), self.pk)
 
 
 
@@ -469,8 +469,11 @@ class Comment(MPTTModel):
         #pages_count = ceil(count / page_size)
         page_size = settings.POST_COMMENTS_PAGE_SIZE
         comments_tuple = tuple(comments)
-        index = comments_tuple.index(self) + 1
-        current_page = ceil(index / page_size)
+        try:
+            index = comments_tuple.index(self) + 1
+            current_page = ceil(index / page_size)
+        except:
+            current_page = 1
         return current_page
 
 
@@ -498,7 +501,10 @@ class Comment(MPTTModel):
 
 
     def get_absolute_url(self):
-        return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
+        if self.status == COMMENT_STATUS_PUBLISHED:
+            return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
+        else:
+            return self.post.get_absolute_url()
 
 
     def get_status(self):
@@ -649,9 +655,9 @@ class History(models.Model):
 
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author=post_author)
+                                       author=post_author, mark=mark)
             else:
-                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment)
+                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment, mark=mark)
             return h
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
             h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
@@ -679,11 +685,9 @@ class History(models.Model):
                                    user_points=History.get_points(history_type), author=post_author, mark=mark)
                 return h
         #При сохранении отзыва сохраняем оценку поста
-        if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
-
-
-            h = History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
-            return h
+        #if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
+            #h = History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
+            #return h
 
 class UserProfile(SuperModel):
     # required by the auth model
@@ -744,7 +748,7 @@ User.is_regular = property(is_regular)
 User.image = property(get_user_image)
 User.karm_history = property(karm_history)
 User.get_karm = property(lambda self: self.karm_history.count())
-User.get_absolute_url = lambda self: reverse_lazy('user-detail', kwargs={'pk': self.pk})
+User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
 User.activity = property(get_user_activity)
 
 User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)

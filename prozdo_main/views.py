@@ -70,7 +70,7 @@ class PostDetail(generic.ListView):
 
     def set_comment_page(self):
         if self.kwargs['action'] == 'comment':
-            comment = models.Comment.objects.get(pk=self.kwargs['pk'])
+            comment = models.Comment.objects.get(pk=self.kwargs['comment_pk'])
             self.kwargs[self.page_kwarg] = comment.page
 
     def get_context_data(self, comment_form=None, **kwargs):
@@ -126,9 +126,10 @@ class PostDetail(generic.ListView):
                 comment_form.instance.user = request.user
             comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
+            published = comment.status == models.COMMENT_STATUS_PUBLISHED
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
             if request.is_ajax():
-                return JsonResponse({'href': comment.get_absolute_url(), 'status': 1})
+                return JsonResponse({'href': comment.get_absolute_url(), 'status': 1, 'published': published})
             else:
                 return HttpResponseRedirect(self.obj.get_absolute_url())
         else:
