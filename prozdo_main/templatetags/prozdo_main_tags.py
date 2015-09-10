@@ -5,9 +5,13 @@ from datetime import timedelta
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from string import ascii_lowercase, digits
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
+
+
 
 register = template.Library()
+
+MenuItem = namedtuple('MenuItem', ['title', 'url', 'cls'])
 
 @register.filter(name='cut_text')
 def cut_text(value, length): # Only one argument.
@@ -108,15 +112,19 @@ def best_comments():
     return res
 
 
-@register.inclusion_tag('prozdo_main/widgets/_top_menu.html')
-def top_menu():
-    res = {}
-    res['main'] = reverse_lazy('main-page')
-    res['drugs'] = reverse_lazy('drug-list')
-    res['cosmetics'] = reverse_lazy('cosmetics-list')
-    res['blog'] = reverse_lazy('blog-list')
-    res['components'] = reverse_lazy('component-list')
-    return res
+@register.inclusion_tag('prozdo_main/widgets/_top_menu.html', takes_context=True)
+def top_menu(context):
+
+    request = context['request']
+    menu_items = []
+    view_name = request.resolver_match.view_name
+    menu_items.append(MenuItem(title='Главная', url=reverse_lazy('main-page'), cls='active' if view_name=='main-page' else ''))
+    menu_items.append(MenuItem(title='Отзывы о лекарствах', url=reverse_lazy('drug-list'), cls='active' if view_name=='drug-list' else ''))
+    menu_items.append(MenuItem(title='Аптечная косметика', url=reverse_lazy('cosmetics-list'), cls='active' if view_name=='cosmetics-list' else ''))
+    menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'), cls='active' if view_name=='blog-list' else ''))
+    menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'), cls='active' if view_name=='component-list' else ''))
+
+    return {'menu_items': menu_items}
 
 
 @register.inclusion_tag('prozdo_main/widgets/_bottom_menu.html', takes_context=True)
@@ -160,8 +168,10 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
     return params
 
 
-@register.inclusion_tag('prozdo_main/widgets/_post_alphabet.html')
-def post_alphabet(post_type_text):
+@register.inclusion_tag('prozdo_main/widgets/_post_alphabet.html', takes_context=True)
+def post_alphabet(context, post_type_text):
+    request = context['request']
+    current_letter = request.resolver_match.kwargs.get('letter', None)
     if post_type_text == 'drug':
         post_type = models.POST_TYPE_DRUG
         url = models.Drug.get_list_url()
@@ -177,9 +187,10 @@ def post_alphabet(post_type_text):
         posts = models.Post.objects.filter(post_type=post_type, title__istartswith=letter)
         count = posts.count()
         if count > 0:
-            alph[letter] = count
+            alph[letter] = letter
+
     total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
-    return {'alph': alph, 'total_count': total_count, 'url': url}
+    return {'alph': alph, 'total_count': total_count, 'url': url, 'current_letter': current_letter}
 
 @register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
 def user_detail(user):
