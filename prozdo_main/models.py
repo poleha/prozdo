@@ -150,8 +150,8 @@ class Post(AbstractModel):
             return POST_TYPE_DRUG
         elif cls == Blog:
             return POST_TYPE_BLOG
-        elif cls == Forum:
-            return POST_TYPE_FORUM
+        #elif cls == Forum:
+        #    return POST_TYPE_FORUM
         elif cls == Component:
             return POST_TYPE_COMPONENT
         elif cls == Cosmetics:
@@ -313,10 +313,14 @@ class Post(AbstractModel):
             date = None
         return date
 
+
+    def make_alias(self):
+        return make_alias(self.title)
+
     def save(self, *args, **kwargs):
         #saved_version = self.saved_version
         if hasattr(self, 'title') and self.title and not self.alias:
-            self.alias = make_alias(self.title)
+            self.alias = self.make_alias()
         if self.alias:
             alias_is_busy = Post.objects.filter(alias=self.alias).exclude(pk=self.pk)
             if alias_is_busy:
@@ -332,28 +336,46 @@ class Brand(Post):
     def get_absolute_url(self):
         return "{0}?brands={1}".format(reverse('cosmetics-list'), self.pk)
 
+    def make_alias(self):
+        return ''
+
 class DrugDosageForm(Post):
     def get_absolute_url(self):
         return "{0}?dosage_forms={1}".format(reverse('drug-list'), self.pk)
+
+    def make_alias(self):
+        return ''
 
 
 class CosmeticsDosageForm(Post):
     def get_absolute_url(self):
         return "{0}?dosage_forms={1}".format(reverse('cosmetics-list'), self.pk)
 
+    def make_alias(self):
+        return ''
+
 
 class CosmeticsLine(Post):
     def get_absolute_url(self):
         return "{0}?lines={1}".format(reverse('cosmetics-list'), self.pk)
 
+    def make_alias(self):
+        return ''
+
 class CosmeticsUsageArea(Post):
     def get_absolute_url(self):
         return "{0}?usage_areas={1}".format(reverse('cosmetics-list'), self.pk)
+
+    def make_alias(self):
+        return ''
 
 
 class DrugUsageArea(Post):
     def get_absolute_url(self):
         return "{0}?usage_areas={1}".format(reverse('drug-list'), self.pk)
+
+    def make_alias(self):
+        return ''
 
 
 
@@ -362,6 +384,8 @@ class Category(Post, MPTTModel):  #Для блога
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     objects = TreeManager()
 
+    def make_alias(self):
+        return ''
 
 
 class Component(Post):
@@ -390,6 +414,7 @@ class Drug(Post):
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
     components = models.ManyToManyField(Component, verbose_name='Состав', blank=True)
+    category = TreeManyToManyField(Category, verbose_name='Категория', blank=True)
     objects = PostManager()
 
 
@@ -421,8 +446,8 @@ class Blog(Post):
         else:
             return cut_text(self.body, 200)
 
-class Forum(Post):
-    body = models.TextField(verbose_name='Содержимое', blank=True)
+#class Forum(Post):
+#    body = models.TextField(verbose_name='Содержимое', blank=True)
 
 
 #Post>*******************************************************************
