@@ -316,14 +316,29 @@
  $(document).on('click', '.answer-to-comment', function(e) {
  var level = $(this).closest('.single-comment').find('.comment-level').val();
  var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+ var action = 'show';
 
 
-
- $('#id_parent').val(pk);
+ $.ajax({
+ type: 'POST',
+ url: '{% url 'comment-get-for-answer-block-ajax' %}',
+ data: {'pk': pk},
+ success: function (data) {
+$('#id_parent').val(pk);
+$('#answer-to-block').removeClass('hidden');
+// var commentBody = $('#comment-body-level-' + level + '-pk-' + pk).html();
+$('#answer-to-span').html(data);
  $('#id_body').focus();
- $('#answer-to-block').removeClass('hidden');
- var commentBody = $('#comment-body-level-' + level + '-pk-' + pk).html();
- $('#answer-to-span').html(commentBody);
+ },
+ error: function (data) {
+ }
+ });
+
+
+
+
+
+
 
  });
 

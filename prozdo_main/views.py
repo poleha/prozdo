@@ -342,6 +342,23 @@ class CommentGetTinyAjax(generic.View):
             res = comment.short_body
         return HttpResponse(res)
 
+class CommentGetForAnswerToBlockAjax(generic.TemplateView):
+    template_name =  'prozdo_main/comment/_comment_for_answer_block.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.request.POST['pk']
+        context['comment'] = models.Comment.objects.get(pk=pk)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
 
 class CommentShowMarkedUsersAjax(generic.TemplateView):
     template_name = 'prozdo_main/comment/_comment_show_marked_users_ajax.html'

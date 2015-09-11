@@ -30,9 +30,11 @@ urlpatterns = [
 
     url(r'^comment/get_tree_ajax$', views.CommentGetTreeAjax.as_view(), name='get-comment-tree-ajax'),
 
-    url(r'^comment/get_tiny_ajax$', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
+
 
     url(r'^comment/get_tiny_ajax$', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
+
+    url(r'^comment/get_for_answer_block_ajax$', views.CommentGetForAnswerToBlockAjax.as_view(), name='comment-get-for-answer-block-ajax'),
 
     url(r'^comment/show_marked_users_ajax$', views.CommentShowMarkedUsersAjax.as_view(), name='comment-show-marked-users-ajax'),
 
