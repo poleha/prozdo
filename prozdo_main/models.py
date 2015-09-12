@@ -487,6 +487,23 @@ class Comment(MPTTModel):
         return self.short_body
 
 
+    def get_tree_level(self):
+        if hasattr(self, 'tree_level'):
+            return self.tree_level
+        else:
+            return 0
+
+    def get_children_tree(self, cur=None, level=1):
+        tree = []
+        if cur is None:
+            cur = self
+        else:
+            tree.append(cur)
+        for child in cur.children.get_available().order_by('created'):
+            child.tree_level = level
+            tree += child.get_children_tree(child, level+1)
+        return tree
+
     @property
     def page(self):
         comments = self.post.comments.get_available().order_by('-created')
