@@ -67,3 +67,12 @@ class CosmeticsLineAdmin(PostAdminMixin):
 @admin.register(models.Category)
 class CategoryAdmin(MPTTModelAdmin, PostAdmin):
     pass
+
+
+@admin.register(models.Cosmetics)
+class CosmeticsAdmin(PostAdmin):
+    pass
+
+@admin.register(models.Blog)
+class BlogAdmin(PostAdmin):
+    pass

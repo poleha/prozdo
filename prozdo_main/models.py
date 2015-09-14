@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
+from django.utils import timezone
 
 #<Constants***********************************************************
 
@@ -112,13 +113,23 @@ class SuperModel(models.Model):
             saved_version = None
         return saved_version
 
+
+    def save(self, *args, **kwargs):
+        if not self.pk and hasattr(self, 'created') and not self.created:
+            self.created = timezone.now()
+        if self.pk and hasattr(self, 'updated') and not self.updated:
+            self.updated = timezone.now()
+        super().save(*args, **kwargs)
+
 class AbstractModel(SuperModel):
     class Meta:
         abstract = True
     title = models.CharField(max_length=500, verbose_name='Название')
-    created = models.DateTimeField(auto_now_add=True)
-    edited = models.DateField(auto_now=True)
+    created = models.DateTimeField(blank=True)
+    edited = models.DateField(blank=True, null=True)
     updated = models.DateTimeField(auto_now=True)
+
+
 
     def __str__(self):
         return self.title
@@ -136,6 +147,8 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
+
+
 
 
 class Post(AbstractModel):
@@ -424,7 +437,7 @@ class Cosmetics(Post):
                          thumb_settings=settings.COSMETICS_THUMB_SETTINGS)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд')
-    line = models.ForeignKey(CosmeticsLine, verbose_name='Линия')
+    line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True)
     dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = PostManager()
@@ -465,7 +478,7 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
 
 
 
-class Comment(MPTTModel):
+class Comment(SuperModel, MPTTModel):
     class Meta:
         ordering = ['created']
     post = models.ForeignKey(Post, related_name='comments')
@@ -480,6 +493,9 @@ class Comment(MPTTModel):
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
+    updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
+    key = models.CharField(max_length=128, blank=True)
+    approved = models.BooleanField(default=False)
 
     objects = CommentManager()
 
