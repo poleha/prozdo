@@ -2,7 +2,18 @@
 <div class="pager">
 
         <ul class="pagination">
-        {% for page in paginator.page_range %}
+        <div>Страница {{ page_obj.number }} из {{ paginator.num_pages }}</div>
+
+        {% if show_first_page %}
+             <li>
+            {% if url %}
+                 <a class="pager_link" id="pager-link-first" href="{{ url }}{% get_get_parameters_exclude page=1 %}">Первая</a>
+                {% else %}
+                <a class="pager_link" id="pager-link-first" href="{{ request.path }}{% get_get_parameters_exclude page=1 %}">Первая</a>
+                {% endif %}
+            </li>
+             {% endif %}
+            {% for page in short_page_range %}
 
         {% if page ==  page_obj.number %}
 
@@ -13,6 +24,7 @@
         {% else %}
         <li>
          {% if url %}
+
         <a class="pager_link" id="pager-link-{{ page }}" href="{{ url }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
          {% else %}
          <a class="pager_link" id="pager-link-{{ page }}" href="{{ request.path }}{% get_get_parameters_exclude page=page %}">{{ page }}</a>
@@ -20,6 +32,17 @@
         {% endif %}
         </li>
         {% endfor %}
+
+        {% if show_last_page %}
+             <li>
+            {% if url %}
+                 <a class="pager_link" id="pager-link-last" href="{{ url }}{% get_get_parameters_exclude page=paginator.num_pages %}">Последняя</a>
+                {% else %}
+                <a class="pager_link" id="pager-link-last" href="{{ request.path }}{% get_get_parameters_exclude page=paginator.num_pages %}">Последняя</a>
+                {% endif %}
+            </li>
+             {% endif %}
+
         </ul>
 
 

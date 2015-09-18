@@ -73,7 +73,7 @@ class ProzdoImageClearableFileInput(forms.ClearableFileInput):
         """
         return {
             'initial': conditional_escape(value),
-            'initial_url': conditional_escape(getattr(value, self._thumb_name)),
+            'initial_url': conditional_escape(getattr(value.instance, self._thumb_name)),
         }
 
 
@@ -130,8 +130,35 @@ class ProzdoSignupForm(SignupForm):
         return user
 
 
+
+#alphabet = (('а', 'а'), )
+
+
 class PostFilterForm(forms.Form):
+    alphabet = forms.MultipleChoiceField(choices=(), label='По первой букве', required=False, widget=forms.CheckboxSelectMultiple())
     title = forms.CharField(label='Название', required=False)
+
+    def __init__(self, *args, **kwargs):
+        from string import digits, ascii_lowercase
+        super().__init__(*args, **kwargs)
+        if isinstance(self, DrugFilterForm):
+            post_type = models.POST_TYPE_DRUG
+            #url = models.Drug.get_list_url()
+        elif isinstance(self, CosmeticsFilterForm):
+            post_type = models.POST_TYPE_COSMETICS
+            #url = models.Cosmetics.get_list_url()
+        elif isinstance(self, ComponentFilterForm):
+            post_type = models.POST_TYPE_COMPONENT
+            #url = models.Component.get_list_url()
+        alph = ()
+        letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
+        for letter in letters:
+            posts = models.Post.objects.filter(post_type=post_type, title__istartswith=letter)
+            count = posts.count()
+            if count > 0:
+                alph += ((letter, '{0}({1})'.format(letter, count)), )
+        self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='По первой букве', required=False, widget=forms.CheckboxSelectMultiple())
+
 
 class DrugFilterForm(PostFilterForm):
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)

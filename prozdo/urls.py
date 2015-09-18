@@ -23,7 +23,11 @@ from django.views.decorators.cache import cache_page
 from django.contrib.sitemaps.views import sitemap
 
 
-urlpatterns = [
+urlpatterns = staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL,
+            document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
 
     url(r'^admin/', include(admin.site.urls)),
 
@@ -35,6 +39,3 @@ urlpatterns = [
 
 ]
 
-urlpatterns += staticfiles_urlpatterns()
-urlpatterns += static(settings.MEDIA_URL,
-            document_root=settings.MEDIA_ROOT)

@@ -53,7 +53,9 @@ INSTALLED_APPS = (
     #'allauth.socialaccount.providers.facebook',
 
     'prozdo_main',
-    'multi_image_upload',
+    #'multi_image_upload',
+     'sorl.thumbnail',
+     'django.contrib.redirects',
 
 )
 
@@ -66,6 +68,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
 )
 
 ROOT_URLCONF = 'prozdo.urls'
@@ -118,6 +121,8 @@ USE_L10N = True
 USE_TZ = True
 
 SITE_ID = '1'
+SITE_URL = 'http://prozdo.ru'
+DEFAULT_FROM_EMAIL = 'Prozdo.ru <info@prozdo.ru>'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -131,15 +136,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 #SESSION_SAVE_EVERY_REQUEST = True
 
-
 #**************<<<<<
-POST_COMMENTS_PAGE_SIZE = 10
-POST_LIST_PAGE_SIZE = 10
+POST_COMMENTS_PAGE_SIZE = 50
+POST_LIST_PAGE_SIZE = 50
 
-DRUG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-BLOG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-COSMETICS_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-USER_PROFILE_THUMB_SETTINGS = {'thumb100': (100, 100)}
+#DRUG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
+#BLOG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
+#COSMETICS_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
+#USER_PROFILE_THUMB_SETTINGS = {'thumb100': (100, 100)}
 
 
 BAD_WORDS = (
@@ -201,3 +205,12 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
+THUMBNAIL_PREFIX = 'images/'

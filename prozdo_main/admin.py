@@ -1,13 +1,14 @@
 from django.contrib import admin
 from . import models
 from mptt.admin import MPTTModelAdmin
+from sorl.thumbnail.admin import AdminImageMixin
 
 class PostAdminMixin(admin.ModelAdmin):
     readonly_fields = ['post_type']
 
 
 @admin.register(models.Drug)
-class DrugAdmin(PostAdminMixin):
+class DrugAdmin(AdminImageMixin, PostAdminMixin):
     pass
 
 
@@ -41,7 +42,7 @@ class HistoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(AdminImageMixin, admin.ModelAdmin):
     pass
 
 
@@ -70,9 +71,9 @@ class CategoryAdmin(MPTTModelAdmin, PostAdmin):
 
 
 @admin.register(models.Cosmetics)
-class CosmeticsAdmin(PostAdmin):
+class CosmeticsAdmin(AdminImageMixin, PostAdmin):
     pass
 
 @admin.register(models.Blog)
-class BlogAdmin(PostAdmin):
+class BlogAdmin(AdminImageMixin, PostAdmin):
     pass

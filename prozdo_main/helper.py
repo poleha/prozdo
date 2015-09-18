@@ -1,5 +1,8 @@
 import string
 from django.conf import settings
+import string
+import random
+from django.utils import timezone
 
 def transliterate(text):
     text = text.lower()
@@ -46,11 +49,17 @@ def transliterate(text):
         res += s
     return res
 
-
+def trim_title(text):
+    text = text.replace(' ', ' ') #Это не пробел, а какой-то гнилой символ
+    text = text.encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
+    text = text.strip()
+    return text
 
 def full_trim(text):
     text = text.replace(':', '_')
     text = text.replace('»', '_')
+    text = text.replace('«', '_')
+    text = text.replace(' ', '_') #Это не пробел, а какой-то гнилой символ
     text = text.replace('…', '_')
     text = text.replace('-', '_')
     text = text.replace('@', '_')
@@ -85,6 +94,7 @@ def full_trim(text):
     text = text.replace('__', '_')
     text = text.replace('__', '_')
     text = text.replace('__', '_')
+    text = text.strip()
     return text
 
 def make_alias(text):
@@ -162,3 +172,14 @@ def comment_author_ok(text):
 
 def myround(x, base):
     return int(base * round(float(x)/base))
+
+
+
+
+
+def generate_key(size=128, upper=False, chars=None):
+    if chars is None:
+        chars = string.ascii_lowercase + string.digits
+        if upper:
+            chars += string.ascii_uppercase
+    return ''.join(random.choice(chars) for _ in range(size))

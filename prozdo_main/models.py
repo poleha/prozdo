@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, pre_save
-from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok
+from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok, generate_key, trim_title
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
-from multi_image_upload.models import MyImageField
+#from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
 from django.core.urlresolvers import reverse
@@ -12,6 +12,14 @@ from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
 from django.utils import timezone
+from allauth.account.models import EmailAddress
+from django.template.loader import render_to_string
+from django.core.mail.message import EmailMultiAlternatives
+from sorl.thumbnail import ImageField, get_thumbnail
+import re
+
+#from django.contrib.contenttypes.fields import GenericForeignKey
+#from django.contrib.contenttypes.models import ContentType
 
 #<Constants***********************************************************
 
@@ -99,7 +107,13 @@ COMPONENT_TYPES = (
 #Constants>***********************************************************
 
 #<Posts******************************************************************
+
+
+
 class SuperModel(models.Model):
+    created = models.DateTimeField(blank=True)
+    updated = models.DateField(blank=True, null=True)
+
     class Meta:
         abstract = True
     @property
@@ -113,11 +127,10 @@ class SuperModel(models.Model):
             saved_version = None
         return saved_version
 
-
     def save(self, *args, **kwargs):
-        if not self.pk and hasattr(self, 'created') and not self.created:
+        if not self.pk and not self.created:
             self.created = timezone.now()
-        if self.pk and hasattr(self, 'updated') and not self.updated:
+        if self.pk and not self.updated:
             self.updated = timezone.now()
         super().save(*args, **kwargs)
 
@@ -125,11 +138,6 @@ class AbstractModel(SuperModel):
     class Meta:
         abstract = True
     title = models.CharField(max_length=500, verbose_name='Название')
-    created = models.DateTimeField(blank=True)
-    edited = models.DateField(blank=True, null=True)
-    updated = models.DateTimeField(auto_now=True)
-
-
 
     def __str__(self):
         return self.title
@@ -155,6 +163,7 @@ class Post(AbstractModel):
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним')
     post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
+    old_id = models.PositiveIntegerField(null=True, blank=True)
     objects = PostManager()
 
     @classmethod
@@ -260,7 +269,7 @@ class Post(AbstractModel):
         elif self.post_type == POST_TYPE_BRAND:
             return self.brand
         elif self.post_type == POST_TYPE_DRUG_DOSAGE_FORM:
-            return self.drug_usage_form
+            return self.drug_dosage_form
         elif self.post_type == POST_TYPE_COSMETICS_DOSAGE_FORM:
             return self.cosmetics_dosage_form
         elif self.post_type == POST_TYPE_COSMETICS_LINE:
@@ -330,7 +339,19 @@ class Post(AbstractModel):
     def make_alias(self):
         return make_alias(self.title)
 
+    def clean(self):
+        try:
+            self.alias.encode('ascii')
+        except:
+            raise ValidationError('Недопустимые символы в синониме')
+
+        result = re.match('[a-z0-9_\-]{1,}', self.alias)
+        if not result:
+            raise ValidationError('Недопустимые символы в синониме')
+
     def save(self, *args, **kwargs):
+        self.clean()
+        self.title = trim_title(self.title)
         #saved_version = self.saved_version
         if hasattr(self, 'title') and self.title and not self.alias:
             self.alias = self.make_alias()
@@ -412,6 +433,7 @@ class Component(Post):
             if self.component_type == component_type[0]:
                 return component_type[1]
 
+
 class Drug(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
     features = models.TextField(verbose_name='Особенности', blank=True)
@@ -421,8 +443,7 @@ class Drug(Post):
     contra_indications = models.TextField(verbose_name='Противопоказания', blank=True)
     side_effects = models.TextField(verbose_name='Побочные эффекты', blank=True)
     compound = models.TextField(verbose_name='Состав', blank=True)
-    image = MyImageField(verbose_name='Изображение', upload_to='drug',
-                         thumb_settings=settings.DRUG_THUMB_SETTINGS)
+    image = ImageField(verbose_name='Изображение', upload_to='drug', blank=True, null=True)
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
@@ -430,11 +451,23 @@ class Drug(Post):
     category = TreeManyToManyField(Category, verbose_name='Категория', blank=True)
     objects = PostManager()
 
+    @property
+    def thumb110(self):
+        try:
+            return get_thumbnail(self.image, '110x200', quality=99).url
+        except:
+            return ''
+
+    @property
+    def thumb220(self):
+        try:
+            return get_thumbnail(self.image, '220x400', quality=99).url
+        except:
+            return ''
 
 class Cosmetics(Post):
     body = models.TextField(verbose_name='Содержимое', blank=True)
-    image = MyImageField(verbose_name='Изображение', upload_to='cosmetics',
-                         thumb_settings=settings.COSMETICS_THUMB_SETTINGS)
+    image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд')
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True)
@@ -442,15 +475,40 @@ class Cosmetics(Post):
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = PostManager()
 
+    @property
+    def thumb110(self):
+        try:
+            return get_thumbnail(self.image, '110x200', quality=99).url
+        except:
+            return ''
 
+    @property
+    def thumb220(self):
+        try:
+            return get_thumbnail(self.image, '220x400', quality=99).url
+        except:
+            return ''
 
 class Blog(Post):
     short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = models.TextField(verbose_name='Содержимое', blank=True)
-    image = MyImageField(verbose_name='Изображение', upload_to='blog',
-                         thumb_settings=settings.BLOG_THUMB_SETTINGS)
+    image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
     category = TreeManyToManyField(Category, verbose_name='Категория')
     objects = PostManager()
+
+    @property
+    def thumb110(self):
+        try:
+            return get_thumbnail(self.image, '110x200', quality=99).url
+        except:
+            return ''
+
+    @property
+    def thumb220(self):
+        try:
+            return get_thumbnail(self.image, '220x400', quality=99).url
+        except:
+            return ''
 
     @property
     def anons(self):
@@ -486,16 +544,16 @@ class Comment(SuperModel, MPTTModel):
     email = models.EmailField(verbose_name='E-Mail')
     post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     body = models.TextField(verbose_name='Сообщение')
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, null=True, blank=True, related_name='comments')
     ip = models.CharField(max_length=15)
+    session_key = models.TextField(blank=True)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
     updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
     key = models.CharField(max_length=128, blank=True)
-    approved = models.BooleanField(default=False)
+    confirmed = models.BooleanField(default=False)
+    old_id = models.PositiveIntegerField(null=True, blank=True)
 
     objects = CommentManager()
 
@@ -534,6 +592,41 @@ class Comment(SuperModel, MPTTModel):
             current_page = 1
         return current_page
 
+    def send_confirmation_mail(self, user=None, request=None):
+        if not user and request:
+            user = request.user
+        if request:
+            ip = get_client_ip(request)
+            session_key = request.session.session_key
+        else:
+            ip = None
+            session_key = None
+
+        confirm_comment_text_template_name = 'prozdo_main/mail/confirm_comment_html_template.html'
+        confirm_comment_html_template_name = 'prozdo_main/mail/confirm_comment_text_template.txt'
+        if not user.email_confirmed and not self.confirmed:
+                html = render_to_string(confirm_comment_html_template_name, {'comment': self})
+                text = render_to_string(confirm_comment_text_template_name, {'comment': self})
+                subject = 'Вы оставили отзыв на {}'.format('Prozdo.ru')
+                from_email = settings.DEFAULT_FROM_EMAIL
+                to = self.email
+                try:
+                    msg = EmailMultiAlternatives(subject, text, from_email, [to])
+                    msg.attach_alternative(html, "text/html")
+                    res = msg.send()
+                    if res:
+                        Mail.objects.create(
+                            mail_type=MAIL_TYPE_COMMENT_CONFIRM,
+                            user=user if user.is_authenticated() else None,
+                            subject=subject,
+                            body_html=html,
+                            body_text=text,
+                            email=to,
+                            ip=ip,
+                            session_key=session_key,
+                        )
+                except:
+                    pass
 
 
 
@@ -550,7 +643,7 @@ class Comment(SuperModel, MPTTModel):
     @property
     def comment_mark(self):
         try:
-            mark = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_RATED).aggregate(Sum('author_points'))['author_points__sum']
+            mark = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_RATED).aggregate(Count('pk'))['pk__count']
             if mark is None:
                 mark = 0
         except:
@@ -564,9 +657,12 @@ class Comment(SuperModel, MPTTModel):
         else:
             return self.post.get_absolute_url()
 
+    def get_confirm_url(self):
+        return settings.SITE_URL + reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
+
 
     def get_status(self):
-        if self.user and self.user.is_authenticated():
+        if self.user and (self.user.is_admin or self.user.is_author or self.user.is_doctor):
             return COMMENT_STATUS_PUBLISHED
         else:
             if comment_body_ok(self.body) and comment_author_ok(self.username):
@@ -584,9 +680,23 @@ class Comment(SuperModel, MPTTModel):
             count = 0
         return count
 
+    def generate_key(self):
+        if self.key:
+            return self.key
+        else:
+            return generate_key(128)
+
     def save(self, *args, **kwargs):
+        if not self.confirmed:
+            if self.user and self.user.email_confirmed:
+                self.confirmed = True
+
+        if not self.key:
+            self.key = self.generate_key()
         super().save(*args, **kwargs)
-        History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, user=self.user)
+        History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
+
+
 
     def performed_action(self, history_type, user=None, ip=None, request=None):
         if not ip and request:
@@ -659,18 +769,18 @@ HISTORY_TYPE_POST_COMPLAINT: 0,
 }
 
 
-class History(models.Model):
+class History(SuperModel):
     post = models.ForeignKey(Post, related_name='history_post')
     history_type = models.IntegerField(choices=HISTORY_TYPES)
     author = models.ForeignKey(User, null=True, blank=True, related_name='history_author')
     user = models.ForeignKey(User, null=True, blank=True, related_name='history_user')
     comment = models.ForeignKey(Comment, null=True, blank=True, related_name='history_comment')
     user_points = models.PositiveIntegerField(default=0, blank=True)
-    author_points = models.PositiveIntegerField(default=0, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    #author_points = models.PositiveIntegerField(default=0, blank=True)
     ip = models.CharField(max_length=15, null=True, blank=True)
+    session_key = models.TextField(blank=True)
     mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
+    old_id = models.PositiveIntegerField(null=True, blank=True)
 
     @staticmethod
     def get_points(history_type):
@@ -681,7 +791,7 @@ class History(models.Model):
 
 
     @staticmethod
-    def save_history(history_type, post, user=None, ip=None, comment=None, mark=None):
+    def save_history(history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
         if hasattr(post, 'user'):
             post_author = post.user
         else:
@@ -702,7 +812,7 @@ class History(models.Model):
                 h = History.objects.create(history_type=history_type, post=post, user=user,
                                        user_points=History.get_points(history_type), ip=ip, author=post_author)
             else:
-                h = History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, comment)
+                h = History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, session_key, comment)
             return h
         elif history_type == HISTORY_TYPE_POST_SAVED:
             h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author)
@@ -715,22 +825,22 @@ class History(models.Model):
                                        user_points=History.get_points(history_type),
                                        author=post_author, mark=mark)
             else:
-                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, comment, mark=mark)
+                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, session_key, comment, mark=mark)
             return h
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
             h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                    user_points=History.get_points(history_type), author=post_author)
             return h
         elif history_type in [HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]:
-            if history_type == HISTORY_TYPE_COMMENT_RATED:
-                author_points = 1
-            else:
-                author_points = 0
+            #if history_type == HISTORY_TYPE_COMMENT_RATED:
+            #    author_points = 1
+            #else:
+            #    author_points = 0
 
             if comment.can_perform_action(history_type=history_type, user=user, ip=ip):
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author=comment.user, author_points=author_points)
+                                       author=comment.user)
                 return h
         elif history_type == HISTORY_TYPE_POST_RATED:
             if user and user.is_authenticated():
@@ -751,11 +861,20 @@ class UserProfile(SuperModel):
     # required by the auth model
     user = models.OneToOneField(User, related_name='user_profile')  # reverse returns single object, not queryset
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
-    image = MyImageField(verbose_name='Изображение', upload_to='user_profile',
-                         thumb_settings=settings.USER_PROFILE_THUMB_SETTINGS, null=True, blank=True)
+    image = ImageField(verbose_name='Изображение', upload_to='user_profile', blank=True, null=True)
     receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True)
     first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
     last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
+    old_id = models.PositiveIntegerField(null=True, blank=True)
+
+    @property
+    def thumb100(self):
+        try:
+            return get_thumbnail(self.image, '100x100', quality=99).url
+        except:
+            return ''
+
+
 
     def __str__(self):
         return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)
@@ -780,9 +899,22 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile.save()
 
+def confirm_user_comments(sender, instance, created, **kwargs):
+    if instance.email_confirmed:
+        for comment in instance.comments.filter(confirmed=False):
+            comment.confirmed = True
+            comment.save()
+
+def confirm_user_comments_by_email(sender, instance, created, **kwargs):
+    if instance.verified:
+        for comment in instance.user.comments.filter(confirmed=False):
+            comment.confirmed = True
+            comment.save()
+
 
 post_save.connect(create_user_profile, sender=User)
-
+post_save.connect(confirm_user_comments, sender=User)
+post_save.connect(confirm_user_comments_by_email, sender=EmailAddress)
 
 
 def is_regular(self):
@@ -796,11 +928,14 @@ def get_user_image(self):
 
 
 def karm_history(self):
-    hists = History.objects.filter(author=self, author_points__gt=0)
+    hists = History.objects.filter(author=self, history_type=HISTORY_TYPE_COMMENT_RATED)
     return hists
 
 def get_user_activity(self):
     return History.objects.filter(user=self).count()
+
+def get_email_confirmed(self):
+    return EmailAddress.objects.filter(user=self, verified=True, email=self.email).exists()
 
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
@@ -808,11 +943,37 @@ User.karm_history = property(karm_history)
 User.get_karm = property(lambda self: self.karm_history.count())
 User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
 User.activity = property(get_user_activity)
+User.email_confirmed = property(get_email_confirmed)
 
 User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)
 User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHOR)
 User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGULAR)
 User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
+User.thumb100 = property(lambda self: self.user_profile.thumb100)
+
+
 
 AnonymousUser.is_regular = True
 AnonymousUser.image = None
+AnonymousUser.email_confirmed = False
+
+
+MAIL_TYPE_COMMENT_CONFIRM = 1
+MAIL_TYPE_USER_REGISTRATION = 2
+MAIL_TYPE_PASSWORD_RESET = 3
+
+MAIL_TYPES = (
+    (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
+    (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
+    (MAIL_TYPE_COMMENT_CONFIRM, 'Сброс пароля'),
+)
+
+class Mail(SuperModel):
+    mail_type = models.PositiveIntegerField(choices=MAIL_TYPES)
+    subject = models.TextField()
+    body_html=models.TextField(default='', blank=True)
+    body_text=models.TextField(default='', blank=True)
+    email = models.EmailField()
+    user = models.ForeignKey(User, blank=True, null=True)
+    ip = models.CharField(max_length=15, null=True, blank=True)
+    session_key = models.TextField(null=True, blank=True)

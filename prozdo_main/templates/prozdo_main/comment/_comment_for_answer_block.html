@@ -2,7 +2,7 @@
      <div>
 {% if comment.user %}
          <a href="{{ comment.user.get_absolute_url }}">
-    <img src="{{ comment.user.image.thumb100 }}">
+    <img src="{{ comment.user.thumb100 }}">
     {{ comment.user }}</a>
     {% else %}
     {{ comment.username }}

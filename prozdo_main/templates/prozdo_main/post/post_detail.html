@@ -18,7 +18,7 @@
 
   <div>
   <a href="{{ obj.get_absolute_url }}">
-      <img src="{{ obj.image.thumb220 }}">
+      <img src="{{ obj.thumb220 }}">
       </a>
 
   </div>
@@ -545,6 +545,31 @@ $(document).on('click', '#post-mark > span', function(e) {
  });
 
 
+
+ $(document).on('click', '.confirm-comment', function(e) {
+
+     var commentBlock = $(this).closest('.single-comment');
+     var pk = commentBlock.find('.comment-pk').val();
+     var resultBlock = commentBlock.find('.confirmation-block');
+
+     $.ajax({
+ type: 'POST',
+ url: '{% url 'comment-get-confirm-form-ajax' %}',
+ data: {'pk': pk},
+ success: function (data) {
+ resultBlock.html(data);
+ },
+ error: function (data) {
+
+ }
+ });
+
+
+
+
+
+
+ });
 
 
 

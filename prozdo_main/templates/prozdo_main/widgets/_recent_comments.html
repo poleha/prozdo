@@ -5,7 +5,7 @@
     {% if comment.user.is_authenticated %}
      <a href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
     {% else %}
-        {{ comment.user.username }}
+        {{ comment.username }}
     {% endif %}
     <div>
 <a href="{{ comment.get_absolute_url }}">{{ comment }}</a>

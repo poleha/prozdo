@@ -167,7 +167,7 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
             params += '&page=' + str(page)
     return params
 
-
+"""
 @register.inclusion_tag('prozdo_main/widgets/_post_alphabet.html', takes_context=True)
 def post_alphabet(context, post_type_text):
     request = context['request']
@@ -191,7 +191,9 @@ def post_alphabet(context, post_type_text):
 
     total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
     return {'alph': alph, 'total_count': total_count, 'url': url, 'current_letter': current_letter}
+"""
 
 @register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
 def user_detail(user):
     return {'user': user}
+

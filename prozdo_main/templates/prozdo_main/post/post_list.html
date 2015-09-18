@@ -3,11 +3,12 @@
 {% block content %}
 {% if post_type == 'drug' or post_type == 'cosmetics' or post_type == 'component' %}
     <div>
-    <form>
+
+        <form>
     {{   filter_form }}
     <input type="submit" class="btn btn-success">
 </form>
-    {% post_alphabet post_type %}
+
 </div>
     {% endif %}
     <div class="clearfix">

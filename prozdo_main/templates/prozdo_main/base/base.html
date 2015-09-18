@@ -70,17 +70,26 @@
 {% top_menu %}
 </div>
 {% endblock header  %}
-
-
 <div class="row">
-<div class="col-lg-9 col-md-9 col-sm-8 col-xs-12">
+<div class="col-lg-2 col-md-2 col-sm-3 hidden-xs" id="sidebar-left">
+
+{% block sidebar_left %}
+{% best_comments %}
+{% endblock sidebar_left %}
+</div>
+
+
+
+
+
+<div class="col-lg-8 col-md-7 col-sm-6 col-xs-12">
     {% block content %}
 {% endblock content %}
 </div>
 
-<div class="col-lg-3 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
+<div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="sidebar-right">
 {% block sidebar_right %}
-{% best_comments %}
+
     {% recent_comments %}
 
 {% endblock sidebar_right %}

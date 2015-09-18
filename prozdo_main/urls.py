@@ -5,12 +5,12 @@ from . import views
 urlpatterns = [
     #url(r'^drug/detail/(?P<pk>\d+)$', views.DrugDetail.as_view(), name='drug-detail'),
     url(r'^drug/list$', views.PostList.as_view(), name='drug-list', kwargs={'post_type': 'drug'}),
-    url(r'^drug/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'drug'}, name='drug-list-letter'),
+    #url(r'^drug/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'drug'}, name='drug-list-letter'),
     url(r'^drug/create$', views.PostCreate.as_view(), name='drug-create', kwargs={'post_type': 'drug'}),
     url(r'^drug/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='drug-update', kwargs={'post_type': 'drug'}),
 
     url(r'^cosmetics/list$', views.PostList.as_view(), name='cosmetics-list', kwargs={'post_type': 'cosmetics'}),
-    url(r'^cosmetics/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'cosmetics'}, name='cosmetics-list-letter'),
+    #url(r'^cosmetics/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'cosmetics'}, name='cosmetics-list-letter'),
     url(r'^cosmetics/create$', views.PostCreate.as_view(), name='cosmetics-create', kwargs={'post_type': 'cosmetics'}),
     url(r'^cosmetics/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='cosmetics-update', kwargs={'post_type': 'cosmetics'}),
 
@@ -19,7 +19,7 @@ urlpatterns = [
     url(r'^blog/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='blog-update', kwargs={'post_type': 'blog'}),
 
     url(r'^component/list$', views.PostList.as_view(), name='component-list', kwargs={'post_type': 'component'}),
-    url(r'^component/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'component'}, name='component-list-letter'),
+    #url(r'^component/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'component'}, name='component-list-letter'),
     url(r'^component/create$', views.PostCreate.as_view(), name='component-create', kwargs={'post_type': 'component'}),
     url(r'^component/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='component-update', kwargs={'post_type': 'component'}),
 
@@ -30,13 +30,17 @@ urlpatterns = [
 
     url(r'^comment/get_tree_ajax$', views.CommentGetTreeAjax.as_view(), name='get-comment-tree-ajax'),
 
-
+    url(r'^comment/(?P<comment_pk>\d+)/confirm/(?P<key>[a-z0-9_./]{1,})$', views.CommentConfirm.as_view(), name='comment-confirm'),
 
     url(r'^comment/get_tiny_ajax$', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
 
     url(r'^comment/get_for_answer_block_ajax$', views.CommentGetForAnswerToBlockAjax.as_view(), name='comment-get-for-answer-block-ajax'),
 
     url(r'^comment/show_marked_users_ajax$', views.CommentShowMarkedUsersAjax.as_view(), name='comment-show-marked-users-ajax'),
+
+    url(r'^comment/get_confirm_form_ajax$', views.CommentGetConfirmFormAjax.as_view(), name='comment-get-confirm-form-ajax'),
+    url(r'^comment/do_confirm_ajax$', views.CommentDoConfirmAjax.as_view(), name='comment-do-confirm-ajax'),
+
 
     url(r'^signup$', views.ProzdoSignupView.as_view(), name='signup'),
     url(r'^login$', views.ProzdoLoginView.as_view(), name='login'),
@@ -59,5 +63,5 @@ urlpatterns = [
 
 ]
 
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_./]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_./]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))

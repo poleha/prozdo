@@ -15,12 +15,16 @@
  </tr>
  </thead>
  <tbody>
-     {% for hist in current_user.karm_history %}
+     {% for hist in hists %}
 <tr>
 <td>{{ hist.created }}</td>
 <td><a href="{{ hist.comment.get_absolute_url }}">{{ hist.comment }}</a></td>
 <td><a href="{{ hist.post.get_absolute_url }}">{{ hist.post }}</a></td>
-<td><a href="{{ hist.user.get_absolute_url }}">{{ hist.user }}</a></td>
+{% if hist.user %}
+    <td><a href="{{ hist.user.get_absolute_url }}">{{ hist.user }}</a></td>
+{% else %}
+    <td></td>
+{% endif %}
 </tr>
 
  {% endfor %}

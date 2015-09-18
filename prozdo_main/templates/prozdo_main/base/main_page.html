@@ -5,4 +5,28 @@
 <h2>Популярные препараты</h2>
    {% include 'prozdo_main/post/_post_list_grid.html' with objs=popular_drugs %}
     </div>
+
+    <div class="row">
+<h2>Новые статьи о здоровье</h2>
+   {% include 'prozdo_main/post/_post_list_grid.html' with objs=recent_drugs %}
+    </div>
+
+        <div class="row">
+<h2>Новые консультации</h2>
+   {% for comment in recent_consults %}
+       <h4><a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a></h4>
+ {{ comment.created }}
+    {% if comment.user.is_authenticated %}
+     <a href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
+    {% else %}
+        {{ comment.username }}
+    {% endif %}
+    <div>
+<a href="{{ comment.get_absolute_url }}">{{ comment }}</a>
+</div>
+
+        {% endfor %}
+    </div>
+
+
 {% endblock content %}

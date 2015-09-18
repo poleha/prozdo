@@ -11,12 +11,49 @@ from django.conf import settings
 from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
 from django.db.models.aggregates import Sum, Count
 from django.core.urlresolvers import reverse_lazy
+from django.db.models import Q
+from allauth.account.models import EmailAddress
+from django.core.paginator import Paginator
 
 
-class PostDetail(generic.ListView):
+
+class ProzdoListView(generic.ListView):
+    pages_to_show = 10
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_page = context['page_obj'].number
+        total_pages = context['paginator'].num_pages
+        page_range = context['paginator'].page_range
+        if total_pages <= self.pages_to_show:
+            short_page_range = page_range
+        else:
+            i = j = current_page
+            short_page_range = [current_page]
+            while len(short_page_range) < self.pages_to_show:
+                i += 1
+                j -= 1
+                if i in page_range:
+                    short_page_range.append(i)
+                if j in page_range:
+                    short_page_range.append(j)
+            #_short_page_range = [i for i in range(current_page - self.pages_to_show + 1, current_page + self.pages_to_show + 1) if i > 0]
+            #for i in _short_page_range:
+            short_page_range = sorted(short_page_range)
+        context['short_page_range'] = short_page_range
+        if not 1 in short_page_range:
+            context['show_first_page'] = True
+        if not total_pages in short_page_range:
+            context['show_last_page'] = True
+
+        return context
+
+
+
+class PostDetail(ProzdoListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
+
 
     def get_queryset(self):
         request = self.request
@@ -111,11 +148,11 @@ class PostDetail(generic.ListView):
             show_make_mark_block_cls = ''
         context['show_your_mark_block_cls'] = show_your_mark_block_cls
         context['show_make_mark_block_cls'] = show_make_mark_block_cls
-
         return context
 
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
+        user = request.user
         self.set_obj()
         self.object_list = self.get_queryset()
         comment_form = forms.CommentForm(request.POST, request=request, post=self.post)
@@ -127,6 +164,7 @@ class PostDetail(generic.ListView):
             comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
             published = comment.status == models.COMMENT_STATUS_PUBLISHED
+            comment.send_confirmation_mail(request=request)
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
             if request.is_ajax():
                 return JsonResponse({'href': comment.get_absolute_url(), 'status': 1, 'published': published})
@@ -156,7 +194,7 @@ class PostViewMixin:
         return super().dispatch(request, args, **kwargs)
 
 
-class PostList(PostViewMixin, generic.ListView):
+class PostList(PostViewMixin, ProzdoListView):
     template_name = 'prozdo_main/post/post_list.html'
     context_object_name = 'objs'
     paginate_by = settings.POST_LIST_PAGE_SIZE
@@ -184,15 +222,22 @@ class PostList(PostViewMixin, generic.ListView):
             for field_name, field_value in filter_form.cleaned_data.items():
             #usage_areas = drug_filter_form.cleaned_data['usage_areas']
                 if len(field_value) > 0: #не exists() поскольку может быть list для component_type
-                    if isinstance(field_value, str):
+                    #TODO Переделать на custom lookup
+                    if field_name == 'alphabet':
+                        ids = ()
+                        for letter in field_value:
+                            cur_ids = self.model.objects.filter(title__istartswith=letter).values_list('id', flat=True)
+                            ids += tuple(cur_ids)
+                        flt['id__in'] = ids
+                    elif isinstance(field_value, str):
                         flt[field_name + '__icontains'] = field_value
                     else:
                         flt[field_name + '__in'] = field_value
             queryset = queryset.filter(**flt)
 
-        letter = self.kwargs.get('letter', None)
-        if letter:
-            queryset = queryset.filter(title__istartswith=letter)
+        #letter = self.kwargs.get('letter', None)
+        #if letter:
+        #    queryset = queryset.filter(title__istartswith=letter)
         return queryset
 
     def get_filter_form(self):
@@ -226,7 +271,7 @@ class HistoryAjaxSave(generic.View):
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
             data = {'mark': comment.comment_mark}
             if h:
                 data['saved'] = True
@@ -249,7 +294,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
             data = {'mark': comment.comment_mark}
             if h:
                 data['saved'] = True
@@ -274,7 +319,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session.session_key)
             data = {}
             if h:
                 data['saved'] = True
@@ -342,6 +387,51 @@ class CommentGetTinyAjax(generic.View):
             res = comment.short_body
         return HttpResponse(res)
 
+
+class CommentGetConfirmFormAjax(generic.TemplateView):
+    template_name = 'prozdo_main/comment/_get_confirm_form.html'
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        pk = self.request.POST['pk']
+        comment = models.Comment.objects.get(pk=pk)
+        if user.is_authenticated():
+            try:
+                email = EmailAddress.objects.get(user=user)
+            except:
+                email= None
+            if email and email.verified and user.email == comment.email:
+                comment.confirmed = True
+                comment.save()
+                return HttpResponse('Отзыв подтвержден')
+
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+class CommentDoConfirmAjax(generic.View):
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        pk = self.request.POST['pk']
+        comment = models.Comment.objects.get(pk=pk)
+        if user.is_authenticated():
+            try:
+                email = EmailAddress.objects.get(user=user)
+            except:
+                email= None
+            if email and email.verified and user.email == comment.email:
+                comment.confirmed = True
+                comment.save()
+                return HttpResponse('Отзыв подтвержден')
+        comment.send_confirmation_mail(request=request)
+        return HttpResponse('На Ваш адрес электронной почту отправлено сообщение с дальнейшими инструкциями')
+
+
 class CommentGetForAnswerToBlockAjax(generic.TemplateView):
     template_name =  'prozdo_main/comment/_comment_for_answer_block.html'
 
@@ -390,10 +480,19 @@ class MainPageView(generic.TemplateView):
         drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:18]
         return drugs
 
+    def get_recent_blogs(self):
+        blogs = models.Blog.objects.get_available().order_by('-created')[:10]
+        return blogs
+
+    def get_recent_consults(self):
+        comments = models.Comment.objects.get_available().filter(consult_required=True).order_by('-created')[:10]
+        return comments
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_drugs'] = self.get_popular_drugs()
+        context['recent_drugs'] = self.get_recent_blogs()
+        context['recent_consults'] = self.get_recent_consults()
         return context
 
 #*********************************<Account
@@ -455,7 +554,7 @@ class UserProfileView(generic.TemplateView):
 
 
     def post(self, request, *args, **kwargs):
-        user = self.request.user
+        #user = self.request.user
         user_profile = self.request.user.user_profile
         form = forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
         if form.is_valid():
@@ -477,10 +576,10 @@ class UserDetailView(generic.TemplateView):
         return context
 
 
-class UserCommentsView(generic.ListView):
+class UserCommentsView(ProzdoListView):
     template_name = 'prozdo_main/user/user_comments.html'
     context_object_name = 'comments'
-    paginate_by = 5
+    paginate_by = 50
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -493,13 +592,12 @@ class UserCommentsView(generic.ListView):
         pk = self.kwargs['pk']
         user = models.User.objects.get(pk=pk)
         context['current_user'] = user
-
         return context
 
-class UserKarmaView(generic.ListView):
+class UserKarmaView(ProzdoListView):
     template_name = 'prozdo_main/user/user_karma.html'
     context_object_name = 'hists'
-    paginate_by = 5
+    paginate_by = 50
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -546,3 +644,23 @@ class PostCreate(PostCreateUpdateMixin, generic.CreateView):
 class PostUpdate(PostCreateUpdateMixin, generic.UpdateView):
     template_name ='prozdo_main/post/post_create.html'
 
+
+class CommentConfirm(generic.TemplateView):
+    template_name = 'prozdo_main/comment/confirm.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            comment_pk = kwargs['comment_pk']
+            key = kwargs['key']
+            comment = models.Comment.objects.get(pk=comment_pk, key=key)
+            if comment.confirmed == False:
+                comment.confirmed = True
+                comment.save()
+                context['saved'] = True
+            else:
+                context['not_saved'] = True
+
+        except:
+            context['not_found'] = True
+        return context
