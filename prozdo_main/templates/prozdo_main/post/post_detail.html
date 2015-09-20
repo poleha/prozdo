@@ -1,6 +1,6 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% load prozdo_main_tags %}
-
+{% load compress %}
 {% block content %}
 
 
@@ -244,7 +244,8 @@
 
 {% block footer %}
     {{ block.super }}
-<script>
+{% compress js %}
+    <script>
  $(function() {
  $(document).on('click', '.comment-mark-button', function(e) {
  var level = $(this).closest('.single-comment').find('.comment-level').val();
@@ -564,16 +565,11 @@ $(document).on('click', '#post-mark > span', function(e) {
  }
  });
 
-
-
-
-
-
  });
-
 
 
  });
 
 </script>
+    {% endcompress %}
 {% endblock footer %}

@@ -290,12 +290,12 @@ class HistoryAjaxSave(generic.View):
                 data['saved'] = True
             else:
                 data['saved'] = False
-            data['mark'] = comment.complain_count
+            data['mark'] = comment.comment_mark
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
             h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
-            data = {'mark': comment.comment_mark}
+            data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
             else:

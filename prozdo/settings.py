@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
 # Application definition
 
 INSTALLED_APPS = (
@@ -56,6 +57,7 @@ INSTALLED_APPS = (
     #'multi_image_upload',
      'sorl.thumbnail',
      'django.contrib.redirects',
+    'compressor',
 
 )
 
@@ -214,3 +216,13 @@ CACHES = {
 
 THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
+
+
+COMPRESS_ENABLED = True
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # other finders..
+    'compressor.finders.CompressorFinder',
+)
