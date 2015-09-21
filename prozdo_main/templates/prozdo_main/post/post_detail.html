@@ -80,7 +80,7 @@
                     {% if obj.show_body_label %}
                         <h4>{% get_verbose_field_name obj 'body' %}:</h4>
                     {% endif %}
-                    {{ obj.body }}
+                    {{ obj.body|safe }}
                 </div>
 
                 {% if obj.is_drug %}

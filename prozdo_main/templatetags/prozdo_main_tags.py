@@ -6,7 +6,7 @@ from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from string import ascii_lowercase, digits
 from collections import OrderedDict, namedtuple
-
+from django.core.urlresolvers import reverse
 
 
 register = template.Library()
@@ -168,33 +168,77 @@ def get_get_parameters_exclude(context, exclude=('page', ), page=None):
             params += '&page=' + str(page)
     return params
 
-"""
-@register.inclusion_tag('prozdo_main/widgets/_post_alphabet.html', takes_context=True)
-def post_alphabet(context, post_type_text):
-    request = context['request']
-    current_letter = request.resolver_match.kwargs.get('letter', None)
-    if post_type_text == 'drug':
-        post_type = models.POST_TYPE_DRUG
-        url = models.Drug.get_list_url()
-    elif post_type_text == 'cosmetics':
-        post_type = models.POST_TYPE_COSMETICS
-        url = models.Cosmetics.get_list_url()
-    elif post_type_text == 'component':
-        post_type = models.POST_TYPE_COMPONENT
-        url = models.Component.get_list_url()
-    alph = OrderedDict()
-    letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
-    for letter in letters:
-        posts = models.Post.objects.filter(post_type=post_type, title__istartswith=letter)
-        count = posts.count()
-        if count > 0:
-            alph[letter] = letter
-
-    total_count = models.Post.objects.get_available().filter(post_type=post_type).count()
-    return {'alph': alph, 'total_count': total_count, 'url': url, 'current_letter': current_letter}
-"""
 
 @register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
 def user_detail(user):
     return {'user': user}
 
+
+
+Breadcrumb = namedtuple('Breadcrumb', ['title', 'href', 'type'])
+
+@register.inclusion_tag('prozdo_main/widgets/_breadcrumbs.html', takes_context=True)
+def breadcrumbs(context):
+
+    request = context['request']
+    url_name = request.resolver_match.url_name
+    #kwargs = request.resolver_match.kwargs
+
+    if url_name == 'main-page':
+        return
+
+    breadcrumbs_list = [Breadcrumb(title='Главная', href=reverse('main-page'), type='link')]
+
+    if url_name == 'drug-list':
+        breadcrumbs_list.append(Breadcrumb(title='Отзывы о лекарствах', href='', type='text'))
+
+    elif url_name == 'cosmetics-list':
+        breadcrumbs_list.append(Breadcrumb(title='Отзывы об аптечной косметике', href='', type='text'))
+
+    elif url_name == 'blog-list':
+        breadcrumbs_list.append(Breadcrumb(title='Здоровый блог', href='', type='text'))
+
+    elif url_name == 'component-list':
+        breadcrumbs_list.append(Breadcrumb(title='Состав препаратов', href='', type='text'))
+
+    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment']:
+        obj = context['obj']
+        if isinstance(obj, models.Drug):
+            list_title = 'Отзывы о лекарствах'
+            href = reverse('drug-list')
+        elif isinstance(obj, models.Blog):
+            list_title = 'Здоровый блог'
+            href = reverse('blog-list')
+        elif isinstance(obj, models.Cosmetics):
+            list_title = 'Отзывы об аптечной косметике'
+            href = reverse('cosmetics-list')
+        elif isinstance(obj, models.Component):
+            list_title = 'Состав препаратов'
+            href = reverse('component-list')
+
+        breadcrumbs_list.append(Breadcrumb(title=list_title, href=href, type='link'))
+        obj = context['obj']
+        breadcrumbs_list.append(Breadcrumb(title=obj.title, href=obj.get_absolute_url(), type='text'))
+
+
+    elif url_name == 'user-profile':
+        user = context['user']
+        breadcrumbs_list.append(Breadcrumb(title='Профиль пользователя {0}'.format(user), href='', type='text'))
+
+    elif url_name == 'user-detail':
+        user = context['current_user']
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href='', type='text'))
+
+    elif url_name in ['user-comments', 'user-karma']:
+        user = context['current_user']
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk}), type='link'))
+        if url_name == 'user-comments':
+            breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user), href='', type='text'))
+        elif url_name == 'user-karma':
+            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href='', type='text'))
+
+
+
+
+
+    return {'breadcrumbs_list': breadcrumbs_list}

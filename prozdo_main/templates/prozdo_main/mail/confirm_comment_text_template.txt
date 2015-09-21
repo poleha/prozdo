@@ -1,0 +1,4 @@
+Вы оставили отзыв на сайте Про здоровье.
+{{ comment }}
+{{ comment.get_absolute_url }}
+{{ comment.get_confirm_url }}

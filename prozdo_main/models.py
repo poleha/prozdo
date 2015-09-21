@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.core.mail.message import EmailMultiAlternatives
 from sorl.thumbnail import ImageField, get_thumbnail
 import re
-
+from django.utils.html import strip_tags
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 
@@ -720,6 +720,11 @@ class Comment(SuperModel, MPTTModel):
 
         if not self.key:
             self.key = self.generate_key()
+
+        if not(self.user.is_admin or self.user.is_doctor or self.user.is_author):
+            self.body = strip_tags(self.body)
+
+
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
 

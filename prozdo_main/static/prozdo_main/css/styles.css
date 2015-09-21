@@ -1,0 +1,226 @@
+.hidden {
+    display: none;
+}
+
+
+.single-comment-with-level-0{
+margin-left: 10px;
+}
+
+
+.single-comment-with-level-1{
+margin-left: 30px;
+}
+
+.single-comment-with-level-2{
+margin-left: 50px;
+}
+
+
+.single-comment-with-level-3{
+margin-left: 70px;
+}
+
+
+.single-comment-with-level-4{
+margin-left: 90px;
+}
+
+
+.single-comment-with-level-5{
+margin-left: 105px;
+}
+
+
+
+.single-comment-with-level-6{
+margin-left: 115px;
+}
+
+.single-comment-with-level-7{
+margin-left: 125px;
+}
+
+.single-comment-with-level-8{
+margin-left: 135px;
+}
+
+.single-comment-with-level-9{
+margin-left: 145px;
+}
+
+.single-comment-with-level-10{
+margin-left: 155px;
+}
+
+
+.single-comment-with-level-11{
+margin-left: 165px;
+}
+
+.single-comment-with-level-12{
+margin-left: 170px;
+}
+
+.single-comment-with-level-13{
+margin-left: 175px;
+}
+
+.single-comment-with-level-14{
+margin-left: 180px;
+}
+
+.single-comment-with-level-15{
+margin-left: 185px;
+}
+
+.single-comment-with-level-16{
+margin-left: 190px;
+}
+
+.single-comment-with-level-17{
+margin-left: 193px;
+}
+
+.single-comment-with-level-18{
+margin-left: 196px;
+}
+
+.single-comment-with-level-19{
+margin-left: 199px;
+}
+
+.single-comment-with-level-20{
+margin-left: 202px;
+}
+
+
+
+/*<HEADER> */
+
+#header {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+#top-logo a {
+    margin-left: 14%;
+    background: url(../images/logo.png) no-repeat;
+    display: block;
+    width: 249px;
+    height: 83px;
+}
+
+#top-consult-banner {
+    background: url(../images/top_consult_banner.jpg) no-repeat;;
+    padding: 15px 20px 20px 135px;
+}
+
+
+
+#top-consult-banner .row1 {
+    color: #15959a;
+    font-size: 1.14em;
+    margin: 0;
+    padding: 0;
+    max-width: 430px;
+}
+
+#top-consult-banner .row2 {
+    color: #e00658;
+    font-size: 1.28em;
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0;
+    max-width: 430px;
+}
+
+
+#top-consult-banner .row3 {
+    color: #15959a;
+    font-size: 0.9em;
+    padding: 0;
+    margin: 0;
+    max-width: 430px;
+}
+
+#top-menu {
+    text-align: center;
+
+
+
+}
+
+#top-menu a {
+    display: block;
+    height: 40px;
+    color: white;
+    text-transform: uppercase;
+    vertical-align: baseline;
+    padding-top: 10px;
+
+}
+
+#top-menu div {
+    padding: 0;
+
+}
+
+
+/*</HEADER> */
+
+
+/*<FOOTER> */
+#footer-info {
+    margin-top: 35px;
+    padding: 20px 20px 20px 110px;
+    background: url(../images/site_info.png) 30px center no-repeat, #f4f8ff;
+}
+#site-info {
+    padding: 15px;
+    border-top: 1px solid #DEE7E6;
+    font-size: .95em;
+    color: #88a39e;
+}
+/*</FOOTER> */
+
+
+/*<DRUG> */
+#full-drug .post-title {
+    display: block;
+    box-shadow: 0 -2px 0 #46c500 inset;
+    font-size: 25px !important;
+    text-transform: uppercase;
+    color: black;
+}
+
+
+#cancel-mark-button {
+}
+
+.drug-info-grid {
+    border-bottom: 1px dotted #c7dcd9;
+}
+
+.drug-comment-count-grid a:hover {
+    background: url(../images/comment_count_hover.png) no-repeat center;
+    color: #0ba11a;
+
+}
+
+.drug-comment-count-grid a {
+    background: url(../images/comment_count.png) no-repeat center;
+    float: right;
+    display: block;
+    padding-left: 40px;
+    color: #0bc17f;
+}
+
+
+
+/*</DRUG> */
+
+/*<MAIN PAGE> */
+
+
+/*</MAIN PAGE> */

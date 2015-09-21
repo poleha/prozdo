@@ -26,7 +26,7 @@
 
 {% endif %}
 
-        <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.body }}</span></div>
+        <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.body|linebreaks }}</span></div>
 
 
 

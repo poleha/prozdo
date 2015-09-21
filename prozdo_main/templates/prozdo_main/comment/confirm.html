@@ -1,0 +1,10 @@
+{% extends 'prozdo_main/base/base.html' %}
+{% block content %}
+{% if saved %}
+Отзыв успешно подтвержден
+{% elif not_saved %}
+Отзыв уже подтвержден
+{% else %}
+Отзыв не найден
+{% endif %}
+{% endblock content %}

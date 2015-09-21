@@ -63,5 +63,11 @@ for i in range(15):
 
 """
 
-for c in models.Comment.objects.all():
-    print(c.level)
+#for c in models.Comment.objects.all():
+#    print(c.level)
+
+from django.utils.html import remove_tags
+
+txt = '<a href="www.aaa.ru">aaa</a><br><img></img>'
+
+print(remove_tags(txt, 'p img br'))

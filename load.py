@@ -19,6 +19,7 @@ from django.utils.timezone import get_default_timezone, now
 from prozdo_main.helper import make_alias
 from django.contrib.redirects.models import Redirect
 from django.db.models import Q
+from django.utils.html import strip_tags
 
 try:
     last_hist_pk = models.History.objects.latest('created').pk
@@ -361,12 +362,17 @@ if load_comments:
         except:
             print('Post not found for {0} - {1}'.format(comment_row['id'], comment_row['post_id']))
             continue
+        if user.is_admin or user.is_author or user.is_doctor:
+            body = comment.body
+        else:
+            body = strip_tags(comment_row['content'])
+
         comment, created = models.Comment.objects.get_or_create(
             post=post,
             username=comment_row['author'],
             email=comment_row['email'] if comment_row['email'] else '',
             post_mark=comment_row['mark'] if comment_row['mark'] else None,
-            body=comment_row['content'],
+            body=body,
             ip=comment_row['ip'],
             consult_required=comment_row['consult'] if comment_row['consult'] else False,
             created=date_from_timestamp(comment_row['create_time']),
