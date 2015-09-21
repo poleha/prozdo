@@ -8,20 +8,24 @@ urlpatterns = [
     #url(r'^drug/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'drug'}, name='drug-list-letter'),
     url(r'^drug/create$', views.PostCreate.as_view(), name='drug-create', kwargs={'post_type': 'drug'}),
     url(r'^drug/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='drug-update', kwargs={'post_type': 'drug'}),
+    url(r'^drug/list_ajax$', views.PostListAjax.as_view(), name='drug-list-ajax', kwargs={'post_type': 'drug'}),
 
     url(r'^cosmetics/list$', views.PostList.as_view(), name='cosmetics-list', kwargs={'post_type': 'cosmetics'}),
     #url(r'^cosmetics/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'cosmetics'}, name='cosmetics-list-letter'),
     url(r'^cosmetics/create$', views.PostCreate.as_view(), name='cosmetics-create', kwargs={'post_type': 'cosmetics'}),
     url(r'^cosmetics/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='cosmetics-update', kwargs={'post_type': 'cosmetics'}),
+    url(r'^cosmetics/list_ajax$', views.PostListAjax.as_view(), name='cosmetics-list-ajax', kwargs={'post_type': 'cosmetics'}),
 
     url(r'^blog/list$', views.PostList.as_view(), name='blog-list', kwargs={'post_type': 'blog'}),
     url(r'^blog/create$', views.PostCreate.as_view(), name='blog-create', kwargs={'post_type': 'blog'}),
     url(r'^blog/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='blog-update', kwargs={'post_type': 'blog'}),
+    url(r'^blog/list_ajax$', views.PostListAjax.as_view(), name='blog-list-ajax', kwargs={'post_type': 'blog'}),
 
     url(r'^component/list$', views.PostList.as_view(), name='component-list', kwargs={'post_type': 'component'}),
     #url(r'^component/list/letter/(?P<letter>[a-zа-я0-9])$', views.PostList.as_view(), kwargs={'action': 'alphabet', 'post_type': 'component'}, name='component-list-letter'),
     url(r'^component/create$', views.PostCreate.as_view(), name='component-create', kwargs={'post_type': 'component'}),
     url(r'^component/update/(?P<pk>\d+)$', views.PostUpdate.as_view(), name='component-update', kwargs={'post_type': 'component'}),
+    url(r'^component/list_ajax$', views.PostListAjax.as_view(), name='component-list-ajax', kwargs={'post_type': 'component'}),
 
     url(r'^post/(?P<pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-pk'),
     url(r'^post/(?P<pk>\d+)/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-pk-comment'),
@@ -40,6 +44,8 @@ urlpatterns = [
 
     url(r'^comment/get_confirm_form_ajax$', views.CommentGetConfirmFormAjax.as_view(), name='comment-get-confirm-form-ajax'),
     url(r'^comment/do_confirm_ajax$', views.CommentDoConfirmAjax.as_view(), name='comment-do-confirm-ajax'),
+
+    url(r'^comment/update/(?P<pk>\d+)$', views.CommentUpdate.as_view(), name='comment-update'),
 
 
     url(r'^signup$', views.ProzdoSignupView.as_view(), name='signup'),

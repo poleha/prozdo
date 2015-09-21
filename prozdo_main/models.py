@@ -112,7 +112,7 @@ COMPONENT_TYPES = (
 
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True)
-    updated = models.DateField(blank=True, null=True)
+    updated = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -220,6 +220,29 @@ class Post(AbstractModel):
             return 'prozdo_main/post/_component_list.html'
         else:
             return 'prozdo_main/post/_post_list_grid.html'
+
+    @classmethod
+    def ajax_submit_url(cls):
+        if cls == Drug:
+            return reverse('drug-list-ajax')
+        elif cls == Blog:
+            return reverse('blog-list-ajax')
+        elif cls == Cosmetics:
+            return reverse('cosmetics-list-ajax')
+        elif cls == Component:
+            return reverse('component-list-ajax')
+
+    @classmethod
+    def submit_url(cls):
+        if cls == Drug:
+            return reverse('drug-list')
+        elif cls == Blog:
+            return reverse('blog-list')
+        elif cls == Cosmetics:
+            return reverse('cosmetics-list')
+        elif cls == Component:
+            return reverse('component-list')
+
 
     @classmethod
     def get_list_url(cls):
@@ -566,6 +589,10 @@ class Comment(SuperModel, MPTTModel):
             return self.tree_level
         else:
             return 0
+
+    @property
+    def update_url(self):
+            return reverse('comment-update', kwargs={'pk': self.pk})
 
     def get_children_tree(self, cur=None, level=1):
         tree = []

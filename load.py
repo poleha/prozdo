@@ -590,7 +590,24 @@ if create_redirects:
     posts = models.Post.objects.filter(Q(alias__contains='bad/')|Q(alias__contains='vitamin/'))
     #print(list(posts))
     for post in posts:
-        alias = make_alias(post.title)
+        if post.alias == 'bad/25':
+            alias = 'cigapan'
+        elif post.alias == 'bad/5':
+            alias = 'oscillococcinum'
+        elif post.alias == 'bad/82':
+            alias = 'linex'
+        elif post.alias == 'bad/85':
+            alias = 'reduxin'
+        elif post.alias == 'vitamin/8':
+            alias = 'supradyn'
+        elif post.alias == 'vitamin/77':
+            alias = 'perfectil'
+        elif post.alias == 'bad/111':
+            alias = 'lasolvan'
+        elif post.alias == 'bad/2':
+            alias = 'qudesan'
+        else:
+            alias = make_alias(post.title)
         Redirect.objects.get_or_create(
             site=current_site,
             old_path='/' + post.alias,

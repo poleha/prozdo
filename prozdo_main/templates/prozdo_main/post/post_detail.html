@@ -4,34 +4,37 @@
 {% block content %}
 
 
- <div id="full-post">
- <input id="post-pk" type="hidden" value="{{ obj.pk }}">
- <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
-{% if user.is_admin or user.is_author %}
-    <a href="{{ obj.update_url }}">Редактировать</a>
+    <div id="full-post">
+        <input id="post-pk" type="hidden" value="{{ obj.pk }}">
 
-    {% endif %}
-    <div class="row">
-<div class="col-lg-6 col-md-6">
+        <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
+        {% if user.is_admin or user.is_author %}
+            <a href="{{ obj.update_url }}">Редактировать</a>
 
-
-
-  <div>
-  <a href="{{ obj.get_absolute_url }}">
-      <img src="{{ obj.thumb220 }}">
-      </a>
-
-  </div>
-</div>
-    <div class="col-lg-6 col-md-6">
-    {% if obj.is_drug %}
- <div id="post-mark-block>">
- <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}"><label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
- <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning {{ show_your_mark_block_cls }}">
- <div id="post-mark" class="{{ show_make_mark_block_cls }}">
+        {% endif %}
+        <div class="row">
+            <div class="col-lg-6 col-md-6">
 
 
- <label>Оцените препарат: </label>
+                <div>
+                    <a href="{{ obj.get_absolute_url }}">
+                        <img src="{{ obj.thumb220 }}">
+                    </a>
+
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                {% if obj.is_drug %}
+                    <div id="post-mark-block>">
+                        <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}"><label>Ваша
+                            оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
+                        <input type="button" value="Отменить оценку" id="cancel-mark-button"
+                               class="btn btn-warning {{ show_your_mark_block_cls }}">
+
+                        <div id="post-mark" class="{{ show_make_mark_block_cls }}">
+
+
+                            <label>Оцените препарат: </label>
  <span id="post-mark-1">
      <span class="glyphicon glyphicon-star"></span>
  </span>
@@ -47,529 +50,515 @@
  <span id="post-mark-5">
      <span class="glyphicon glyphicon-star"></span>
  </span>
- </div>
+                        </div>
 
-</div>
-
-
-        <div>
-         <label>Средняя оценка: </label><span id="post-average-mark">{{ obj.average_mark }}</span>(количество оценок: <span id="post-marks-count">{{ obj.marks_count }})</span>
-         </div>
-
-    <div>
-         <label>Количество отзывов: </label><span>{{ obj.published_comments_count }}</span>
-         </div>
-{% if obj.last_comment_date %}
-     <div>
-         <label>Последний отзыв оставлен: </label><span>{{ obj.last_comment_date }}</span>
-         </div>
- {% endif %}
-<a href="#comment-form" class="btn btn-success">Оставить отзыв</a>
- {% endif %}
- </div>
+                    </div>
 
 
+                    <div>
+                        <label>Средняя оценка: </label><span id="post-average-mark">{{ obj.average_mark }}</span>(количество
+                        оценок: <span id="post-marks-count">{{ obj.marks_count }})</span>
+                    </div>
 
-</div>
-    <div class="row">
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-    <div>
- {% if obj.show_body_label %}
-        <h4>{% get_verbose_field_name obj 'body' %}:</h4>
-  {% endif %}
- {{ obj.body }}
- </div>
-
- {% if obj.is_drug %}
- <div>
- <h4>{% get_verbose_field_name obj 'features' %}:</h4>
- {{ obj.features }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'indications' %}:</h4>
- {{ obj.indications }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'application_scheme' %}:</h4>
- {{ obj.application_scheme }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'dosage_form' %}:</h4>
- {{ obj.dosage_form }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'contra_indications' %}:</h4>
- {{ obj.contra_indications }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'side_effects' %}:</h4>
- {{ obj.side_effects }}
- </div>
-
- <div>
- <h4>{% get_verbose_field_name obj 'compound' %}:</h4>
- {{ obj.compound }}
- </div>
-
- <div>
- <h4>Компоненты:</h4>
- {% for component in obj.components.all %}
- <div> <a href="{{ component.get_absolute_url }}">{{ component }}</a></div>
-
- {% endfor %}
- </div>
-
- <div>
- <h4>Формы выпуска:</h4>
- {% for dosage_form in obj.dosage_forms.all %}
- <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
-
- {% endfor %}
- </div>
-
- <div>
- <h4>Области применения:</h4>
- {% for usage_area in obj.usage_areas.all %}
- <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
-
- {% endfor %}
- </div>
- {% elif obj.is_cosmetics %}
-
-      <div>
- <h4>Формы выпуска:</h4>
- {% for dosage_form in obj.dosage_forms.all %}
-  <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
-
- {% endfor %}
- </div>
-
- <div>
- <h4>Области применения:</h4>
- {% for usage_area in obj.usage_areas.all %}
- <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
-
- {% endfor %}
- </div>
-
-      <div>
- <h4>Линия:</h4>
- <div><a href="{{ obj.line.get_absolute_url }}">{{ obj.line }}</a></div>
- </div>
-
-           <div>
- <h4>Бренд:</h4>
- <div><a href="{{ obj.brand.get_absolute_url }}">{{ obj.brand }}</a></div>
- </div>
+                    <div>
+                        <label>Количество отзывов: </label><span>{{ obj.published_comments_count }}</span>
+                    </div>
+                    {% if obj.last_comment_date %}
+                        <div>
+                            <label>Последний отзыв оставлен: </label><span>{{ obj.last_comment_date }}</span>
+                        </div>
+                    {% endif %}
+                    <a href="#comment-form" class="btn btn-success">Оставить отзыв</a>
+                {% endif %}
+            </div>
 
 
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div>
+                    {% if obj.show_body_label %}
+                        <h4>{% get_verbose_field_name obj 'body' %}:</h4>
+                    {% endif %}
+                    {{ obj.body }}
+                </div>
 
- <div>
- <h4>Области применения:</h4>
- {% for usage_area in obj.usage_areas.all %}
- <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+                {% if obj.is_drug %}
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'features' %}:</h4>
+                        {{ obj.features }}
+                    </div>
 
- {% endfor %}
- </div>
-{% elif obj.is_blog %}
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'indications' %}:</h4>
+                        {{ obj.indications }}
+                    </div>
 
-     <div>
- <h4>Категории:</h4>
- {% for category in obj.category.all %}
- <div> {{ category }}</div>
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'application_scheme' %}:</h4>
+                        {{ obj.application_scheme }}
+                    </div>
 
- {% endfor %}
- </div>
-{% elif obj.is_component %}
-      <div>
- <h4>Тип компонента:</h4>
- {{ obj.component_type_text }}
- </div>
- {% endif %}
-{% if not obj.is_component %}
-        <form method="get">
- {{ comments_options_form.as_p }}
- <input type="submit" value="Отправить">
- </form>
- <div id="comments">
- <h4>Отзывы:</h4>
- {% for comment in comments %}
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'dosage_form' %}:</h4>
+                        {{ obj.dosage_form }}
+                    </div>
 
- <div class="full-comment">
- {% get_comment comment%}
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'contra_indications' %}:</h4>
+                        {{ obj.contra_indications }}
+                    </div>
 
- <div class="comment-children-block">
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'side_effects' %}:</h4>
+                        {{ obj.side_effects }}
+                    </div>
+
+                    <div>
+                        <h4>{% get_verbose_field_name obj 'compound' %}:</h4>
+                        {{ obj.compound }}
+                    </div>
+
+                    <div>
+                        <h4>Компоненты:</h4>
+                        {% for component in obj.components.all %}
+                            <div><a href="{{ component.get_absolute_url }}">{{ component }}</a></div>
+
+                        {% endfor %}
+                    </div>
+
+                    <div>
+                        <h4>Формы выпуска:</h4>
+                        {% for dosage_form in obj.dosage_forms.all %}
+                            <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
+
+                        {% endfor %}
+                    </div>
+
+                    <div>
+                        <h4>Области применения:</h4>
+                        {% for usage_area in obj.usage_areas.all %}
+                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+
+                        {% endfor %}
+                    </div>
+                {% elif obj.is_cosmetics %}
+
+                    <div>
+                        <h4>Формы выпуска:</h4>
+                        {% for dosage_form in obj.dosage_forms.all %}
+                            <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
+
+                        {% endfor %}
+                    </div>
+
+                    <div>
+                        <h4>Области применения:</h4>
+                        {% for usage_area in obj.usage_areas.all %}
+                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+
+                        {% endfor %}
+                    </div>
+
+                    <div>
+                        <h4>Линия:</h4>
+
+                        <div><a href="{{ obj.line.get_absolute_url }}">{{ obj.line }}</a></div>
+                    </div>
+
+                    <div>
+                        <h4>Бренд:</h4>
+
+                        <div><a href="{{ obj.brand.get_absolute_url }}">{{ obj.brand }}</a></div>
+                    </div>
 
 
-{% if show_tree %}
- {% get_child_comments %}
 
-{% endif %}
-</div>
-</div>
- {% endfor %}
- </div>
+                    <div>
+                        <h4>Области применения:</h4>
+                        {% for usage_area in obj.usage_areas.all %}
+                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
 
- {% if comments.count > 0 %}
- {% include 'prozdo_main/base/_pager.html' with url=obj.get_absolute_url%}
- {% endif %}
+                        {% endfor %}
+                    </div>
+                {% elif obj.is_blog %}
 
-<div>
+                    <div>
+                        <h4>Категории:</h4>
+                        {% for category in obj.category.all %}
+                            <div> {{ category }}</div>
 
-<div id="answer-to-block" class="hidden">
-<label>В ответ на:</label><span id="answer-to-span"></span>
- <input type="button" id="clean-answer-to" value="Очистить">
-</div>
+                        {% endfor %}
+                    </div>
+                {% elif obj.is_component %}
+                    <div>
+                        <h4>Тип компонента:</h4>
+                        {{ obj.component_type_text }}
+                    </div>
+                {% endif %}
+                {% if not obj.is_component %}
+                    <form method="get">
+                        {{ comments_options_form.as_p }}
+                        <input type="submit" value="Отправить">
+                    </form>
+                    <div id="comments">
+                        <h4>Отзывы:</h4>
+                        {% for comment in comments %}
+
+                            <div class="full-comment">
+                                {% get_comment comment %}
+
+                                <div class="comment-children-block">
 
 
-<form method="post" id="comment-form" action="{{ obj.get_absolute_url }}">
-{% csrf_token %}
- <div id="comment-form-inner">
- {{ comment_form.as_p }}
- </div>
-<input type="submit" value="Отправить">
-</form>
-</div>
+                                    {% if show_tree %}
+                                        {% get_child_comments %}
 
-{% endif %}
-</div>
-    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if comments.count > 0 %}
+                        {% include 'prozdo_main/base/_pager.html' with url=obj.get_absolute_url %}
+                    {% endif %}
+
+                    <div>
+
+                        <div id="answer-to-block" class="hidden">
+                            <label>В ответ на:</label><span id="answer-to-span"></span>
+                            <input type="button" id="clean-answer-to" value="Очистить">
+                        </div>
+
+
+                        <form method="post" id="comment-form" action="{{ obj.get_absolute_url }}">
+                            {% csrf_token %}
+                            <div id="comment-form-inner">
+                                {{ comment_form.as_p }}
+                            </div>
+                            <input type="submit" value="Отправить">
+                        </form>
+                    </div>
+
+                {% endif %}
+            </div>
+        </div>
     </div>
 {% endblock content %}
 
-{% block footer %}
-    {{ block.super }}
-{% compress js %}
-    <script>
- $(function() {
- $(document).on('click', '.comment-mark-button', function(e) {
- var level = $(this).closest('.single-comment').find('.comment-level').val();
- var pk = $(this).closest('.single-comment').find('.comment-pk').val();
- var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
- var toHide = $(this).closest('.single-comment').find('.comment-mark-button');
- var toShow = $(this).closest('.single-comment').find('.comment-unmark-button');
- var data = {'pk': pk, 'action': 'comment-mark'};
- commentAjaxAction(data, targetSpan, toHide, toShow);
- });
 
- $(document).on('click', '.comment-unmark-button', function(e) {
- var level = $(this).closest('.single-comment').find('.comment-level').val();
- var pk = $(this).closest('.single-comment').find('.comment-pk').val();
- var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
- var toHide = $(this).closest('.single-comment').find('.comment-unmark-button');
- var toShow = $(this).closest('.single-comment').find('.comment-mark-button');
- var data = {'pk': pk, 'action': 'comment-unmark'};
- commentAjaxAction(data, targetSpan, toHide, toShow);
- });
+{% block bottom_scripts %}
+    {% compress js %}
+        {{ block.super }}
+        <script>
+            $(function () {
+                $(document).on('click', '.comment-mark-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
+                    var toHide = $(this).closest('.single-comment').find('.comment-mark-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-unmark-button');
+                    var data = {'pk': pk, 'action': 'comment-mark'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
+                });
 
-
-
- $(document).on('click', '.comment-complain-button', function(e) {
- var level = $(this).closest('.single-comment').find('.comment-level').val();
- var pk = $(this).closest('.single-comment').find('.comment-pk').val();
- var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
- var toHide = $(this).closest('.single-comment').find('.comment-complain-button');
- var toShow = $(this).closest('.single-comment').find('.comment-uncomplain-button');
- var data = {'pk': pk, 'action': 'comment-complain'};
- commentAjaxAction(data, targetSpan, toHide, toShow);
-
- });
-
- $(document).on('click', '.comment-uncomplain-button', function(e) {
- var level = $(this).closest('.single-comment').find('.comment-level').val();
- var pk = $(this).closest('.single-comment').find('.comment-pk').val();
- var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
- var toHide = $(this).closest('.single-comment').find('.comment-uncomplain-button');
- var toShow = $(this).closest('.single-comment').find('.comment-complain-button');
- var data = {'pk': pk, 'action': 'comment-uncomplain'};
- commentAjaxAction(data, targetSpan, toHide, toShow);
- });
+                $(document).on('click', '.comment-unmark-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
+                    var toHide = $(this).closest('.single-comment').find('.comment-unmark-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-mark-button');
+                    var data = {'pk': pk, 'action': 'comment-unmark'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
+                });
 
 
+                $(document).on('click', '.comment-complain-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
+                    var toHide = $(this).closest('.single-comment').find('.comment-complain-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-uncomplain-button');
+                    var data = {'pk': pk, 'action': 'comment-complain'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
 
- function commentAjaxAction(actionData, targetSpan, toHide, toShow){
- $.ajax({
- type: 'POST',
- url: '{% url 'history-ajax-save' %}',
- data: actionData,
- success: function (data) {
-     targetSpan.html(data.mark);
+                });
 
-         toHide.addClass('hidden');
-         toShow.removeClass('hidden');
-     if(!data.saved){
-     alert('Повторное действие не засчитано');
-     }
- },
- error: function (data) {
-
- }
- });
-
- }
-
-
- $(document).on('click', '.answer-to-comment', function(e) {
- var level = $(this).closest('.single-comment').find('.comment-level').val();
- var pk = $(this).closest('.single-comment').find('.comment-pk').val();
- var action = 'show';
+                $(document).on('click', '.comment-uncomplain-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
+                    var toHide = $(this).closest('.single-comment').find('.comment-uncomplain-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-complain-button');
+                    var data = {'pk': pk, 'action': 'comment-uncomplain'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
+                });
 
 
- $.ajax({
- type: 'POST',
- url: '{% url 'comment-get-for-answer-block-ajax' %}',
- data: {'pk': pk},
- success: function (data) {
-$('#id_parent').val(pk);
-$('#answer-to-block').removeClass('hidden');
+                function commentAjaxAction(actionData, targetSpan, toHide, toShow) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'history-ajax-save' %}',
+                        data: actionData,
+                        success: function (data) {
+                            targetSpan.html(data.mark);
+
+                            toHide.addClass('hidden');
+                            toShow.removeClass('hidden');
+                            if (!data.saved) {
+                                alert('Повторное действие не засчитано');
+                            }
+                        },
+                        error: function (data) {
+
+                        }
+                    });
+
+                }
+
+
+                $(document).on('click', '.answer-to-comment', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var action = 'show';
+
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'comment-get-for-answer-block-ajax' %}',
+                        data: {'pk': pk},
+                        success: function (data) {
+                            $('#id_parent').val(pk);
+                            $('#answer-to-block').removeClass('hidden');
 // var commentBody = $('#comment-body-level-' + level + '-pk-' + pk).html();
-$('#answer-to-span').html(data);
- $('#id_body').focus();
- },
- error: function (data) {
- }
- });
+                            $('#answer-to-span').html(data);
+                            $('#id_body').focus();
+                        },
+                        error: function (data) {
+                        }
+                    });
 
 
+                });
 
 
+                $('#clean-answer-to').click(function (e) {
+                    $('#id_parent').val('');
+                    $('#answer-to-block').addClass('hidden');
+                    $('#answer-to-span').html('');
+
+                });
 
 
+                $(document).on('click', '.show-comment-tree', function (e) {
+                    var id = this.id;
+                    var level = $(this).closest('.full-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.full-comment').find('.comment-pk').val();
+                    var childrenBlock = $(this).closest('.full-comment').find('.comment-children-block');
+                    var actionData = {'pk': pk, 'action': 'comment-tree-show'};
+                    var cur = this;
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'get-comment-tree-ajax' %}',
+                        data: actionData,
+                        success: function (data) {
+                            $(cur).closest('.full-comment').find('.show-comment-tree').addClass('hidden');
+                            $(cur).closest('.full-comment').find('.hide-comment-tree').removeClass('hidden');
+                            childrenBlock.fadeTo('slow', 1, function () {
+                                childrenBlock.html(data);
+                            });
+                        },
+                        error: function (data) {
+                            //childrenBlock.html('');
+                        }
+                    });
 
- });
+                });
 
-
- $('#clean-answer-to').click(function(e) {
- $('#id_parent').val('');
- $('#answer-to-block').addClass('hidden');
- $('#answer-to-span').html('');
-
- });
-
-
- $(document).on('click', '.show-comment-tree', function(e) {
- var id = this.id;
- var level = $(this).closest('.full-comment').find('.comment-level').val();
- var pk = $(this).closest('.full-comment').find('.comment-pk').val();
- var childrenBlock = $(this).closest('.full-comment').find('.comment-children-block');
- var actionData = {'pk': pk, 'action': 'comment-tree-show'};
- var cur = this;
- $.ajax({
- type: 'POST',
- url: '{% url 'get-comment-tree-ajax' %}',
- data: actionData,
- success: function (data) {
- $(cur).closest('.full-comment').find('.show-comment-tree').addClass('hidden');
- $(cur).closest('.full-comment').find('.hide-comment-tree').removeClass('hidden');
- childrenBlock.fadeTo('slow', 1, function() {
- childrenBlock.html(data);
- });
- },
- error: function (data) {
- //childrenBlock.html('');
- }
- });
-
- });
-
- $(document).on('click', '.hide-comment-tree', function(e) {
- $(this).closest('.full-comment').find('.comment-children-block').fadeTo('slow', 0, function () {
- $(this).closest('.full-comment').find('.comment-children-block').html('');
- });
- $(this).closest('.full-comment').find('.show-comment-tree').removeClass('hidden');
- $(this).closest('.full-comment').find('.hide-comment-tree').addClass('hidden');
- });
+                $(document).on('click', '.hide-comment-tree', function (e) {
+                    $(this).closest('.full-comment').find('.comment-children-block').fadeTo('slow', 0, function () {
+                        $(this).closest('.full-comment').find('.comment-children-block').html('');
+                    });
+                    $(this).closest('.full-comment').find('.show-comment-tree').removeClass('hidden');
+                    $(this).closest('.full-comment').find('.hide-comment-tree').addClass('hidden');
+                });
 
 
- $(document).on('click', '.tiny-comment-show-full, .tiny-comment-hide-full', function(e) {
- var block = $(this).closest('.tiny-comment');
- var cls = $(this).attr('class');
- if (cls=='tiny-comment-show-full') {
- var action = 'show';
- var toHide = block.find('.tiny-comment-show-full');
- var toShow = block.find('.tiny-comment-hide-full');
- }
- else{
- var action = 'hide';
- var toHide = block.find('.tiny-comment-hide-full');
- var toShow = block.find('.tiny-comment-show-full');
- }
- var pk = block.find('.tiny-comment-pk').val();
- $.ajax({
- type: 'POST',
- url: '{% url 'comment-get-tiny-ajax' %}',
- data: {'pk': pk, 'action': action},
- success: function (data) {
- block.find('.tiny-comment-body').html(data);
- toHide.addClass('hidden');
- toShow.removeClass('hidden');
+                $(document).on('click', '.tiny-comment-show-full, .tiny-comment-hide-full', function (e) {
+                    var block = $(this).closest('.tiny-comment');
+                    var cls = $(this).attr('class');
+                    if (cls == 'tiny-comment-show-full') {
+                        var action = 'show';
+                        var toHide = block.find('.tiny-comment-show-full');
+                        var toShow = block.find('.tiny-comment-hide-full');
+                    }
+                    else {
+                        var action = 'hide';
+                        var toHide = block.find('.tiny-comment-hide-full');
+                        var toShow = block.find('.tiny-comment-show-full');
+                    }
+                    var pk = block.find('.tiny-comment-pk').val();
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'comment-get-tiny-ajax' %}',
+                        data: {'pk': pk, 'action': action},
+                        success: function (data) {
+                            block.find('.tiny-comment-body').html(data);
+                            toHide.addClass('hidden');
+                            toShow.removeClass('hidden');
 
- },
- error: function (data) {
- }
- });
+                        },
+                        error: function (data) {
+                        }
+                    });
 
- });
-
-
- $(document).on('submit', '#comment-form', function(e) {
- var frm = $('#comment-form');
- var innerForm = frm.find('#comment-form-inner');
- $.ajax({
- type: 'POST',
- url: frm.action,
- data: frm.serialize(),
- success: function (data) {
-
- if(data.status == 1) {
-     if(!data.published){
- alert('Ваш отзыв будет опубликован после проверки модератором');
-         }
- location.href = data.href;
- }
- else {
- innerForm.html(data.comment_form);
- }
-
- },
- error: function (data) {
- }
- });
-
- e.preventDefault();
- });
+                });
 
 
-$(document).on('click', '#post-mark > span', function(e) {
- var mark = e.currentTarget.id.replace('post-mark-', '');
- var pk = $('#post-pk').val();
- var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk };
- $.ajax({
- type: 'POST',
- url: '{% url 'history-ajax-save' %}',
- data: actionData,
- success: function (data) {
-     $('#post-average-mark').html(data['average_mark']);
-     $('#post-marks-count').html(data['marks_count']);
-         $('#current-post-mark-block').removeClass('hidden');
-         $('#post-mark').addClass('hidden');
-         $('#current-post-mark').html(data.mark);
-         $('#cancel-mark-button').removeClass('hidden');
-         $('#id_post_mark').closest('p').addClass('hidden');
-         $('#id_post_mark').closest('p').find('select').val('');
-     if(!data.saved){
-     alert('Повторное действие не засчитано');
-     }
+                $(document).on('submit', '#comment-form', function (e) {
+                    var frm = $('#comment-form');
+                    var innerForm = frm.find('#comment-form-inner');
+                    $.ajax({
+                        type: 'POST',
+                        url: frm.attr('action'),
+                        data: frm.serialize(),
+                        success: function (data) {
 
-     },
- error: function (data) {
+                            if (data.status == 1) {
+                                if (!data.published) {
+                                    alert('Ваш отзыв будет опубликован после проверки модератором');
+                                }
+                                location.href = data.href;
+                            }
+                            else {
+                                innerForm.html(data.comment_form);
+                            }
 
- }
- });
+                        },
+                        error: function (data) {
+                        }
+                    });
 
-
-
- });
+                    e.preventDefault();
+                });
 
 
+                $(document).on('click', '#post-mark > span', function (e) {
+                    var mark = e.currentTarget.id.replace('post-mark-', '');
+                    var pk = $('#post-pk').val();
+                    var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk};
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'history-ajax-save' %}',
+                        data: actionData,
+                        success: function (data) {
+                            $('#post-average-mark').html(data['average_mark']);
+                            $('#post-marks-count').html(data['marks_count']);
+                            $('#current-post-mark-block').removeClass('hidden');
+                            $('#post-mark').addClass('hidden');
+                            $('#current-post-mark').html(data.mark);
+                            $('#cancel-mark-button').removeClass('hidden');
+                            $('#id_post_mark').closest('p').addClass('hidden');
+                            $('#id_post_mark').closest('p').find('select').val('');
+                            if (!data.saved) {
+                                alert('Повторное действие не засчитано');
+                            }
 
-     $(document).on('click', '#cancel-mark-button', function(e) {
+                        },
+                        error: function (data) {
 
- var pk = $('#post-pk').val();
- var actionData = {'action': 'post-unmark', 'pk': pk }
- $.ajax({
- type: 'POST',
- url: '{% url 'history-ajax-save' %}',
- data: actionData,
- success: function (data) {
- $('#current-post-mark-block').addClass('hidden');
- $('#post-mark').removeClass('hidden');
- $('#current-post-mark').html('');
- $('#cancel-mark-button').addClass('hidden');
- $('#id_post_mark').closest('p').removeClass('hidden');
- $('#post-average-mark').html(data['average_mark']);
- $('#post-marks-count').html(data['marks_count']);
- if(!data.saved){
-     alert('Повторное действие не засчитано');
-     }
- },
- error: function (data) {
+                        }
+                    });
 
- }
- });
-
-
-
- });
-
+                });
 
 
- $(document).on('click', '.comment-show-marked-users, .comment-hide-marked-users', function(e) {
+                $(document).on('click', '#cancel-mark-button', function (e) {
 
-     var commentBlock = $(this).closest('.single-comment');
-     var cls = $(this).attr('class');
-     var pk = commentBlock.find('.comment-pk').val();
-     var resultBlock = commentBlock.find('.comment-show-marked');
-     var showButton = commentBlock.find('.comment-show-marked-users')
-     var hideButton = commentBlock.find('.comment-hide-marked-users')
+                    var pk = $('#post-pk').val();
+                    var actionData = {'action': 'post-unmark', 'pk': pk}
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'history-ajax-save' %}',
+                        data: actionData,
+                        success: function (data) {
+                            $('#current-post-mark-block').addClass('hidden');
+                            $('#post-mark').removeClass('hidden');
+                            $('#current-post-mark').html('');
+                            $('#cancel-mark-button').addClass('hidden');
+                            $('#id_post_mark').closest('p').removeClass('hidden');
+                            $('#post-average-mark').html(data['average_mark']);
+                            $('#post-marks-count').html(data['marks_count']);
+                            if (!data.saved) {
+                                alert('Повторное действие не засчитано');
+                            }
+                        },
+                        error: function (data) {
 
-     if (cls == 'comment-show-marked-users'){
+                        }
+                    });
 
-     $.ajax({
- type: 'POST',
- url: '{% url 'comment-show-marked-users-ajax' %}',
- data: {'pk': pk},
- success: function (data) {
- resultBlock.html(data);
- showButton.addClass('hidden');
-     hideButton.removeClass('hidden');
- },
- error: function (data) {
+                });
 
- }
- });
+                $(document).on('click', '.comment-show-marked-users, .comment-hide-marked-users', function (e) {
 
+                    var commentBlock = $(this).closest('.single-comment');
+                    var cls = $(this).attr('class');
+                    var pk = commentBlock.find('.comment-pk').val();
+                    var resultBlock = commentBlock.find('.comment-show-marked');
+                    var showButton = commentBlock.find('.comment-show-marked-users')
+                    var hideButton = commentBlock.find('.comment-hide-marked-users')
 
-     }
-    else{
-    resultBlock.html('');
-    showButton.removeClass('hidden');
-     hideButton.addClass('hidden');
-     }
+                    if (cls == 'comment-show-marked-users') {
 
+                        $.ajax({
+                            type: 'POST',
+                            url: '{% url 'comment-show-marked-users-ajax' %}',
+                            data: {'pk': pk},
+                            success: function (data) {
+                                resultBlock.html(data);
+                                showButton.addClass('hidden');
+                                hideButton.removeClass('hidden');
+                            },
+                            error: function (data) {
 
- });
+                            }
+                        });
 
+                    }
+                    else {
+                        resultBlock.html('');
+                        showButton.removeClass('hidden');
+                        hideButton.addClass('hidden');
+                    }
 
-
- $(document).on('click', '.confirm-comment', function(e) {
-
-     var commentBlock = $(this).closest('.single-comment');
-     var pk = commentBlock.find('.comment-pk').val();
-     var resultBlock = commentBlock.find('.confirmation-block');
-
-     $.ajax({
- type: 'POST',
- url: '{% url 'comment-get-confirm-form-ajax' %}',
- data: {'pk': pk},
- success: function (data) {
- resultBlock.html(data);
- },
- error: function (data) {
-
- }
- });
-
- });
+                });
 
 
- });
+                $(document).on('click', '.confirm-comment', function (e) {
 
-</script>
+                    var commentBlock = $(this).closest('.single-comment');
+                    var pk = commentBlock.find('.comment-pk').val();
+                    var resultBlock = commentBlock.find('.confirmation-block');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'comment-get-confirm-form-ajax' %}',
+                        data: {'pk': pk},
+                        success: function (data) {
+                            resultBlock.html(data);
+                        },
+                        error: function (data) {
+
+                        }
+                    });
+
+                });
+
+
+            });
+
+        </script>
     {% endcompress %}
-{% endblock footer %}
+{% endblock bottom_scripts %}

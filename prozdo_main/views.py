@@ -159,9 +159,10 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
-            if request.user.is_authenticated():
-                comment_form.instance.user = request.user
+            if user.is_authenticated() and not comment_form.instance.user:
+                comment_form.instance.user = user
             comment_form.instance.status = comment_form.instance.get_status()
+
             comment = comment_form.save()
             published = comment.status == models.COMMENT_STATUS_PUBLISHED
             comment.send_confirmation_mail(request=request)
@@ -194,14 +195,16 @@ class PostViewMixin:
         return super().dispatch(request, args, **kwargs)
 
 
-class PostList(PostViewMixin, ProzdoListView):
-    template_name = 'prozdo_main/post/post_list.html'
+class PostListFilterMixin(PostViewMixin, ProzdoListView):
     context_object_name = 'objs'
     paginate_by = settings.POST_LIST_PAGE_SIZE
 
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['filter_form'] = self.get_filter_form()
         if self.model == models.Drug:
             context['post_type'] = 'drug'
         elif self.model == models.Cosmetics:
@@ -234,28 +237,46 @@ class PostList(PostViewMixin, ProzdoListView):
                     else:
                         flt[field_name + '__in'] = field_value
             queryset = queryset.filter(**flt)
-
-        #letter = self.kwargs.get('letter', None)
-        #if letter:
-        #    queryset = queryset.filter(title__istartswith=letter)
         return queryset
 
     def get_filter_form(self):
+        if self.request.method.lower() == 'post':
+            d = self.request.POST
+        else:
+            d = self.request.GET
         if self.model == models.Drug:
             if not hasattr(self, '_drug_filter_form'):
-                self._drug_filter_form = forms.DrugFilterForm(self.request.GET)
+                self._drug_filter_form = forms.DrugFilterForm(d)
             return self._drug_filter_form
         elif self.model == models.Cosmetics:
             if not hasattr(self, '_cosmetics_filter_form'):
-                self._cosmetics_filter_form = forms.CosmeticsFilterForm(self.request.GET)
+                self._cosmetics_filter_form = forms.CosmeticsFilterForm(d)
             return self._cosmetics_filter_form
         elif self.model == models.Component:
             if not hasattr(self, '_component_filter_form'):
-                self._component_filter_form = forms.ComponentFilterForm(self.request.GET)
+                self._component_filter_form = forms.ComponentFilterForm(d)
             return self._component_filter_form
         else:
             return None
 
+
+class PostList(PostListFilterMixin):
+    template_name = 'prozdo_main/post/post_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter_form'] = self.get_filter_form()
+        context['ajax_submit_url'] = self.model.ajax_submit_url()
+        context['submit_url'] = self.model.submit_url()
+        return context
+
+
+class PostListAjax(PostListFilterMixin):
+    template_name = 'prozdo_main/post/_post_list_ajax.html'
+
+    def post(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        return self.render_to_response(self.get_context_data(**kwargs))
 
 
 class HistoryAjaxSave(generic.View):
@@ -664,3 +685,20 @@ class CommentConfirm(generic.TemplateView):
         except:
             context['not_found'] = True
         return context
+
+
+class CommentUpdate(generic.UpdateView):
+    model = models.Comment
+    form_class = forms.CommentUpdateForm
+    template_name = 'prozdo_main/comment/update.html'
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        pk = kwargs['pk']
+        comment = self.model.objects.get(pk=pk)
+        if not user == comment.user:
+            return HttpResponseRedirect(comment.get_absolute_url())
+        form = self.form_class(request.POST, instance=comment)
+        form.instance.updater = request.user
+        comment = form.save()
+        return HttpResponseRedirect(comment.get_absolute_url())

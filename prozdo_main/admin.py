@@ -2,8 +2,9 @@ from django.contrib import admin
 from . import models
 from mptt.admin import MPTTModelAdmin
 from sorl.thumbnail.admin import AdminImageMixin
+import reversion
 
-class PostAdminMixin(admin.ModelAdmin):
+class PostAdminMixin(reversion.VersionAdmin):
     readonly_fields = ['post_type']
 
 
@@ -29,7 +30,7 @@ class ComponentAdmin(PostAdminMixin):
 
 
 @admin.register(models.Comment)
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(reversion.VersionAdmin):
     pass
 
 @admin.register(models.Post)
@@ -37,12 +38,12 @@ class PostAdmin(PostAdminMixin):
     pass
 
 @admin.register(models.History)
-class HistoryAdmin(admin.ModelAdmin):
+class HistoryAdmin(reversion.VersionAdmin):
     pass
 
 
 @admin.register(models.UserProfile)
-class UserProfileAdmin(AdminImageMixin, admin.ModelAdmin):
+class UserProfileAdmin(AdminImageMixin, reversion.VersionAdmin):
     pass
 
 

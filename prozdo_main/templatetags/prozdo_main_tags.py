@@ -89,6 +89,7 @@ def get_comment(context, comment):
 
     #if show_as_child:
     res['comment_class'] = 'single-comment-with-level-{0}'.format(comment.get_tree_level())
+    res['user'] = request.user
     #else:
     #    res['comment_class'] = 'single-comment-with-level-{0}'.format(0)
     return res

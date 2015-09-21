@@ -1,5 +1,5 @@
-
-   {% for obj in objs %}
+<div class="clearfix">
+{% for obj in objs %}
 <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
     <div class="post-info-grid">
     <div><a href="{{ obj.get_absolute_url }}"><img src="{{ obj.thumb110 }}"></a></div>
@@ -10,3 +10,5 @@
 </div>
     </div>
    {% endfor %}
+</div>
+ {% include 'prozdo_main/base/_pager.html' %}

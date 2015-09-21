@@ -1,0 +1,11 @@
+{% extends 'prozdo_main/base/base.html' %}
+
+{% block content %}
+<form method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Сохранить">
+<a href="{{ comment.get_absolute_url }}">Отменить</a>
+</form>
+
+{% endblock content %}

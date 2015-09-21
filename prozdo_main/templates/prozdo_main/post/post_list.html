@@ -1,20 +1,86 @@
 {% extends 'prozdo_main/base/base.html' %}
 {% load prozdo_main_tags %}
-{% block content %}
-{% if post_type == 'drug' or post_type == 'cosmetics' or post_type == 'component' %}
+{% load compress %}
+{% load staticfiles %}
+{% block sidebar_left %}
+
+    {% if post_type == 'drug' or post_type == 'cosmetics' or post_type == 'component' %}
     <div>
 
-        <form>
+        <form id="post-list-form" method="get" action="{{ submit_url }}">
+
     {{   filter_form }}
-    <input type="submit" class="btn btn-success">
+    <input type="submit" class="btn btn-success" value="Показать">
 </form>
 
 </div>
     {% endif %}
-    <div class="clearfix">
 
+
+    {{ block.super }}
+{% endblock sidebar_left %}
+
+
+{% block content %}
+
+<div id="post-list">
 {% include list_view_default_template with objs=objs %}
-
 </div>
- {% include 'prozdo_main/base/_pager.html' %}
+
+
 {% endblock content %}
+
+{% block bottom_scripts %}
+    {% compress js %}
+{{ block.super }}
+<script src='{% static "prozdo_main/js/history.js/scripts/bundled/html4+html5/jquery.history.js" %}'></script>
+<script>
+$(function() {
+
+
+
+
+    $(document).on('change', '#post-list-form input', function (e) {
+        var frm = $('#post-list-form');
+        var cleanParamsArray = {};
+        var url_data_params = '';
+        var paramsArray = frm.serializeArray();
+        paramsArray.forEach(function(param){
+            if (param.value){
+                cleanParamsArray[param.name] = param.value;
+            }
+        });
+
+        var url_data = $.param(cleanParamsArray);
+        if (url_data.length > 0){
+            url_data_params = '?' + url_data;
+        }
+        else{
+            url_data_params = url_data;
+        }
+
+        frm.find('input').attr("disabled", true);
+            var title = $(document).find("title").text();
+
+        History.pushState(null, title, window.location.pathname + url_data_params);
+
+            $.ajax({
+            type: 'POST',
+            url: '{{ ajax_submit_url }}',
+            data: url_data,
+            success: function (data) {
+                $('#post-list').html(data);
+                frm.find('input').attr("disabled", false);
+            },
+            error: function (data) {
+            frm.find('input').attr("disabled", false);
+            }
+        });
+
+
+    });
+});
+
+</script>
+    {% endcompress %}
+{% endblock bottom_scripts %}

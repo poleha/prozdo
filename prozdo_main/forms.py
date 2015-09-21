@@ -35,6 +35,12 @@ class CommentForm(forms.ModelForm):
             del self.fields['post_mark']
 
 
+
+class CommentUpdateForm(forms.ModelForm):
+    class Meta:
+        model = models.Comment
+        fields = ('body', )
+
 COMMENTS_ORDER_BY_CREATED_DEC = 1
 COMMENTS_ORDER_BY_CREATED_INC = 2
 
@@ -168,10 +174,11 @@ class ComponentFilterForm(PostFilterForm):
     component_type = forms.MultipleChoiceField(choices=models.COMPONENT_TYPES, label='Тип компонента', widget=forms.CheckboxSelectMultiple(), required=False)
 
 class CosmeticsFilterForm(PostFilterForm):
-    dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
-    usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
-    lines = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
     brands = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
+    lines = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
+    usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
+    dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
+
 
 class UserProfileForm(forms.ModelForm):
     class Meta:

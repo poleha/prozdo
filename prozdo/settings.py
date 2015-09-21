@@ -58,10 +58,12 @@ INSTALLED_APPS = (
      'sorl.thumbnail',
      'django.contrib.redirects',
     'compressor',
+    'reversion',
 
 )
 
 MIDDLEWARE_CLASSES = (
+    'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -218,7 +220,7 @@ THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
 
 
-COMPRESS_ENABLED = True
+#COMPRESS_ENABLED = True
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

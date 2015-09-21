@@ -47,6 +47,10 @@
 <input type="button" value="Скрыть" class="comment-hide-marked-users hidden">
 </div>
 {% endif %}
+{% if comment.user == user %}
+
+<a href="{{ comment.update_url }}">Редактировать</a>
+{% endif %}
 <div class="comment-show-marked"></div>
         {% if can_mark %}
          <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
@@ -88,7 +92,12 @@
 {% endif %}
 {% endif %}
 
+{% if comment.updater %}
+<div>
+Отзыв изменен пользователем <a href="{{ comment.updater.get_absolute_url }}">{{ comment.updater }}</a> {{ comment.updated }}
+</div>
 
+{% endif %}
 
 
 </div>
