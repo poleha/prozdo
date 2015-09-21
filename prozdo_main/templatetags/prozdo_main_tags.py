@@ -237,8 +237,82 @@ def breadcrumbs(context):
         elif url_name == 'user-karma':
             breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href='', type='text'))
 
-
-
-
-
     return {'breadcrumbs_list': breadcrumbs_list}
+
+@register.inclusion_tag('prozdo_main/widgets/_metatags.html', takes_context=True)
+def metatags(context):
+
+    request = context['request']
+    url_name = request.resolver_match.url_name
+    #kwargs = request.resolver_match.kwargs
+
+
+
+    metatags_dict = {}
+    metatags_dict['title'] = 'Про здоровье'
+    metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства, аптечная косметика"
+    metatags_dict['description'] = "Отзывы о лекарственных препаратах и аптечной косметике."
+    metatags_dict['canonical'] = ''
+
+    if url_name == 'main-page':
+        pass
+
+    elif url_name == 'drug-list':
+        metatags_dict['title'] = 'Отзывы о лекарствах | Про здоровье'
+        metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства"
+        metatags_dict['description'] = "Отзывы о лекарственных препаратах."
+
+    elif url_name == 'cosmetics-list':
+        metatags_dict['title'] = 'Отзывы об аптечной косметике | Про здоровье'
+        metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства"
+        metatags_dict['description'] = "Отзывы о лекарственных препаратах."
+
+    elif url_name == 'blog-list':
+        metatags_dict['title'] = 'Здоровый блог | Про здоровье'
+        metatags_dict['keywords'] = "блог о здоровье, статьи о здоровье, новости здоровья, здоровый образ жизни"
+        metatags_dict['description'] = "Интересный блог о здоровье и здоровом образе жизни."
+
+    elif url_name == 'component-list':
+        metatags_dict['title'] = 'Состав препаратов | Про здоровье'
+        metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства, состав препаратов"
+        metatags_dict['description'] = "Состав препаратов."
+
+    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment']:
+        obj = context['obj']
+        if isinstance(obj, models.Drug):
+            metatags_dict['title'] = '{0} - отзывы | Про здоровье'.format(obj.title)
+            metatags_dict['keywords'] = "{0} - отзывы, лекарственные препараты, лекарства, отзывы".format(obj.title)
+            metatags_dict['description'] = "Отзывы о препарате {0}.".format(obj.title)
+        elif isinstance(obj, models.Blog):
+            metatags_dict['title'] = '{0} | Про здоровье'.format(obj.title)
+            metatags_dict['keywords'] = "{0}, блог о здоровом образе жизни".format(obj.title)
+            metatags_dict['description'] = obj.anons
+        elif isinstance(obj, models.Cosmetics):
+            metatags_dict['title'] = '{0} - отзывы | Про здоровье'.format(obj.title)
+            metatags_dict['keywords'] = "{0} - отзывы, аптечная косметика, отзывы".format(obj.title)
+            metatags_dict['description'] = "Отзывы об аптечной косметике: {0}.".format(obj.title)
+        elif isinstance(obj, models.Component):
+            metatags_dict['title'] = '{0} | Про здоровье'.format(obj.title)
+            metatags_dict['keywords'] = "{0}, состав препаратов".format(obj.title)
+            metatags_dict['description'] = "Описание компонента препаратов: {0}.".format(obj.title)
+
+        if 'page' in request.GET:
+            metatags_dict['canonical'] = obj.get_absolute_url()
+
+
+    elif url_name == 'user-profile':
+        user = context['user']
+
+    elif url_name == 'user-detail':
+        user = context['current_user']
+
+    elif url_name in ['user-comments', 'user-karma']:
+        user = context['current_user']
+        if url_name == 'user-comments':
+            pass
+        elif url_name == 'user-karma':
+            pass
+
+
+
+    return metatags_dict
