@@ -724,3 +724,53 @@ class CommentUpdate(generic.UpdateView):
         form.instance.updater = request.user
         comment = form.save()
         return HttpResponseRedirect(comment.get_absolute_url())
+
+
+class CommentDoctorListView(ProzdoListView):
+    template_name = 'prozdo_main/comment/comment_doctor_list_view.html'
+    context_object_name = 'comments'
+    paginate_by = 50
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        if not (user.is_doctor or user.is_admin):
+            return HttpResponseRedirect('login')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = forms.CommentDoctorListFilterForm(self.request.GET)
+        context['form'] = form
+        return context
+
+    def get_queryset(self):
+        queryset = models.Comment.objects.get_available().order_by('-created')
+        form = forms.CommentDoctorListFilterForm(self.request.GET)
+        form.full_clean()
+        consult_required = int(form.cleaned_data.get('consult_required', forms.BOOL_CHOICE_DEFAULT))
+        consult_done = int(form.cleaned_data.get('consult_done', forms.BOOL_CHOICE_DEFAULT))
+        consult_only = form.cleaned_data.get('consult_only')
+        start_date = form.cleaned_data.get('start_date', None)
+        end_date = form.cleaned_data.get('end_date', None)
+
+        if consult_required == forms.BOOL_CHOICE_YES:
+            queryset = queryset.filter(consult_required=True)
+        elif consult_required == forms.BOOL_CHOICE_NO:
+            queryset = queryset.filter(consult_required=False)
+
+        if consult_only:
+            queryset = queryset.filter(user__user_profile__role=models.USER_ROLE_DOCTOR)
+
+        if consult_done == forms.BOOL_CHOICE_YES:
+            queryset = queryset.filter(children__user__user_profile__role=models.USER_ROLE_DOCTOR)
+        elif consult_done == forms.BOOL_CHOICE_NO:
+            queryset = queryset.exclude(children__user__user_profile__role=models.USER_ROLE_DOCTOR)
+
+        if start_date:
+            queryset = queryset.filter(created__gte=start_date)
+
+        if end_date:
+            queryset = queryset.filter(created__lte=end_date)
+
+
+        return queryset

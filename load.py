@@ -42,13 +42,13 @@ def date_from_timestamp(ts):
 #models.History.objects.all().delete()
 #Redirect.objects.all().delete()
 
-load_users = False
+load_users = True
 load_posts = False
 load_comments = False
 load_history = False
 load_images = False
 create_redirects = False
-fix_aliases = True
+fix_aliases = False
 
 conn = sqlite3.connect('prozdo.sqlite')
 conn.row_factory = sqlite3.Row
@@ -65,15 +65,14 @@ if load_users:
         email=user_row['email'],
         is_staff=False,
         )
-
         user_profile = user.user_profile
-        if user_row['role'] == 1:
+        if user_row['role'] == 0:
             role = models.USER_ROLE_REGULAR
-        elif user_row['role'] == 2:
+        elif user_row['role'] == 1:
             role = models.USER_ROLE_ADMIN
-        elif user_row['role'] == 3:
+        elif user_row['role'] == 2:
             role = models.USER_ROLE_AUTHOR
-        elif user_row['role'] == 4:
+        elif user_row['role'] == 3:
             role = models.USER_ROLE_DOCTOR
         else:
             role = models.USER_ROLE_REGULAR
@@ -83,6 +82,8 @@ if load_users:
         user_profile.last_name = user_row['lastname']
         user_profile.old_id = user_row['id']
         user_profile.save()
+
+
         #if user_row['status'] == 1:
         email_adress, created = EmailAddress.objects.get_or_create(
             user=user,

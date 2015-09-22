@@ -313,6 +313,11 @@ def metatags(context):
         elif url_name == 'user-karma':
             pass
 
-
-
     return metatags_dict
+
+@register.filter(name='bool_as_text')
+def bool_as_text(value):
+    if value:
+        return 'Да'
+    else:
+        return 'Нет'

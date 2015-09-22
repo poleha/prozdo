@@ -236,3 +236,22 @@ class ComponentForm(forms.ModelForm):
 class CommentConfirmForm(forms.Form):
     email = forms.EmailField(label='Электронный адрес')
     comment = forms.ModelChoiceField(widget=forms.HiddenInput, queryset=models.Comment.objects.all())
+
+BOOL_CHOICE_DEFAULT = 0
+BOOL_CHOICE_NO = 1
+BOOL_CHOICE_YES =2
+
+
+BOOL_CHOICES = (
+    (BOOL_CHOICE_DEFAULT, 'Не выбрано'),
+    (BOOL_CHOICE_YES, 'Да'),
+    (BOOL_CHOICE_NO, 'Нет'),
+)
+
+class CommentDoctorListFilterForm(forms.Form):
+    consult_required = forms.ChoiceField(label='Нужна консультация', required=False, choices=BOOL_CHOICES)
+    consult_done = forms.ChoiceField(label='Консультация оказана', required=False, choices=BOOL_CHOICES)
+    consult_only = forms.BooleanField(label='Только консультации', required=False)
+    start_date = forms.DateField(label='Дата начала', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
+    end_date = forms.DateField(label='Дата окончания', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
+

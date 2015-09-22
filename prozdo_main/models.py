@@ -369,7 +369,7 @@ class Post(AbstractModel):
             except:
                 raise ValidationError('Недопустимые символы в синониме')
 
-            result = re.match('[a-z0-9_]{1,}', self.alias)
+            result = re.match('[a-z0-9_\-]{1,}', self.alias)
             if not result:
                 raise ValidationError('Недопустимые символы в синониме')
 
@@ -590,6 +590,10 @@ class Comment(SuperModel, MPTTModel):
             return self.tree_level
         else:
             return 0
+
+    @property
+    def consult_done(self):
+        return self.available_children.filter(user__user_profile__role=USER_ROLE_DOCTOR).exists()
 
     @property
     def update_url(self):
@@ -920,7 +924,6 @@ class UserProfile(SuperModel):
         return user_profile
 
     def save(self, *args, **kwargs):
-        self.role = USER_ROLE_REGULAR
         if self.user.is_staff:
             self.role = USER_ROLE_ADMIN
 

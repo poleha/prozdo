@@ -48,6 +48,9 @@ urlpatterns = [
     url(r'^comment/update/(?P<pk>\d+)$', views.CommentUpdate.as_view(), name='comment-update'),
 
 
+    url(r'^comment/doctor_list$', views.CommentDoctorListView.as_view(), name='comment-doctor-list'),
+
+
     url(r'^signup$', views.ProzdoSignupView.as_view(), name='signup'),
     url(r'^login$', views.ProzdoLoginView.as_view(), name='login'),
     url(r'^logout$', views.ProzdoLogoutView.as_view(), name='logout'),
@@ -69,5 +72,5 @@ urlpatterns = [
 
 ]
 
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
