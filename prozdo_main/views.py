@@ -2,7 +2,7 @@ from django.views import generic
 from . import models, forms
 from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseRedirect
-from .helper import get_client_ip
+from .helper import get_client_ip, to_int
 from django.db import transaction
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -747,8 +747,8 @@ class CommentDoctorListView(ProzdoListView):
         queryset = models.Comment.objects.get_available().order_by('-created')
         form = forms.CommentDoctorListFilterForm(self.request.GET)
         form.full_clean()
-        consult_required = int(form.cleaned_data.get('consult_required', forms.BOOL_CHOICE_DEFAULT))
-        consult_done = int(form.cleaned_data.get('consult_done', forms.BOOL_CHOICE_DEFAULT))
+        consult_required = to_int(form.cleaned_data.get('consult_required', forms.BOOL_CHOICE_DEFAULT))
+        consult_done = to_int(form.cleaned_data.get('consult_done', forms.BOOL_CHOICE_DEFAULT))
         consult_only = form.cleaned_data.get('consult_only')
         start_date = form.cleaned_data.get('start_date', None)
         end_date = form.cleaned_data.get('end_date', None)

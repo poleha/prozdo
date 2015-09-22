@@ -183,3 +183,11 @@ def generate_key(size=128, upper=False, chars=None):
         if upper:
             chars += string.ascii_uppercase
     return ''.join(random.choice(chars) for _ in range(size))
+
+
+def to_int(val):
+    try:
+        res = int(val)
+    except:
+        res = 0
+    return res
