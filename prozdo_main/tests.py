@@ -555,7 +555,7 @@ class CommentConfirmationTests(BaseTest):
         page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk})
         form = page.form
         form['email'] = email
-        form['pk'] = comment.pk
+        form['comment'] = comment.pk
         page = form.submit()
         comment = comment.saved_version
         mail_count_2 = models.Mail.objects.all().count()
@@ -642,3 +642,27 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(mail_count_1, mail_count_2)
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
+
+    def test_guest_comment_cant_confirm_own_comment_by_link_with_wrong_mail(self):
+        mail_count_0 = models.Mail.objects.all().count()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
+        form = page.forms['comment-form']
+        email = 'dfjklsfdklsdghjkdfh@kjlgfsdgjksdfgh.com'
+        form['body'] = 'Привет, это вот мой коммент'
+        form['email'] = email
+        form['username'] = 'Саша'
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        mail_count_1 = models.Mail.objects.all().count()
+        self.assertEqual(mail_count_0 + 1, mail_count_1)
+        comment = models.Comment.objects.latest('created')
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.confirmed, False)
+        page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk})
+        form = page.form
+        form['email'] = 'sdfsdgjkshne5iu4gh@dsfsdf.ru'
+        form['comment'] = comment.pk
+        page = form.submit()
+        comment = comment.saved_version
+        mail_count_2 = models.Mail.objects.all().count()
+        self.assertEqual(mail_count_1, mail_count_2)

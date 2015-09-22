@@ -69,5 +69,5 @@ urlpatterns = [
 
 ]
 
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
-urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})/comment/(?P<comment_pk>\d+)$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))
+urlpatterns.append(url(r'^(?P<alias>[a-z0-9_]{1,})$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-alias'))

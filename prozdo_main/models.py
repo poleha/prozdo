@@ -363,14 +363,15 @@ class Post(AbstractModel):
         return make_alias(self.title)
 
     def clean(self):
-        try:
-            self.alias.encode('ascii')
-        except:
-            raise ValidationError('Недопустимые символы в синониме')
+        if self.alias:
+            try:
+                self.alias.encode('ascii')
+            except:
+                raise ValidationError('Недопустимые символы в синониме')
 
-        result = re.match('[a-z0-9_\-]{1,}', self.alias)
-        if not result:
-            raise ValidationError('Недопустимые символы в синониме')
+            result = re.match('[a-z0-9_]{1,}', self.alias)
+            if not result:
+                raise ValidationError('Недопустимые символы в синониме')
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -721,7 +722,7 @@ class Comment(SuperModel, MPTTModel):
         if not self.key:
             self.key = self.generate_key()
 
-        if not(self.user.is_admin or self.user.is_doctor or self.user.is_author):
+        if not self.user or not(self.user.is_admin or self.user.is_doctor or self.user.is_author):
             self.body = strip_tags(self.body)
 
 

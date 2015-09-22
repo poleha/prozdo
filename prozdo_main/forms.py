@@ -231,3 +231,8 @@ class ComponentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         #self.fields['component_type'].widget = forms.CheckboxSelectMultiple(choices=self.fields['component_type'].widget.choices)
+
+
+class CommentConfirmForm(forms.Form):
+    email = forms.EmailField(label='Электронный адрес')
+    comment = forms.ModelChoiceField(widget=forms.HiddenInput, queryset=models.Comment.objects.all())

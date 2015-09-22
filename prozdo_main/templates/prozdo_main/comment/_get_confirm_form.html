@@ -1,5 +1,4 @@
-<form method="post" action="{% url 'comment-do-confirm-ajax' %}">
-<input type="email" name="email">
-<input type="hidden" name="pk">
-<input type="submit">
+<form method="post" action="{% url 'comment-do-confirm-ajax' %}" class="comment-do-confirm-form">
+{{ form }}
+    <input type="submit">
 </form>
