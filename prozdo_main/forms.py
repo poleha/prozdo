@@ -7,7 +7,7 @@ from django.utils.html import conditional_escape, format_html
 from django.utils.translation import ugettext_lazy
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from multi_image_upload.models import save_thumbs
+#from multi_image_upload.models import save_thumbs
 
 
 class CommentForm(forms.ModelForm):
@@ -174,8 +174,8 @@ class ComponentFilterForm(PostFilterForm):
     component_type = forms.MultipleChoiceField(choices=models.COMPONENT_TYPES, label='Тип компонента', widget=forms.CheckboxSelectMultiple(), required=False)
 
 class CosmeticsFilterForm(PostFilterForm):
-    brands = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
-    lines = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
+    brand = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
+    line = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
 
