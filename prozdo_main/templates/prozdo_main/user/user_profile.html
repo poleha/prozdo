@@ -3,11 +3,13 @@
 
 {% block content %}
 Вы авторизованы как {{ user }}
+    <div class="form">
     <form method="post" enctype="multipart/form-data">
 {% csrf_token %}
 {{ form.as_p }}
-<input type="submit">
+<input type="submit" class="btn btn-menu" value="Сохранить">
 </form>
-<a href="{% url 'password-change' %}">Сменить пароль</a>
-<a href="{% url 'user-detail' user.pk %}">Информация о пользователе</a>
+        </div>
+<a class="btn btn-menu" href="{% url 'password-change' %}">Сменить пароль</a>
+<a class="btn btn-menu" href="{% url 'user-detail' user.pk %}">Информация о пользователе</a>
 {% endblock content %}

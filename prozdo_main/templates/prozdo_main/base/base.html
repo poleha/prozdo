@@ -18,28 +18,15 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-<!-- Optional theme -->
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
+<link rel="stylesheet" type="text/css" href="{% static "prozdo_main/css/styles.css" %}">
+     <!-- Optional theme -->
 <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
 
-    {% if debug %}
-     <!-- set options before less.js script -->
-<script>
-  less = {
-    env: "development",
-    async: false,
-    fileAsync: false,
-    poll: 1000,
-    functions: {},
-    dumpLineNumbers: "comments",
-  };
-</script>
-<link rel="stylesheet/less" type="text/css" href="{% static "prozdo_main/css/styles.less" %}" />
-<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.5.1/less.min.js"></script>
 
-    {% else %}
-    <link rel="stylesheet" type="text/css" href="{% static "prozdo_main/css/styles.css" %}">
-    {% endif %}
+
+
+
 
 
 <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon">
@@ -47,7 +34,7 @@
 {% endblock head %}
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
 
 <body>
 <div class="container-fluid">
@@ -56,15 +43,15 @@
 
 {% block header  %}
 <div class="row" id="header">
-<div class="col-lg-3 col-md-4 col-sm-4 col-xs-6" id="top-logo">
+<div class="col-lg-3 col-md-3 col-sm-8 col-xs-6" id="top-logo">
 <a href="/"></a>
 </div>
-<div class="col-lg-8 col-md-7 hidden-sm hidden-xs" id="top-consult-banner">
+<div class="col-lg-7 col-md-6 hidden-sm hidden-xs" id="top-consult-banner">
 <div class="row1">Теперь на сайте “Про Здоровье” Вы можете</div>
 <div class="row2">ПОЛУЧИТЬ КОНСУЛЬТАЦИЮ ПРОВИЗОРА</div>
 <div class="row3">Для этого установите флажок "Нужна консультация провизора" перед отправкой вопроса о препарате</div>
 </div>
-<div class="col-lg-1 col-md-1 col-sm-1 col-xs-1" id="user-info-top">
+<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" id="user-info-top">
 {% include 'prozdo_main/user/_user_info_top.html' %}
 </div>
 </div>
@@ -76,7 +63,10 @@
 <div class="col-lg-2 col-md-2 col-sm-3 hidden-xs" id="sidebar-left">
 
 {% block sidebar_left %}
+<div class="portlet">
+    <h3>Лучшие отзывы</h3>
 {% best_comments %}
+  </div>
 {% endblock sidebar_left %}
 </div>
 
@@ -96,8 +86,12 @@
 <div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="sidebar-right">
 {% block sidebar_right %}
 
-    {% recent_comments %}
+    {% user_menu %}
 
+    <div class="portlet">
+    <h3>Новые отзывы</h3>
+    {% recent_comments %}
+</div>
 {% endblock sidebar_right %}
 </div>
 </div>

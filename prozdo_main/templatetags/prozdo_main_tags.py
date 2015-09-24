@@ -95,7 +95,7 @@ def get_comment(context, comment):
     return res
 
 
-@register.inclusion_tag('prozdo_main/widgets/_recent_comments.html')
+@register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')
 def recent_comments():
     res = {}
     comments = models.Comment.objects.get_available().order_by('-created')[:10]
@@ -103,7 +103,7 @@ def recent_comments():
     return res
 
 
-@register.inclusion_tag('prozdo_main/widgets/_best_comments.html')
+@register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')
 def best_comments():
     res = {}
     date = timezone.now() - timedelta(days=30)
@@ -175,7 +175,7 @@ def user_detail(user):
 
 
 
-Breadcrumb = namedtuple('Breadcrumb', ['title', 'href', 'type'])
+Breadcrumb = namedtuple('Breadcrumb', ['title', 'href'])
 
 @register.inclusion_tag('prozdo_main/widgets/_breadcrumbs.html', takes_context=True)
 def breadcrumbs(context):
@@ -187,19 +187,19 @@ def breadcrumbs(context):
     if url_name == 'main-page':
         return
 
-    breadcrumbs_list = [Breadcrumb(title='Главная', href=reverse('main-page'), type='link')]
+    breadcrumbs_list = [Breadcrumb(title='Главная', href=reverse('main-page'))]
 
     if url_name == 'drug-list':
-        breadcrumbs_list.append(Breadcrumb(title='Отзывы о лекарствах', href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Отзывы о лекарствах', href=reverse('drug-list')))
 
     elif url_name == 'cosmetics-list':
-        breadcrumbs_list.append(Breadcrumb(title='Отзывы об аптечной косметике', href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Отзывы об аптечной косметике', href=reverse('cosmetics-list')))
 
     elif url_name == 'blog-list':
-        breadcrumbs_list.append(Breadcrumb(title='Здоровый блог', href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Здоровый блог', href=reverse('blog-list')))
 
     elif url_name == 'component-list':
-        breadcrumbs_list.append(Breadcrumb(title='Состав препаратов', href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Состав препаратов', href=reverse('component-list')))
 
     elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment']:
         obj = context['obj']
@@ -216,26 +216,26 @@ def breadcrumbs(context):
             list_title = 'Состав препаратов'
             href = reverse('component-list')
 
-        breadcrumbs_list.append(Breadcrumb(title=list_title, href=href, type='link'))
+        breadcrumbs_list.append(Breadcrumb(title=list_title, href=href))
         obj = context['obj']
-        breadcrumbs_list.append(Breadcrumb(title=obj.title, href=obj.get_absolute_url(), type='text'))
+        breadcrumbs_list.append(Breadcrumb(title=obj.title, href=obj.get_absolute_url()))
 
 
     elif url_name == 'user-profile':
         user = context['user']
-        breadcrumbs_list.append(Breadcrumb(title='Профиль пользователя {0}'.format(user), href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Профиль пользователя {0}'.format(user), href=reverse('user-profile')))
 
     elif url_name == 'user-detail':
         user = context['current_user']
-        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href='', type='text'))
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
 
     elif url_name in ['user-comments', 'user-karma']:
         user = context['current_user']
-        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk}), type='link'))
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
         if url_name == 'user-comments':
-            breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user), href='', type='text'))
+            breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user), href=reverse('user-comments', kwargs={'pk': user.pk})))
         elif url_name == 'user-karma':
-            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href='', type='text'))
+            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href=reverse('user-comments', kwargs={'pk': user.pk})))
 
     return {'breadcrumbs_list': breadcrumbs_list}
 
@@ -321,3 +321,21 @@ def bool_as_text(value):
         return 'Да'
     else:
         return 'Нет'
+
+@register.inclusion_tag('prozdo_main/widgets/_user_menu.html', takes_context=True)
+def user_menu(context):
+    user = context['request'].user
+    if user.is_regular:
+        return
+    menu_items = []
+    if user.is_doctor or user.is_admin:
+        menu_items.append(MenuItem(title='Просмотр сообщений для врача', url=reverse('comment-doctor-list'), cls=''))
+    if user.is_admin:
+        menu_items.append(MenuItem(title='Создать препарат', url=reverse('drug-create'), cls=''))
+        menu_items.append(MenuItem(title='Создать блог', url=reverse('blog-create'), cls=''))
+        menu_items.append(MenuItem(title='Создать косметику', url=reverse('cosmetics-create'), cls=''))
+        menu_items.append(MenuItem(title='Создать компонент', url=reverse('component-create'), cls=''))
+
+
+
+    return {'menu_items': menu_items}

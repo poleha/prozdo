@@ -1,13 +1,11 @@
 {% if breadcrumbs_list %}
-<ul class="breadcrumbs">
+<ol class="breadcrumb">
 {% for breadcrumb in breadcrumbs_list %}
-{% if breadcrumb.type == 'link' %}
+
 <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.title }}</a></li>
-{% else %}
-	<span>{{ breadcrumb.title }}</span>
-{% endif %}
+
 
 {% endfor %}
 
-</ul>
+</ol>
 {% endif %}

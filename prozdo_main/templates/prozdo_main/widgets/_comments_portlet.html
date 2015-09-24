@@ -1,0 +1,29 @@
+{% for comment in comments %}
+<div class="portlet-item">
+    <p>
+    {% if comment.user.is_authenticated %}
+     <a class="user" href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
+    {% else %}
+        {{ comment.username }}
+    {% endif %}
+
+ <p class="date">{{ comment.created }}</p>
+
+
+    <p class="comment">
+<a href="{{ comment.get_absolute_url }}">{{ comment }}</a>
+</p>
+
+</p>
+    <label>Посчитали полезным: </label>{{ comment.comment_mark }}
+    <p>
+   {% if comment.post.is_drug %}
+       <label>Препарат: </label>
+        {% else %}
+       <label>Тема: </label>
+        {% endif %}
+    <a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a>
+</p>
+
+</div>
+{% endfor %}
