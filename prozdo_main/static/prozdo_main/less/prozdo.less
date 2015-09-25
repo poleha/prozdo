@@ -106,7 +106,7 @@ margin-left: 202px;
 
 #top-logo {
   a {
-    margin-left: 14%;
+    margin-left: 3%;
     background: url(../images/logo.png) no-repeat;
     
     display: block;
@@ -114,27 +114,23 @@ margin-left: 202px;
     height: 83px;
  
     @media (max-width: @container-lg) {
-margin-left: 3%;
 	background-size: 249px * 0.8 83px * 0.8;
 
 
 }
 
 @media (max-width: @container-md) {
-margin-left: 3%;
 	background-size: 249px * 0.7 83px * 0.7;
 }
 
 @media (max-width: @container-sm) {
-margin-left: 3%;
-	background-size: 249px * 0.6 83px * 0.6;
+	background-size: 249px * 0.7 83px * 0.7;
 
 
 }
  
 @media (max-width: @container-tablet) {
-margin-left: 3%;
-	background-size: 249px * 0.5 83px * 0.5;
+	background-size: 249px * 0.7 83px * 0.7;
 
 }
 
@@ -193,11 +189,20 @@ font-size: 0.7em;
 
     a {
         display: block;
-        height: 40px;
         color: white;
         text-transform: uppercase;
-        vertical-align: baseline;
-        padding-top: 10px;
+        vertical-align: middle;
+
+
+
+   @media (max-width: @container-md) and (min-width: @container-sm) {
+font-size: 0.65em;
+
+}
+
+@media (max-width: @container-lg) and (min-width: @container-md) {
+font-size: 0.8em;
+}
 
     }
 
@@ -260,34 +265,17 @@ font-size: 0.7em;
 }
 
 
-/*</DRUG> */
-
-/*<MAIN PAGE> */
-
-
-/*</MAIN PAGE> */
 
 .required label:after {
   content:"*";
   color:red;
 }
 
-#top-menu {
-a {
-@media (max-width: @container-lg) and (min-width: @container-sm) {
-font-size: 10px;
-}
-}
-}
+
 
 #user-info-top {
-a {
+text-align: right;
 
-@media (min-width: @container-lg) {
-
-}
-
-}
 }
 
 

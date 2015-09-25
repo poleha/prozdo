@@ -2,5 +2,6 @@
 <a href="{% url 'user-profile' %}" class="btn btn-empty">{{ user }}</a>
 <a href="{% url 'logout' %}" class="btn">Выйти</a>
 {% else %}
-    <a href="{% url 'login' %}" class="btn btn-empty">Войти</a><a href="{% url 'signup' %}">Зарегистрироваться</a>
+    <a href="{% url 'login' %}" class="btn btn-empty">Войти</a>
+    <a href="{% url 'signup' %}" class="btn btn-empty">Зарегистрироваться</a>
 {% endif %}
