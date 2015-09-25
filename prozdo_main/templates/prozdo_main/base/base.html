@@ -24,11 +24,6 @@
 <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
 
 
-
-
-
-
-
 <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon">
  </head>
 {% endblock head %}
@@ -39,14 +34,12 @@
 <body>
 <div class="container-fluid">
 
-
-
 {% block header  %}
 <div class="row" id="header">
-<div class="col-xs-5 col-sm-8 col-md-3 col-lg-2" id="top-logo">
+<div class="col-xs-5 col-sm-3 col-md-3 col-lg-2" id="top-logo">
 <a href="/"></a>
 </div>
-<div class="hidden-xs hidden-sm col-md-6 col-lg-offset-1 " id="top-consult-banner">
+<div class="hidden-xs col-sm-5 col-md-6 col-lg-offset-1 " id="top-consult-banner">
 <div class="row1">Теперь на сайте “Про Здоровье” Вы можете</div>
 <div class="row2">ПОЛУЧИТЬ КОНСУЛЬТАЦИЮ ПРОВИЗОРА</div>
 <div class="row3">Для этого установите флажок "Нужна консультация провизора" перед отправкой вопроса о препарате</div>
@@ -60,10 +53,10 @@
 </div>
 {% endblock header  %}
 <div class="row">
-<div class="col-lg-2 col-md-2 col-sm-3 hidden-xs" id="sidebar-left">
+<div class="col-lg-2 col-md-3 hidden-sm hidden-xs" id="sidebar-left">
 
 {% block sidebar_left %}
-<div class="portlet">
+<div class="comments-portlet">
     <h3>Лучшие отзывы</h3>
 {% best_comments %}
   </div>
@@ -74,7 +67,7 @@
 
 
 
-<div class="col-lg-8 col-md-7 col-sm-6 col-xs-12">
+<div class="col-lg-8 col-md-6 col-sm-8 col-xs-12">
 {% block breadcrumbs %}
 {% breadcrumbs %}
 
@@ -83,12 +76,12 @@
 {% endblock content %}
 </div>
 
-<div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="sidebar-right">
+<div class="col-lg-2 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
 {% block sidebar_right %}
 
     {% user_menu %}
 
-    <div class="portlet">
+    <div class="comments-portlet">
     <h3>Новые отзывы</h3>
     {% recent_comments %}
 </div>

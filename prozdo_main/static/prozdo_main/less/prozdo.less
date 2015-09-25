@@ -1,3 +1,12 @@
+.comment-link-mixin {
+
+     margin-top: 5px;
+     color: #0d44a0;
+
+ }
+
+
+
 .hidden {
     display: none;
 }
@@ -152,6 +161,10 @@ margin-left: 202px;
     @media (max-width: @container-lg) {
 font-size: 0.9em;
 }
+
+      @media (max-width: @container-md) {
+font-size: 0.8em;
+}
     
     }
 
@@ -166,6 +179,10 @@ font-size: 0.9em;
       @media (max-width: @container-lg) {
 font-size: 1.0em;
 }
+
+      @media (max-width: @container-md) {
+font-size: 0.9em;
+}
     
     }
 
@@ -179,7 +196,9 @@ font-size: 1.0em;
 font-size: 0.7em;
 }
    
-   
+   @media (max-width: @container-md) {
+font-size: 0.6em;
+}
     }
 }
 
@@ -247,22 +266,7 @@ font-size: 0.8em;
     border-bottom: 1px dotted #c7dcd9;
 }
 
-.drug-comment-count-grid {
-    a:hover {
-        background: url(../images/comment_count_hover.png) no-repeat center;
-        color: #0ba11a;
 
-    }
-
-    a {
-    background: url(../images/comment_count.png) no-repeat center;
-    float: right;
-    display: block;
-    padding-left: 40px;
-    color: #0bc17f;
-}
-
-}
 
 
 
@@ -278,14 +282,19 @@ text-align: right;
 
 }
 
-
-  .portlet {
+.comments-portlet {
     margin-top: 35px;
-    padding: 20px;
+    padding: 3px;
     background: #f3f6f6;
     font-family: Verdana, Geneva, sans-serif;
     font-size: .95em;
- p {
+
+    .portlet-item {
+      .clearfix
+    }
+
+
+    p {
 
     margin: 0;
 
@@ -300,9 +309,23 @@ text-align: right;
   font-style: italic;
 }
 
-.comment {
-  margin-top: 5px ;
+.comment{
+
+  a {
+    .comment-link-mixin
+  }
 }
+
+.comments-portlet-bottom{
+  float: right;
+  font-style: italic;
+  font-size: 0.85em;
+  margin-top: 8px;
+
+
+
+}
+
 
   }
 
@@ -314,6 +337,94 @@ a.user {
     text-decoration: underline;
 }
 
+.guest {
+color: #9cb8b3;
+}
+
 .form {
   margin-bottom: 10px;
+}
+
+
+.post-grig-item {
+  position: relative;
+  margin-bottom: 20px;
+
+
+      h5 {
+      margin-left: 7px;
+    }
+
+  .wrapper {
+  height: 210px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.1),0 3px 4px -3px rgba(0,0,0,.3);
+  }
+
+  img {
+    max-height: 110px;
+    max-width: 110px;
+    margin-left: 7px;
+    margin-top: 7px;
+  }
+
+
+.image-wrapper {
+
+  a{
+    width: 180px;
+    height: 110px;
+    display: block;
+    vertical-align: middle;
+
+
+  }
+  }
+
+  .post-comment-count-grid {
+    min-height: 30px;
+
+
+
+
+    a {
+      position: absolute;
+      bottom: 7px;
+      right: 20px;
+      margin-right: 5px;
+      color: #0bc17f;
+      display: block;
+      background: url(../images/comment_count.png) left 3px no-repeat;
+
+      padding-left: 25px;
+      &:hover {
+      background: url(../images/comment_count_hover.png) left 3px no-repeat;
+      color: #0ba11a;
+      }
+
+    }
+  }
+
+}
+
+
+
+
+.recent-consults {
+  .item {
+    height: 180px;
+  }
+
+  .comment{
+
+  a {
+    .comment-link-mixin
+  }
+}
+
+.date {
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+
 }

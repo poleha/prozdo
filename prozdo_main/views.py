@@ -528,7 +528,7 @@ class MainPageView(generic.TemplateView):
         return blogs
 
     def get_recent_consults(self):
-        comments = models.Comment.objects.get_available().filter(consult_required=True).order_by('-created')[:10]
+        comments = models.Comment.objects.get_available().filter(user__user_profile__role=models.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:10]
         return comments
 
     def get_context_data(self, **kwargs):
