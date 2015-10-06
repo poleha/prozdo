@@ -142,7 +142,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30
-POST_LIST_PAGE_SIZE = 50
+POST_LIST_PAGE_SIZE = 48
 
 #DRUG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
 #BLOG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}

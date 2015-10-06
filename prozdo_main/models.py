@@ -483,6 +483,13 @@ class Drug(Post):
             return ''
 
     @property
+    def thumb150(self):
+        try:
+            return get_thumbnail(self.image, '150x300', quality=99).url
+        except:
+            return ''
+
+    @property
     def thumb220(self):
         try:
             return get_thumbnail(self.image, '220x400', quality=99).url
@@ -499,10 +506,18 @@ class Cosmetics(Post):
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = PostManager()
 
+    #TODO проверить, убрать лишнее
     @property
     def thumb110(self):
         try:
             return get_thumbnail(self.image, '110x200', quality=99).url
+        except:
+            return ''
+
+    @property
+    def thumb150(self):
+        try:
+            return get_thumbnail(self.image, '150x300', quality=99).url
         except:
             return ''
 
@@ -512,6 +527,8 @@ class Cosmetics(Post):
             return get_thumbnail(self.image, '220x400', quality=99).url
         except:
             return ''
+
+
 
 class Blog(Post):
     short_body = models.TextField(verbose_name='Анонс', blank=True)
@@ -528,9 +545,23 @@ class Blog(Post):
             return ''
 
     @property
+    def thumb150(self):
+        try:
+            return get_thumbnail(self.image, '150x300', quality=99).url
+        except:
+            return ''
+
+    @property
     def thumb220(self):
         try:
             return get_thumbnail(self.image, '220x400', quality=99).url
+        except:
+            return ''
+
+    @property
+    def thumb360(self):
+        try:
+            return get_thumbnail(self.image, '360x720', quality=99).url
         except:
             return ''
 
@@ -539,7 +570,9 @@ class Blog(Post):
         if self.short_body:
             return self.short_body
         else:
-            return cut_text(self.body, 200)
+            return cut_text(strip_tags(self.body), 200)
+
+
 
 #class Forum(Post):
 #    body = models.TextField(verbose_name='Содержимое', blank=True)

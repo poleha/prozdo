@@ -520,11 +520,11 @@ class MainPageView(generic.TemplateView):
     template_name = 'prozdo_main/base/main_page.html'
 
     def get_popular_drugs(self):
-        drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:18]
+        drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:16]
         return drugs
 
     def get_recent_blogs(self):
-        blogs = models.Blog.objects.get_available().order_by('-created')[:10]
+        blogs = models.Blog.objects.get_available().order_by('-created')[:4]
         return blogs
 
     def get_recent_consults(self):
@@ -534,7 +534,8 @@ class MainPageView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_drugs'] = self.get_popular_drugs()
-        context['recent_drugs'] = self.get_recent_blogs()
+        context['recent_blogs'] = self.get_recent_blogs()[1:4]
+        context['main_recent_blog'] = self.get_recent_blogs()[0]
         context['recent_consults'] = self.get_recent_consults()
         return context
 
