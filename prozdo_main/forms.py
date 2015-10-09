@@ -132,7 +132,7 @@ class ProzdoSignupForm(SignupForm):
             storage = FileSystemStorage(save_path)
             path = user_profile.image.path
             name = os.path.split(path)[-1]
-            save_thumbs(storage, settings.USER_PROFILE_THUMB_SETTINGS, path, 'discount_shop',  name)
+            #save_thumbs(storage, settings.USER_PROFILE_THUMB_SETTINGS, path, 'discount_shop',  name)
         return user
 
 
@@ -141,7 +141,7 @@ class ProzdoSignupForm(SignupForm):
 
 
 class PostFilterForm(forms.Form):
-    alphabet = forms.MultipleChoiceField(choices=(), label='По первой букве', required=False, widget=forms.CheckboxSelectMultiple())
+    alphabet = forms.MultipleChoiceField(choices=(), label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
     title = forms.CharField(label='Название', required=False)
 
     def __init__(self, *args, **kwargs):
@@ -163,7 +163,7 @@ class PostFilterForm(forms.Form):
             count = posts.count()
             if count > 0:
                 alph += ((letter, '{0}({1})'.format(letter, count)), )
-        self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='По первой букве', required=False, widget=forms.CheckboxSelectMultiple())
+        self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
 
 
 class DrugFilterForm(PostFilterForm):

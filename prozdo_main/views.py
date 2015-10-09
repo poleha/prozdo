@@ -638,6 +638,8 @@ class UserCommentsView(ProzdoListView):
         context['current_user'] = user
         return context
 
+
+
 class UserKarmaView(ProzdoListView):
     template_name = 'prozdo_main/user/user_karma.html'
     context_object_name = 'hists'
@@ -647,6 +649,25 @@ class UserKarmaView(ProzdoListView):
         pk = self.kwargs['pk']
         user = models.User.objects.get(pk=pk)
         return user.karm_history
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        context['current_user'] = user
+        return context
+
+
+class UserActivityView(ProzdoListView):
+    template_name = 'prozdo_main/user/user_activity.html'
+    context_object_name = 'hists'
+    paginate_by = 50
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        user = models.User.objects.get(pk=pk)
+        return user.activity_history
 
 
     def get_context_data(self, **kwargs):

@@ -137,6 +137,7 @@ class SuperModel(models.Model):
 class AbstractModel(SuperModel):
     class Meta:
         abstract = True
+        ordering = ('title', )
     title = models.CharField(max_length=500, verbose_name='Название')
 
     def __str__(self):
@@ -440,6 +441,7 @@ class DrugUsageArea(Post):
 
 class Category(Post, MPTTModel):  #Для блога
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
+
     objects = TreeManager()
 
     def make_alias(self):
@@ -459,7 +461,7 @@ class Component(Post):
 
 
 class Drug(Post):
-    body = models.TextField(verbose_name='Содержимое', blank=True)
+    body = models.TextField(verbose_name='Описание', blank=True)
     features = models.TextField(verbose_name='Особенности', blank=True)
     indications = models.TextField(verbose_name='Показания', blank=True)
     application_scheme = models.TextField(verbose_name='Схема приема', blank=True)
@@ -471,7 +473,7 @@ class Drug(Post):
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
-    components = models.ManyToManyField(Component, verbose_name='Состав', blank=True)
+    components = models.ManyToManyField(Component, verbose_name='Состав', blank=True, related_name='drugs')
     category = TreeManyToManyField(Category, verbose_name='Категория', blank=True)
     objects = PostManager()
 
@@ -531,6 +533,8 @@ class Cosmetics(Post):
 
 
 class Blog(Post):
+    class Meta:
+        ordering = ('-created', )
     short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = models.TextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
@@ -831,7 +835,7 @@ HISTORY_TYPES_POINTS = {
 HISTORY_TYPE_COMMENT_CREATED: 3,
 HISTORY_TYPE_COMMENT_SAVED: 0,
 HISTORY_TYPE_COMMENT_RATED: 1,
-HISTORY_TYPE_POST_CREATED: 5,
+HISTORY_TYPE_POST_CREATED: 0,
 HISTORY_TYPE_POST_SAVED: 0,
 HISTORY_TYPE_POST_RATED: 1,
 HISTORY_TYPE_COMMENT_COMPLAINT: 0,
@@ -938,12 +942,18 @@ class UserProfile(SuperModel):
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
     @property
+    def thumb50(self):
+        try:
+            return get_thumbnail(self.image, '50x50', quality=99).url
+        except:
+            return ''
+
+    @property
     def thumb100(self):
         try:
             return get_thumbnail(self.image, '100x100', quality=99).url
         except:
             return ''
-
 
 
     def __str__(self):
@@ -997,20 +1007,42 @@ def get_user_image(self):
 
 
 def karm_history(self):
+    return self._karm_history.order_by('-created')
+
+def _karm_history(self):
     hists = History.objects.filter(author=self, history_type=HISTORY_TYPE_COMMENT_RATED)
     return hists
 
+
+def _activity_history(self):
+    return History.objects.filter(user=self, user_points__gt=0)
+
+def activity_history(self):
+    return self._activity_history.order_by('-created')
+
 def get_user_activity(self):
-    return History.objects.filter(user=self).count()
+    try:
+        activity =  self._activity_history.aggregate(Sum('user_points'))['user_points__sum']
+    except:
+        activity = ''
+    return activity
 
 def get_email_confirmed(self):
     return EmailAddress.objects.filter(user=self, verified=True, email=self.email).exists()
 
+
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
 User.karm_history = property(karm_history)
-User.get_karm = property(lambda self: self.karm_history.count())
+User._karm_history = property(_karm_history)
+User.activity_history = property(activity_history)
+User._activity_history = property(_activity_history)
+User.karm = property(lambda self: self._karm_history.count())
+User.get_karm_url = lambda self: reverse('user-karma', kwargs={'pk': self.pk})
+User.get_comments_url = lambda self: reverse('user-comments', kwargs={'pk': self.pk})
+User.get_activity_url = lambda self: reverse('user-activity', kwargs={'pk': self.pk})
 User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
+
 User.activity = property(get_user_activity)
 User.email_confirmed = property(get_email_confirmed)
 
@@ -1019,6 +1051,7 @@ User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHO
 User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGULAR)
 User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
 User.thumb100 = property(lambda self: self.user_profile.thumb100)
+User.thumb50 = property(lambda self: self.user_profile.thumb50)
 
 
 

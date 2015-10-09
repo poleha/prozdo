@@ -9,8 +9,8 @@
 
         <form id="post-list-form" method="get" action="{{ submit_url }}">
 
-    {{   filter_form }}
-    <input type="submit" class="btn btn-success" value="Показать">
+    {{   filter_form.as_p }}
+<a class="btn btn-default" href="{{ submit_url }}">Cбросить фильтр</a>
 </form>
 
 </div>
@@ -38,16 +38,70 @@
 $(function() {
 
 
+   $('#post-list-form').on('submit', function(e) {
 
+    e.preventDefault();
+    return false;
+
+});
+
+
+ function alphabetChanger(){
+
+  var checkedArr = [];
+
+$('#id_alphabet').find('input:checkbox:checked').each(function(){
+    checkedArr.push($(this).val());
+});
+if (checkedArr.length > 0) {
+    $('#id_title').addClass('hidden').val('').prev('label').addClass('hidden');
+
+
+}
+    else {
+    $('#id_title').removeClass('hidden').prev('label').removeClass('hidden');
+
+}
+
+ }
+
+
+function titleChanger(){
+if ($('#id_title').val() != '') {
+  var alphabetBlock = $('#id_alphabet')
+  alphabetBlock.find('input:checkbox:checked').each(function(){
+    $(this).prop('checked', false)
+
+
+});
+alphabetBlock.addClass('hidden').prev('label').addClass('hidden');
+}
+    else {
+   $('#id_alphabet').removeClass('hidden').prev('label').removeClass('hidden');
+}
+
+}
+
+$('#id_alphabet').find('input').change(function(e){
+
+alphabetChanger();
+
+});
+
+
+$('#id_title').change(function(e){
+titleChanger();
+});
 
     $(document).on('change', '#post-list-form input', function (e) {
         var frm = $('#post-list-form');
-        var cleanParamsArray = {};
         var url_data_params = '';
+        var cleanParamsArray = [];
         var paramsArray = frm.serializeArray();
         paramsArray.forEach(function(param){
             if (param.value){
-                cleanParamsArray[param.name] = param.value;
+                cleanParamsArray.push(param);
+
             }
         });
 
@@ -79,6 +133,9 @@ $(function() {
 
 
     });
+
+titleChanger();
+alphabetChanger();
 });
 
 </script>

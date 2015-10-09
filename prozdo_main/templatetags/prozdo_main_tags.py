@@ -322,6 +322,15 @@ def bool_as_text(value):
     else:
         return 'Нет'
 
+
+@register.filter(name='none_as_empty')
+def none_as_empty(value):
+    if value:
+        return value
+    else:
+        return ''
+
+
 @register.inclusion_tag('prozdo_main/widgets/_user_menu.html', takes_context=True)
 def user_menu(context):
     user = context['request'].user

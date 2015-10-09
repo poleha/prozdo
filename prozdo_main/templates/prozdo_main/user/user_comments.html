@@ -4,6 +4,7 @@
 {% user_detail current_user%}
 <a href="{% url 'user-comments' current_user.pk %}">Отзывы</a>
 <a href="{% url 'user-karma' current_user.pk %}">Карма</a>
+<a href="{% url 'user-activity' current_user.pk %}">Активность</a>
 
  <div>
  <h2>Отзывы</h2>

@@ -1,13 +1,15 @@
+{% load staticfiles %}
 <div class="tiny-comment">
-     <div>
+
 {% if comment.user %}
-         <a href="{{ comment.user.get_absolute_url }}">
-    <img src="{{ comment.user.thumb100 }}">
-    {{ comment.user }}</a>
+         <a class="user" href="{{ comment.user.get_absolute_url }}">
+    <img class="img-rounded" src="{{ comment.user.thumb50 }}">
+     {{ comment.user }}</a>
     {% else %}
-    {{ comment.username }}
+    <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
+    <span class="guest">{{ comment.username }}</span>
 {% endif %}
-</div>
+
     <span class='tiny-comment-body'>{{ comment }}</span>
 <a href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>
 {% if not comment.body == comment.short_body %}
