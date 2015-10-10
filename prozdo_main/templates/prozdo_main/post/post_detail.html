@@ -76,163 +76,164 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-               <div id="post-block">
-                {% if obj.body %}
-                <div>
-                    {% if obj.show_body_label %}
-                        <h4>{% get_verbose_field_name obj 'body' %}:</h4>
-                    {% endif %}
-                    {{ obj.body|safe }}
-                </div>
-            {% endif %}
-
-                {% if obj.is_drug %}
-                    {% if obj.features %}
-                    <div>
-                        <h4>{% get_verbose_field_name obj 'features' %}:</h4>
-                        {{ obj.features|safe }}
-                    </div>
+                <div id="post-block">
+                    {% if obj.body %}
+                        <div>
+                            {% if obj.show_body_label %}
+                                <h4>{% get_verbose_field_name obj 'body' %}:</h4>
+                            {% endif %}
+                            {{ obj.body|safe }}
+                        </div>
                     {% endif %}
 
-                    {% if obj.indications %}
-                    <div>
-                        <h4>{% get_verbose_field_name obj 'indications' %}:</h4>
-                        {{ obj.indications|safe }}
-                    </div>
-                     {% endif %}
-
-                    {% if obj.application_scheme %}
-                        <div>
-                        <h4>{% get_verbose_field_name obj 'application_scheme' %}:</h4>
-                        {{ obj.application_scheme|safe }}
-                    </div>
-                     {% endif %}
-
-                    {% if obj.dosage_form %}
-                        <div>
-                        <h4>{% get_verbose_field_name obj 'dosage_form' %}:</h4>
-                        {{ obj.dosage_form|safe }}
-                    </div>
-                     {% endif %}
-
-                    {% if obj.contra_indications %}
-                        <div>
-                        <h4>{% get_verbose_field_name obj 'contra_indications' %}:</h4>
-                        {{ obj.contra_indications|safe }}
-                    </div>
-                     {% endif %}
-
-                    {% if obj.side_effects %}
-                        <div>
-                        <h4>{% get_verbose_field_name obj 'side_effects' %}:</h4>
-                        {{ obj.side_effects|safe }}
-                    </div>
-                     {% endif %}
-
-                    {% if obj.compound %}
-                        <div>
-                        <h4>{% get_verbose_field_name obj 'compound' %}:</h4>
-                        {{ obj.compound|safe }}
-                    </div>
-                         {% endif %}
-
-                    {% with components=obj.components.all %}
-                    {% if components.count > 0 %}
-                        <div>
-                        <h4>Компоненты:</h4>
-                        {% for component in components %}
-                            <div><a href="{{ component.get_absolute_url }}">{{ component }}</a></div>
-
-                        {% endfor %}
+                    {% if obj.is_drug %}
+                        {% if obj.features %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'features' %}:</h4>
+                                {{ obj.features|safe }}
+                            </div>
                         {% endif %}
-                    </div>
-                    {% endwith %}
-                    <div>
-                        <h4>Формы выпуска:</h4>
-                        {% for dosage_form in obj.dosage_forms.all %}
-                            <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
 
-                        {% endfor %}
-                    </div>
+                        {% if obj.indications %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'indications' %}:</h4>
+                                {{ obj.indications|safe }}
+                            </div>
+                        {% endif %}
 
-                    <div>
-                        <h4>Области применения:</h4>
-                        {% for usage_area in obj.usage_areas.all %}
-                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+                        {% if obj.application_scheme %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'application_scheme' %}:</h4>
+                                {{ obj.application_scheme|safe }}
+                            </div>
+                        {% endif %}
 
-                        {% endfor %}
-                    </div>
-                {% elif obj.is_cosmetics %}
+                        {% if obj.dosage_form %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'dosage_form' %}:</h4>
+                                {{ obj.dosage_form|safe }}
+                            </div>
+                        {% endif %}
 
-                    <div>
-                        <h4>Формы выпуска:</h4>
-                        {% for dosage_form in obj.dosage_forms.all %}
-                            <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
+                        {% if obj.contra_indications %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'contra_indications' %}:</h4>
+                                {{ obj.contra_indications|safe }}
+                            </div>
+                        {% endif %}
 
-                        {% endfor %}
-                    </div>
+                        {% if obj.side_effects %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'side_effects' %}:</h4>
+                                {{ obj.side_effects|safe }}
+                            </div>
+                        {% endif %}
 
-                    <div>
-                        <h4>Области применения:</h4>
-                        {% for usage_area in obj.usage_areas.all %}
-                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+                        {% if obj.compound %}
+                            <div>
+                                <h4>{% get_verbose_field_name obj 'compound' %}:</h4>
+                                {{ obj.compound|safe }}
+                            </div>
+                        {% endif %}
 
-                        {% endfor %}
-                    </div>
+                        {% with components=obj.components.all %}
+                            {% if components.count > 0 %}
+                                <div>
+                                <h4>Компоненты:</h4>
+                                {% for component in components %}
+                                    <div><a href="{{ component.get_absolute_url }}">{{ component }}</a></div>
 
-                    <div>
-                        <h4>Линия:</h4>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
 
-                        <div><a href="{{ obj.line.get_absolute_url }}">{{ obj.line }}</a></div>
-                    </div>
+                        {% endwith %}
+                        <div>
+                            <h4>Формы выпуска:</h4>
+                            {% for dosage_form in obj.dosage_forms.all %}
+                                <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
 
-                    <div>
-                        <h4>Бренд:</h4>
+                            {% endfor %}
+                        </div>
 
-                        <div><a href="{{ obj.brand.get_absolute_url }}">{{ obj.brand }}</a></div>
-                    </div>
+                        <div>
+                            <h4>Области применения:</h4>
+                            {% for usage_area in obj.usage_areas.all %}
+                                <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+
+                            {% endfor %}
+                        </div>
+                    {% elif obj.is_cosmetics %}
+
+                        <div>
+                            <h4>Формы выпуска:</h4>
+                            {% for dosage_form in obj.dosage_forms.all %}
+                                <div><a href="{{ dosage_form.get_absolute_url }}">{{ dosage_form }}</a></div>
+
+                            {% endfor %}
+                        </div>
+
+                        <div>
+                            <h4>Области применения:</h4>
+                            {% for usage_area in obj.usage_areas.all %}
+                                <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+
+                            {% endfor %}
+                        </div>
+
+                        <div>
+                            <h4>Линия:</h4>
+
+                            <div><a href="{{ obj.line.get_absolute_url }}">{{ obj.line }}</a></div>
+                        </div>
+
+                        <div>
+                            <h4>Бренд:</h4>
+
+                            <div><a href="{{ obj.brand.get_absolute_url }}">{{ obj.brand }}</a></div>
+                        </div>
 
 
 
-                    <div>
-                        <h4>Области применения:</h4>
-                        {% for usage_area in obj.usage_areas.all %}
-                            <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
+                        <div>
+                            <h4>Области применения:</h4>
+                            {% for usage_area in obj.usage_areas.all %}
+                                <div><a href="{{ usage_area.get_absolute_url }}">{{ usage_area }}</a></div>
 
-                        {% endfor %}
-                    </div>
-                {% elif obj.is_blog %}
+                            {% endfor %}
+                        </div>
+                    {% elif obj.is_blog %}
 
-                    <div>
-                        <h4>Категории:</h4>
-                        {% for category in obj.category.all %}
-                            <div> {{ category }}</div>
+                        <div>
+                            <h4>Категории:</h4>
+                            {% for category in obj.category.all %}
+                                <div> {{ category }}</div>
 
-                        {% endfor %}
-                    </div>
-                {% elif obj.is_component %}
-                    <div>
-                        <h4>Тип компонента:</h4>
-                        {{ obj.component_type_text }}
-                    </div>
+                            {% endfor %}
+                        </div>
+                    {% elif obj.is_component %}
+                        <div>
+                            <h4>Тип компонента:</h4>
+                            {{ obj.component_type_text }}
+                        </div>
 
-                    <div>
-                        <h4>Компонент содержится в:</h4>
-                        {% for drug in obj.drugs.all %}
-                            <div><a href="{{ drug.get_absolute_url }}">{{ drug }}</a></div>
+                        <div>
+                            <h4>Компонент содержится в:</h4>
+                            {% for drug in obj.drugs.all %}
+                                <div><a href="{{ drug.get_absolute_url }}">{{ drug }}</a></div>
 
-                        {% endfor %}
-                    </div>
+                            {% endfor %}
+                        </div>
 
 
-                {% endif %}
-             </div>
+                    {% endif %}
+                </div>
                 {% if not obj.is_component %}
                     <div id="comment-filter-form">
-                    <form method="get">
-                        {{ comments_options_form.as_p }}
-                        <input type="submit" value="Применить" class="btn btn-success">
-                    </form>
+                        <form method="get">
+                            {{ comments_options_form.as_p }}
+                            <input type="submit" value="Применить" class="btn btn-success">
+                        </form>
                     </div>
                     <div id="comments">
                         <h2>Отзывы:</h2>
@@ -610,7 +611,6 @@
 
                     e.preventDefault();
                 });
-
 
 
             });

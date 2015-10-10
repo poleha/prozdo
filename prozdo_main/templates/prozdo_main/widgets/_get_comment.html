@@ -1,13 +1,15 @@
 {% load prozdo_main_tags %}
 {% load staticfiles %}
 <div class="single-comment {{ comment_class }}">
-<div class="avatar">
+<div class="comment-top">
+    <div class="avatar">
     {% if comment.user %}
 <div>
+<div class="image-wrapper">
 <a class="user" href="{{ comment.user.get_absolute_url }}">
     <img class="img-rounded" src="{{ comment.user.thumb50 }}">
 </a>
-
+</div>
 </div>
 {% else %}
 
@@ -21,9 +23,10 @@
 {% if comment.user %}
 <div>
 <a class="user" href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
+<span class="user-info-top">
 <a href="{{ comment.user.get_karm_url }}"><span>Карма: </span>{{ comment.user.karm }}</a>
 <a href="{{ comment.user.get_activity_url }}"><span>Активность: </span>{{ comment.user.activity }}</a>
-
+</span>
 </div>
 {% else %}
 
@@ -31,8 +34,10 @@
 
 {% endif %}
 </div>
-<div class="content">
-<a href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a>
+<div class="permalink"><a href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a></div>
+</div>
+    <div class="content">
+
 {% if comment.get_tree_level == 0 or not show_tree %}
 <div id="c{{ comment.pk }}"></div>
 {% endif %}
@@ -46,7 +51,7 @@
 <span class="date">{{ comment.created }}</span>
 
 
-        <div> {% get_verbose_field_name comment 'body' %}: <span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.body|linebreaks }}</span></div>
+        <div><span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.body|linebreaks }}</span></div>
 
 
 
