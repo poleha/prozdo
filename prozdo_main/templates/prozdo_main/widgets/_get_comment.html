@@ -3,7 +3,7 @@
 <div class="single-comment {{ comment_class }}">
 <div class="comment-top">
     <div class="avatar">
-    {% if comment.user %}
+    {% if comment.user and comment.user.thumb50 %}
 <div>
 <div class="image-wrapper">
 <a class="user" href="{{ comment.user.get_absolute_url }}">
@@ -38,6 +38,16 @@
 </div>
     <div class="content">
 
+   <div class="confirmation-block">
+ {% if comment.confirmed %}
+     <div class="comment-confirmed"> Отзыв подтвержден</div>
+ {% else %}
+     <div class="comment-unconfirmed">Отзыв не подтвержден</div>
+     <input type="button" value="Подтвердить" class="confirm-comment btn btn-default">
+    {% endif %}
+</div>
+
+
 {% if comment.get_tree_level == 0 or not show_tree %}
 <div id="c{{ comment.pk }}"></div>
 {% endif %}
@@ -57,52 +67,56 @@
 
 <input type="hidden" value="{{ comment.get_tree_level }}" class="comment-level">
 <input type="hidden" value="{{ comment.pk }}" class="comment-pk">
-<div class="confirmation-block">
- {% if comment.confirmed %}
-     Отзыв подтвержден
-     {% elif not user.is_authenticated %}
-     <input type="button" value="Подтвердить" class="confirm-comment">
-    {% endif %}
+
+<div class="comment-all-marks-block">
+
+    <div class="comment-current-complain" id="comment-current-complain-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">Жалоб: <span class="comment-current-complain-span" id="comment-current-complain-span-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.complain_count }}</span></div>
+
+        <div class="comment-mark-block">
+        <span class="comment-current-mark" id="comment-current-mark-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">Отзыв сочли полезным: <span class="comment-current-mark-span" id="comment-current-mark-span-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.comment_mark }}</span></span>
+{% if comment.comment_mark %}
+    <span class="comment-show-marked-buttons">
+<input type="button" value="?" class="comment-show-marked-users btn">
+<input type="button" value="x" class="comment-hide-marked-users btn hidden">
+</span>
+
+{% endif %}
+<div class="comment-show-marked"></div>
+    </div>
+
 </div>
 
-    <div class="comment-current-mark" id="comment-current-mark-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">Отзыв сочли полезным: <span class="comment-current-mark-span" id="comment-current-mark-span-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.comment_mark }}</span></div>
-{% if comment.comment_mark %}
-    <div class="comment-show-marked-buttons">
-<input type="button" value="Показать кто" class="comment-show-marked-users">
-<input type="button" value="Скрыть" class="comment-hide-marked-users hidden">
-</div>
-{% endif %}
 {% if comment.user == user %}
 
 <a href="{{ comment.update_url }}">Редактировать</a>
 {% endif %}
-<div class="comment-show-marked"></div>
+
+        <input type="button" class="answer-to-comment btn btn-success" id="answer-to-comment-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Ответить">
+
         {% if can_mark %}
-         <input class="comment-unmark-button hidden" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
-         <input class="comment-mark-button" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
+         <input class="comment-unmark-button btn btn-cancel hidden" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
+         <input class="comment-mark-button btn btn-success" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
         {% elif is_author and comment.user.is_authenticated %}
          <div>Вы не можете голосовать за свой отзыв</div>
         {% elif can_unmark %}
-        <input class="comment-unmark-button" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
-        <input class="comment-mark-button hidden" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
+        <input class="comment-unmark-button btn btn-cancel" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
+        <input class="comment-mark-button btn btn-success hidden" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
         {% endif %}
 
-        <div class="comment-current-complain" id="comment-current-complain-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">Жалоб: <span class="comment-current-complain-span" id="comment-current-complain-span-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.complain_count }}</span></div>
         {% if can_complain %}
-         <input class="comment-uncomplain-button hidden" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
-         <input class="comment-complain-button" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
+         <input class="comment-uncomplain-button btn btn-cancel hidden" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
+         <input class="comment-complain-button btn btn-danger" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% elif can_uncomplain %}
-        <input class="comment-uncomplain-button" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
-        <input class="comment-complain-button hidden" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
+        <input class="comment-uncomplain-button btn btn-cancel" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
+        <input class="comment-complain-button btn btn-danger hidden" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% endif %}
-
-        <input type="button" class="answer-to-comment" id="answer-to-comment-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Ответить">
 
  {% if comment.children.get_available.exists and not show_as_child %}
+ <div class="comment-all-children-block">
   {% if show_tree %}
          <div>
-     <input type="button" class="show-comment-tree hidden" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
-    <input type="button" class="hide-comment-tree" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="show-comment-tree btn btn-success hidden" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="hide-comment-tree btn btn-default" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
         </div>
 {% else %}
   <div>
@@ -112,10 +126,11 @@
          {% endfor %}
         </div>
 
-    <input type="button" class="show-comment-tree" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
-    <input type="button" class="hide-comment-tree hidden" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="show-comment-tree btn btn-success" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="hide-comment-tree btn btn-default hidden" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
 {% endif %}
-{% endif %}
+</div>
+ {% endif %}
 
 {% if comment.updater %}
 <div>

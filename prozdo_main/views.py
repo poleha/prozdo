@@ -512,7 +512,6 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-
         return self.render_to_response(self.get_context_data(**kwargs))
 
 

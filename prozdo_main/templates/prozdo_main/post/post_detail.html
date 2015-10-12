@@ -421,16 +421,17 @@
 
                 $(document).on('click', '.tiny-comment-show-full, .tiny-comment-hide-full', function (e) {
                     var block = $(this).closest('.tiny-comment');
-                    var cls = $(this).attr('class');
-                    if (cls == 'tiny-comment-show-full') {
-                        var action = 'show';
-                        var toHide = block.find('.tiny-comment-show-full');
-                        var toShow = block.find('.tiny-comment-hide-full');
+                    var action, toHide, toShow;
+                    //var cls = $(this).attr('class');
+                    if ($(this).hasClass('tiny-comment-show-full')) {
+                        action = 'show';
+                        toHide = block.find('.tiny-comment-show-full');
+                        toShow = block.find('.tiny-comment-hide-full');
                     }
                     else {
-                        var action = 'hide';
-                        var toHide = block.find('.tiny-comment-hide-full');
-                        var toShow = block.find('.tiny-comment-show-full');
+                        action = 'hide';
+                        toHide = block.find('.tiny-comment-hide-full');
+                        toShow = block.find('.tiny-comment-show-full');
                     }
                     var pk = block.find('.tiny-comment-pk').val();
                     $.ajax({
@@ -538,13 +539,13 @@
                 $(document).on('click', '.comment-show-marked-users, .comment-hide-marked-users', function (e) {
 
                     var commentBlock = $(this).closest('.single-comment');
-                    var cls = $(this).attr('class');
+                    //var cls = $(this).attr('class');
                     var pk = commentBlock.find('.comment-pk').val();
                     var resultBlock = commentBlock.find('.comment-show-marked');
                     var showButton = commentBlock.find('.comment-show-marked-users')
                     var hideButton = commentBlock.find('.comment-hide-marked-users')
 
-                    if (cls == 'comment-show-marked-users') {
+                    if ($(this).hasClass('comment-show-marked-users')) {
 
                         $.ajax({
                             type: 'POST',

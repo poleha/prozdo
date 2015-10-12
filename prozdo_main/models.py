@@ -334,7 +334,11 @@ class Post(AbstractModel):
                 mark = 0
         except:
             mark = 0
-        return mark
+
+        if mark > 0 and self.marks_count > 0:
+            return round(mark / self.marks_count, 2)
+        else:
+            return 0
 
     @property
     def marks_count(self):
@@ -1052,7 +1056,6 @@ User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGU
 User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
 User.thumb100 = property(lambda self: self.user_profile.thumb100)
 User.thumb50 = property(lambda self: self.user_profile.thumb50)
-
 
 
 AnonymousUser.is_regular = True

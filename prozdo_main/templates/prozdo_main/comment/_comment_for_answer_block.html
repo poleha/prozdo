@@ -1,0 +1,18 @@
+{% load staticfiles %}
+<div class="tiny-comment">
+     <div>
+{% if comment.user %}
+         <a href="{{ comment.user.get_absolute_url }}">
+    {% if comment.user.thumb50 %}
+             <img src="{{ comment.user.thumb50 }}">
+    {% else %}
+      <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
+    {% endif %}
+    {{ comment.user }}</a>
+    {% else %}
+    <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
+    {{ comment.username }}
+{% endif %}
+</div>
+    <span class='tiny-comment-body'>{{ comment }}</span>
+</div>

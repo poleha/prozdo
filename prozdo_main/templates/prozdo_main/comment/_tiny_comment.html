@@ -3,7 +3,11 @@
 
 {% if comment.user %}
          <a class="user" href="{{ comment.user.get_absolute_url }}">
-    <img class="img-rounded" src="{{ comment.user.thumb50 }}">
+    {% if comment.user.thumb50 %}
+             <img class="img-rounded" src="{{ comment.user.thumb50 }}">
+    {% else %}
+     <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
+    {% endif %}
      {{ comment.user }}</a>
     {% else %}
     <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
@@ -11,10 +15,10 @@
 {% endif %}
 
     <span class='tiny-comment-body'>{{ comment }}</span>
-<a href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>
+<a class='btn btn-default' href="{{ comment.get_absolute_url }}">Перейти к отзыву</a>
 {% if not comment.body == comment.short_body %}
-    <input type="button" value="Прочитать отзыв целиком" class="tiny-comment-show-full">
-<input type="button" value="Скрыть" class="tiny-comment-hide-full hidden">
+    <input type="button" value="Прочитать отзыв целиком" class="tiny-comment-show-full btn btn-default">
+<input type="button" value="x" class="tiny-comment-hide-full hidden btn btn-default">
     {% endif %}
 
     <input type="hidden" value="{{ comment.pk }}" class="tiny-comment-pk">

@@ -228,3 +228,5 @@ STATICFILES_FINDERS = (
     # other finders..
     'compressor.finders.CompressorFinder',
 )
+
+BEST_COMMENTS_DAYS = 100
