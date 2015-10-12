@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from . import views
+from .feed import LatestBlogEntriesFeed
 #from django.views.decorators.cache import cache_page
 
 urlpatterns = [
@@ -70,6 +71,9 @@ urlpatterns = [
     url(r'^user/activity/(?P<pk>\d+)$', views.UserActivityView.as_view(), name='user-activity'),
 
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
+
+
+    url(r'^rss/rss$', LatestBlogEntriesFeed()),
 
 ]
 
