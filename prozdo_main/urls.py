@@ -73,7 +73,7 @@ urlpatterns = [
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
 
-    url(r'^rss/rss$', LatestBlogEntriesFeed()),
+    url(r'^rss/rss$', LatestBlogEntriesFeed(), name='rss'),
 
 ]
 

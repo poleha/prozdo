@@ -2,7 +2,7 @@
 
 <div class="blog-grid-main-item">
 <div class="wrapper">
-    <div class="image-wrapper"><a href="{{ main_recent_blog.get_absolute_url }}"><img class="img-rounded" src="{{ main_recent_blog.thumb360 }}"></a></div>
+    <div class="image-wrapper"><a href="{{ main_recent_blog.get_absolute_url }}"><img alt="{{ main_recent_blog.title }}" class="img-rounded" src="{{ main_recent_blog.thumb360 }}"></a></div>
      <h4><a href="{{ main_recent_blog.get_absolute_url }}">{{ main_recent_blog.title }}</a></h4>
       <h5><a href="{{ main_recent_blog.get_absolute_url }}">{{ main_recent_blog.anons }}</a></h5>
      <div class="post-comment-count-grid">
@@ -14,7 +14,7 @@
     {% for obj in objs %}
 <div class="blog-grid-item">
     <div class="wrapper">
-    <div class="image-wrapper"><a href="{{ obj.get_absolute_url }}"><img class="img-rounded" src="{{ obj.thumb110 }}"></a></div>
+    <div class="image-wrapper"><a href="{{ obj.get_absolute_url }}"><img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb110 }}"></a></div>
     <h5><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></h5>
      <h5><a href="{{ obj.get_absolute_url }}">{{ obj.anons }}</a></h5>
 
