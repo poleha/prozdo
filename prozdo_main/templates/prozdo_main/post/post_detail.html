@@ -23,33 +23,24 @@
 
                 </div>
             </div>
-            <div class="col-lg-6 col-md-6">
+            <div class="col-md-6 post-right-block">
                 {% if obj.is_drug %}
                     <div id="post-mark-block>">
-                        <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}"><label>Ваша
-                            оценка: </label><span id="current-post-mark"> {{ mark }}</span></div>
-                        <input type="button" value="Отменить оценку" id="cancel-mark-button"
-                               class="btn btn-warning {{ show_your_mark_block_cls }}">
+                        <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}">
+                            <label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span>
+                        <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning {{ show_your_mark_block_cls }}">
+                        </div>
+
 
                         <div id="post-mark" class="{{ show_make_mark_block_cls }}">
 
 
                             <label>Оцените препарат: </label>
- <span id="post-mark-1">
-     <span class="glyphicon glyphicon-star"></span>
- </span>
- <span id="post-mark-2">
-     <span class="glyphicon glyphicon-star"></span>
- </span>
- <span id="post-mark-3">
-     <span class="glyphicon glyphicon-star"></span>
- </span>
- <span id="post-mark-4">
-     <span class="glyphicon glyphicon-star"></span>
- </span>
- <span id="post-mark-5">
-     <span class="glyphicon glyphicon-star"></span>
- </span>
+     <a class="star" id="post-mark-1"></a>
+     <a class="star" id="post-mark-2"></a>
+     <a class="star" id="post-mark-3"></a>
+     <a class="star" id="post-mark-4"></a>
+     <a class="star" id="post-mark-5"></a>
                         </div>
 
                     </div>
@@ -479,7 +470,7 @@
                 });
 
 
-                $(document).on('click', '#post-mark > span', function (e) {
+                $(document).on('click', '#post-mark > .star', function (e) {
                     var mark = e.currentTarget.id.replace('post-mark-', '');
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk};
@@ -544,6 +535,8 @@
                     var resultBlock = commentBlock.find('.comment-show-marked');
                     var showButton = commentBlock.find('.comment-show-marked-users')
                     var hideButton = commentBlock.find('.comment-hide-marked-users')
+                    var markBlock = commentBlock.find('.comment-mark-block');
+
 
                     if ($(this).hasClass('comment-show-marked-users')) {
 
@@ -555,6 +548,7 @@
                                 resultBlock.html(data);
                                 showButton.addClass('hidden');
                                 hideButton.removeClass('hidden');
+                                markBlock.addClass('on-top');
                             },
                             error: function (data) {
 
@@ -566,6 +560,7 @@
                         resultBlock.html('');
                         showButton.removeClass('hidden');
                         hideButton.addClass('hidden');
+                        markBlock.removeClass('on-top');
                     }
 
                 });

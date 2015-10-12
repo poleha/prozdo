@@ -90,7 +90,7 @@
 
 <a href="{{ comment.update_url }}">Редактировать</a>
 {% endif %}
-
+        <div class="comment-bottom-buttons">
         <input type="button" class="answer-to-comment btn btn-success" id="answer-to-comment-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Ответить">
 
         {% if can_mark %}
@@ -110,7 +110,7 @@
         <input class="comment-uncomplain-button btn btn-cancel" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
         <input class="comment-complain-button btn btn-danger hidden" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% endif %}
-
+</div>
  {% if comment.children.get_available.exists and not show_as_child %}
  <div class="comment-all-children-block">
   {% if show_tree %}

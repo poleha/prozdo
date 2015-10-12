@@ -229,13 +229,15 @@ def breadcrumbs(context):
         user = context['current_user']
         breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
 
-    elif url_name in ['user-comments', 'user-karma']:
+    elif url_name in ('user-comments', 'user-karma', 'user-activity'):
         user = context['current_user']
         breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
         if url_name == 'user-comments':
             breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user), href=reverse('user-comments', kwargs={'pk': user.pk})))
         elif url_name == 'user-karma':
-            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href=reverse('user-comments', kwargs={'pk': user.pk})))
+            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href=reverse('user-karma', kwargs={'pk': user.pk})))
+        elif url_name == 'user-activity':
+            breadcrumbs_list.append(Breadcrumb(title='Действия пользователя {0}'.format(user), href=reverse('user-activity', kwargs={'pk': user.pk})))
 
     return {'breadcrumbs_list': breadcrumbs_list}
 

@@ -1,9 +1,11 @@
 .comment-link-mixin {
 
      margin-top: 5px;
-     color: #6da3bd;
+     //color: #6da3bd;
 
  }
+
+
 
 
 
@@ -343,10 +345,10 @@ font-size: 0.6em;
   font-style: italic;
   font-size: 0.85em;
   margin-top: 8px;
-  color: #9cb8b3;
+  //color: #9cb8b3;
 
   a {
- color: #6da3bd;
+ color: #0bc17f;
 }
 
 
@@ -667,6 +669,11 @@ font-size: 0.8em;
 
 }
 
+.comment-bottom-buttons {
+  margin-top: 20px;
+}
+
+
 }
 
   .comment-top {
@@ -712,6 +719,19 @@ height: 15px;
 font-size: 0.8em;
 .comment-mark-block {
 
+&.on-top {
+.box-shadow-mixin;
+overflow: hidden;
+word-wrap: break-word;
+padding: 5px 0 5px 5px;
+  position: absolute;
+background-color: white;
+  z-index: 10;
+width: 190px;
+height: 150px;
+right: 0;
+
+}
 
   .btn {
     font-size: inherit;
@@ -742,4 +762,28 @@ img {
   .tiny-comment {
     margin-bottom: 5px;
   }
+}
+
+.post-right-block {
+  #cancel-mark-button {
+    font-size: 0.8em;
+  }
+
+  .star {
+    background: url(../images/star.gif) no-repeat;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+
+  &:hover {
+  background: url(../images/star_hover.gif) no-repeat;
+  }
+  }
+}
+
+
+#user-detail-top {
+  .box-shadow-mixin;
+  padding: 5px;
+  margin-bottom: 10px;
 }
