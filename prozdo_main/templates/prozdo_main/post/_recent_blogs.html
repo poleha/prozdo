@@ -1,5 +1,5 @@
-<div class="clearfix recent-blogs-grid">
 
+<div class="col-lg-6">
 <div class="blog-grid-main-item">
 <div class="wrapper">
     <div class="image-wrapper"><a href="{{ main_recent_blog.get_absolute_url }}"><img alt="{{ main_recent_blog.title }}" class="img-rounded" src="{{ main_recent_blog.thumb360 }}"></a></div>
@@ -10,7 +10,10 @@
 </div>
 </div>
 </div>
+</div>
 
+
+<div class="col-lg-6">
     {% for obj in objs %}
 <div class="blog-grid-item">
     <div class="wrapper">

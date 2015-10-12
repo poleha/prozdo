@@ -484,9 +484,6 @@ box-shadow: 0 0 0 1px rgba(0,0,0,.1),0 3px 4px -3px rgba(0,0,0,.3);
 .blog-grid-main-item {
 
 
-position: relative;
-float: left;
-width: 50%;
 
 
   img {
@@ -502,33 +499,15 @@ width: 50%;
 
 .post-comment-count-grid-mixin;
 
-  @media (max-width: @container-lg) {
-      float: none;
-      width: 100%;
-
-    }
 
 }
 
 .blog-grid-item {
-  margin-bottom: 7px;
-  min-height: 110px;
-  position: relative;
-  padding-left: 50%;
-
-  @media (max-width: @container-lg) {
-      padding-left: 0;
-
-    }
-
-  .blog-grid-wrapper-mixin;
-  h5 {
-    font-size: 0.8em;
+ position: relative;
+a {
+ font-size: 0.9em;
   }
-  .image-wrapper {
-float: left;
-  margin-right: 5px;
-  }
+.blog-grid-wrapper-mixin;
  .post-comment-count-grid-mixin;
 }
 
@@ -549,7 +528,6 @@ float: left;
   font-size: 0.9em;
   font-style: italic;
 }
-
 
 }
 
