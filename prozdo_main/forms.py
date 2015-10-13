@@ -102,6 +102,11 @@ def validate_username(value):
                               ' Допустимо использовать только английские буквы, цифры и символы -  _  .')
 
 
+class UserNameField(forms.CharField):
+    default_validators = [validate_first_is_letter, validate_contains_russian, validate_username]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, min_length=settings.ACCOUNT_USERNAME_MIN_LENGTH, max_length=30, label='Имя пользователя', **kwargs)
 
 
 """
@@ -114,12 +119,7 @@ class UserProfileForm(forms.ModelForm):
 class ProzdoSignupForm(SignupForm):
     required_css_class = 'required'
     image = forms.ImageField(label='Изображение', required=False)
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields['username'].validators.append(validate_first_is_letter)
-        self.fields['username'].validators.append(validate_contains_russian)
-        self.fields['username'].validators.append(validate_username)
+    username = UserNameField()
 
     def save(self, request, *args, **kwargs):
         user = super().save(request, *args, **kwargs)
@@ -127,10 +127,10 @@ class ProzdoSignupForm(SignupForm):
             user_profile = user.user_profile
             user_profile.image = self.cleaned_data['image']
             user_profile.save()
-            save_path = os.path.join(settings.MEDIA_ROOT)
-            storage = FileSystemStorage(save_path)
-            path = user_profile.image.path
-            name = os.path.split(path)[-1]
+            #save_path = os.path.join(settings.MEDIA_ROOT)
+            #storage = FileSystemStorage(save_path)
+            #path = user_profile.image.path
+            #name = os.path.split(path)[-1]
             #save_thumbs(storage, settings.USER_PROFILE_THUMB_SETTINGS, path, 'discount_shop',  name)
         return user
 
@@ -187,10 +187,14 @@ class UserProfileForm(forms.ModelForm):
     image = forms.ImageField(label='Изображение', widget=ProzdoImageClearableFileInput(thumb_name='thumb100'), required=False)
 
 
+
+
+
 class UserForm(forms.ModelForm):
+    username = UserNameField()
     class Meta:
         model = models.User
-        fields = ('first_name', 'last_name')
+        fields = ('username', 'first_name', 'last_name')
 
 
 class DrugForm(forms.ModelForm):

@@ -46,12 +46,12 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'mptt',
 
-    #'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.vk',
     #'allauth.socialaccount.providers.twitter',
     #'allauth.socialaccount.providers.odnoklassniki',
     #'allauth.socialaccount.providers.openid',
     'allauth.socialaccount.providers.google',
-    #'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.facebook',
 
     'prozdo_main',
     #'multi_image_upload',
@@ -200,6 +200,9 @@ ACCOUNT_PASSWORD_MIN_LENGTH = 6
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
+ACCOUNT_USERNAME_REQUIRED = True
+SOCIALACCOUNT_ADAPTER  = "prozdo_main.adapter.ProzdoSocialAccountAdapter"
+
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`

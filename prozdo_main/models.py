@@ -1096,19 +1096,3 @@ class Mail(SuperModel):
     session_key = models.TextField(null=True, blank=True)
 
 
-from allauth.socialaccount.signals import pre_social_login
-from allauth.account.utils import perform_login
-from allauth.account.app_settings import EmailVerificationMethod
-
-
-def connect_acc(request, sociallogin, **kwargs):
-    email = sociallogin.email_addresses[0].email
-    try:
-        user = User.objects.get(email=email)
-        sociallogin.connect(request, user)
-        #perform_login(request, user, EmailVerificationMethod.NONE)
-    except:
-        pass
-
-
-pre_social_login.connect(connect_acc)

@@ -72,6 +72,4 @@ for i in range(15):
 
 #print(remove_tags(txt, 'p img br'))
 
-def test(x):
-    class Test:
-        y = x
+print(list(models.User.objects.filter(email='1191@bk.ru')))
