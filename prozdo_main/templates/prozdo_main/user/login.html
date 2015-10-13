@@ -12,7 +12,7 @@
 <a href="{% url 'signup' %}">зарегистрируйтесь</a></p>
 
 
-<form class="login form" method="POST" action="{% url 'login' %}">
+<form class="login-form" method="POST" action="{% url 'login' %}">
   {% csrf_token %}
   {{ form.as_p }}
   {% if redirect_field_value %}

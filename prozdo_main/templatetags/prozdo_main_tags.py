@@ -4,10 +4,10 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
-from string import ascii_lowercase, digits
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from allauth.account.forms import LoginForm
 
 register = template.Library()
 
@@ -243,7 +243,6 @@ def breadcrumbs(context):
 
 @register.inclusion_tag('prozdo_main/widgets/_metatags.html', takes_context=True)
 def metatags(context):
-
     request = context['request']
     url_name = request.resolver_match.url_name
     #kwargs = request.resolver_match.kwargs
@@ -346,7 +345,7 @@ def user_menu(context):
         menu_items.append(MenuItem(title='Создать блог', url=reverse('blog-create'), cls=''))
         menu_items.append(MenuItem(title='Создать косметику', url=reverse('cosmetics-create'), cls=''))
         menu_items.append(MenuItem(title='Создать компонент', url=reverse('component-create'), cls=''))
-
-
-
     return {'menu_items': menu_items}
+
+
+

@@ -70,6 +70,9 @@ urlpatterns = [
     url(r'^user/karma/(?P<pk>\d+)$', views.UserKarmaView.as_view(), name='user-karma'),
     url(r'^user/activity/(?P<pk>\d+)$', views.UserActivityView.as_view(), name='user-activity'),
 
+    url(r'^get_ajax_login_form$', views.GetAjaxLoginFormView.as_view(), name='get-ajax-login-form'),
+    url(r'^ajax_login$', views.AjaxLoginView.as_view(), name='ajax-login'),
+
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
 

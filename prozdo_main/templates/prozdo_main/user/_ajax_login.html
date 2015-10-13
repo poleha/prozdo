@@ -1,0 +1,11 @@
+{% load account %}
+<form id="ajax-login-form" class="login-form" method="POST" action="{% url 'ajax-login' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+
+  <button class="btn btn-success" type="submit">Войти</button>
+  <a class="forget button secondaryAction" href="{% url 'password-reset' %}">Забыли пароль?</a>
+</form>

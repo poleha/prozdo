@@ -150,7 +150,6 @@ def class_with_published_mixin(published_status):
             abstract = True
 
         published = models.DateTimeField(null=True, blank=True, verbose_name='Время публикации')
-
         def save(self, *args, **kwargs):
             if self.status == published_status and not self.published:
                 self.published = timezone.now()

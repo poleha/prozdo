@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from allauth.account.models import EmailAddress
 from django.core.paginator import Paginator
-
+from allauth.account.forms import LoginForm
 
 
 class ProzdoListView(generic.ListView):
@@ -795,3 +795,26 @@ class CommentDoctorListView(ProzdoListView):
 
 
         return queryset
+
+
+class GetAjaxLoginFormView(generic.TemplateView):
+    template_name = 'prozdo_main/user/_ajax_login.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = LoginForm()
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+class AjaxLoginView(LoginView):
+    template_name = 'prozdo_main/user/_ajax_login.html'
+

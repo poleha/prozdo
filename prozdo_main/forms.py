@@ -3,8 +3,7 @@ from . import models
 import re, os
 from django.forms import ValidationError
 from allauth.account.forms import SignupForm
-from django.utils.html import conditional_escape, format_html
-from django.utils.translation import ugettext_lazy
+from django.utils.html import conditional_escape
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 #from multi_image_upload.models import save_thumbs
@@ -254,4 +253,7 @@ class CommentDoctorListFilterForm(forms.Form):
     consult_only = forms.BooleanField(label='Только консультации', required=False)
     start_date = forms.DateField(label='Дата начала', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
     end_date = forms.DateField(label='Дата окончания', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
+
+
+
 
