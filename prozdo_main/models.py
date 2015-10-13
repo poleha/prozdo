@@ -953,8 +953,8 @@ class UserProfile(SuperModel):
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='user_profile', blank=True, null=True)
     receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True)
-    first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
-    last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
+    #first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
+    #last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
     @property
@@ -1094,3 +1094,21 @@ class Mail(SuperModel):
     user = models.ForeignKey(User, blank=True, null=True)
     ip = models.CharField(max_length=15, null=True, blank=True)
     session_key = models.TextField(null=True, blank=True)
+
+
+from allauth.socialaccount.signals import pre_social_login
+from allauth.account.utils import perform_login
+from allauth.account.app_settings import EmailVerificationMethod
+
+
+def connect_acc(request, sociallogin, **kwargs):
+    email = sociallogin.email_addresses[0].email
+    try:
+        user = User.objects.get(email=email)
+        sociallogin.connect(request, user)
+        #perform_login(request, user, EmailVerificationMethod.NONE)
+    except:
+        pass
+
+
+pre_social_login.connect(connect_acc)

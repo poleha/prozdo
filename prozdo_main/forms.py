@@ -182,9 +182,16 @@ class CosmeticsFilterForm(PostFilterForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = models.UserProfile
-        fields = ('image', 'first_name', 'last_name', 'first_name', 'receive_messages')
+        fields = ('image', 'receive_messages')
 
     image = forms.ImageField(label='Изображение', widget=ProzdoImageClearableFileInput(thumb_name='thumb100'), required=False)
+
+
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = models.User
+        fields = ('first_name', 'last_name')
+
 
 class DrugForm(forms.ModelForm):
     class Meta:

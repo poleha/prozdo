@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     #'allauth.socialaccount.providers.twitter',
     #'allauth.socialaccount.providers.odnoklassniki',
     #'allauth.socialaccount.providers.openid',
-    #'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.google',
     #'allauth.socialaccount.providers.facebook',
 
     'prozdo_main',

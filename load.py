@@ -63,6 +63,8 @@ if load_users:
         username=user_row['username'],
         password=user_row['password'],
         email=user_row['email'],
+        first_name=user_row['firstname'],
+        last_name=user_row['lastname'],
         is_staff=False,
         )
         user_profile = user.user_profile
@@ -78,8 +80,7 @@ if load_users:
             role = models.USER_ROLE_REGULAR
         user_profile.role = role
         user_profile.receive_messages = user_row['recive_message_own_reply']
-        user_profile.first_name = user_row['firstname']
-        user_profile.last_name = user_row['lastname']
+
         user_profile.old_id = user_row['id']
         user_profile.save()
 

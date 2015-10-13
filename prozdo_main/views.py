@@ -584,27 +584,34 @@ class UserProfileView(generic.TemplateView):
             return HttpResponseRedirect(reverse_lazy('login'))
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, form=None, **kwargs):
+    def get_context_data(self, user_profile_form=None, user_form=None, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         user_profile = self.request.user.user_profile
         context['user'] = user
         #context['user_profile'] = user_profile
-        if form is None:
-            form = forms.UserProfileForm(instance=user_profile)
-        context['form'] = form
+        if user_profile_form is None:
+            user_profile_form = forms.UserProfileForm(instance=user_profile)
+        context['user_profile_form'] = user_profile_form
+
+        if user_form is None:
+            user_form = forms.UserForm(instance=user)
+        context['user_form'] = user_form
         return context
 
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
-        #user = self.request.user
+        user = self.request.user
         user_profile = self.request.user.user_profile
-        form = forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        if form.is_valid():
-            form.save()
+        user_profile_form = forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        user_form = forms.UserForm(request.POST,instance=user)
+        if user_form.is_valid() and user_profile_form.is_valid():
+            user_form.save()
+            user_profile_form.save()
             return HttpResponseRedirect(reverse_lazy('user-profile'))
         else:
-            return self.render_to_response(self.get_context_data(form=form, **kwargs))
+            return self.render_to_response(self.get_context_data(user_profile_form=user_profile_form, user_form=user_form, **kwargs))
 
 
 class UserDetailView(generic.TemplateView):
