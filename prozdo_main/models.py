@@ -144,6 +144,20 @@ class AbstractModel(SuperModel):
         return self.title
 
 
+def class_with_published_mixin(published_status):
+    class PublishedModelMixin(models.Model):
+        class Meta:
+            abstract = True
+
+        published = models.DateTimeField(null=True, blank=True, verbose_name='Время публикации')
+
+        def save(self, *args, **kwargs):
+            if self.status == published_status and not self.published:
+                self.published = timezone.now()
+            super().save(*args, **kwargs)
+    return PublishedModelMixin
+
+
 class PostQueryset(models.QuerySet):
     def get_available(self):
         queryset = self.filter(status=POST_STATUS_PUBLISHED)
@@ -159,8 +173,7 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
 
 
 
-
-class Post(AbstractModel):
+class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним')
     post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
@@ -601,7 +614,7 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
 
 
 
-class Comment(SuperModel, MPTTModel):
+class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
         ordering = ['created']
     post = models.ForeignKey(Post, related_name='comments')

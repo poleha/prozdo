@@ -666,3 +666,53 @@ class CommentConfirmationTests(BaseTest):
         comment = comment.saved_version
         mail_count_2 = models.Mail.objects.all().count()
         self.assertEqual(mail_count_1, mail_count_2)
+
+
+class PublishedModelMixinTests(BaseTest):
+    def test_comment_takes_publish_time_on_publish_only(self):
+        comment = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='авырлпоырваыпdsgdsfgиорвполривапрва-dsfgsdfffffffffffffffffglevelsdfgfsd',
+                status=models.COMMENT_STATUS_PENDING_APPROVAL,
+            )
+
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.published, None)
+
+        comment.status = models.COMMENT_STATUS_PUBLISHED
+        comment.save()
+
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertNotEqual(comment.published, None)
+        published = comment.published
+
+        comment.save()
+
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.published, published)
+
+
+    def test_drug_takes_publish_time_on_publish_only(self):
+        drug = models.Drug.objects.create(
+            title='title_dfgdsfgdrug',
+            body='bodsfgdfgdy',
+
+          )
+
+        self.assertEqual(drug.status, models.POST_STATUS_PROJECT)
+        self.assertEqual(drug.published, None)
+
+        drug.status = models.POST_STATUS_PUBLISHED
+        drug.save()
+
+        self.assertEqual(drug.status, models.POST_STATUS_PUBLISHED)
+        self.assertNotEqual(drug.published, None)
+        published = drug.published
+
+        drug.save()
+
+        self.assertEqual(drug.status, models.POST_STATUS_PUBLISHED)
+        self.assertEqual(drug.published, published)
+

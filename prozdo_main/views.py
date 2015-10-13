@@ -765,7 +765,7 @@ class CommentDoctorListView(ProzdoListView):
         return context
 
     def get_queryset(self):
-        queryset = models.Comment.objects.get_available().order_by('-created')
+        queryset = models.Comment.objects.get_available().order_by('-published', '-created')
         form = forms.CommentDoctorListFilterForm(self.request.GET)
         form.full_clean()
         consult_required = to_int(form.cleaned_data.get('consult_required', forms.BOOL_CHOICE_DEFAULT))
