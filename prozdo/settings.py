@@ -59,6 +59,7 @@ INSTALLED_APPS = (
      'django.contrib.redirects',
     'compressor',
     'reversion',
+    'ckeditor',
 
 )
 

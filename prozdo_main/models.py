@@ -18,6 +18,7 @@ from django.core.mail.message import EmailMultiAlternatives
 from sorl.thumbnail import ImageField, get_thumbnail
 import re
 from django.utils.html import strip_tags
+from ckeditor.fields import RichTextField
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 
@@ -111,11 +112,12 @@ COMPONENT_TYPES = (
 
 
 class SuperModel(models.Model):
-    created = models.DateTimeField(blank=True)
-    updated = models.DateTimeField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, verbose_name='Время создания')
+    updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения')
 
     class Meta:
         abstract = True
+
     @property
     def saved_version(self):
         if self.pk:
@@ -465,7 +467,7 @@ class Category(Post, MPTTModel):  #Для блога
 
 
 class Component(Post):
-    body = models.TextField(verbose_name='Содержимое', blank=True)
+    body = RichTextField(verbose_name='Содержимое', blank=True)
     component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента')
     objects = PostManager()
 
@@ -477,14 +479,14 @@ class Component(Post):
 
 
 class Drug(Post):
-    body = models.TextField(verbose_name='Описание', blank=True)
-    features = models.TextField(verbose_name='Особенности', blank=True)
-    indications = models.TextField(verbose_name='Показания', blank=True)
-    application_scheme = models.TextField(verbose_name='Схема приема', blank=True)
-    dosage_form = models.TextField(verbose_name='Формы выпуска', blank=True)
-    contra_indications = models.TextField(verbose_name='Противопоказания', blank=True)
-    side_effects = models.TextField(verbose_name='Побочные эффекты', blank=True)
-    compound = models.TextField(verbose_name='Состав', blank=True)
+    body = RichTextField(verbose_name='Описание', blank=True)
+    features = RichTextField(verbose_name='Особенности', blank=True)
+    indications = RichTextField(verbose_name='Показания', blank=True)
+    application_scheme = RichTextField(verbose_name='Схема приема', blank=True)
+    dosage_form = RichTextField(verbose_name='Формы выпуска', blank=True)
+    contra_indications = RichTextField(verbose_name='Противопоказания', blank=True)
+    side_effects = RichTextField(verbose_name='Побочные эффекты', blank=True)
+    compound = RichTextField(verbose_name='Состав', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='drug', blank=True, null=True)
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
@@ -515,7 +517,7 @@ class Drug(Post):
             return ''
 
 class Cosmetics(Post):
-    body = models.TextField(verbose_name='Содержимое', blank=True)
+    body = RichTextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд')
@@ -552,7 +554,7 @@ class Blog(Post):
     class Meta:
         ordering = ('-created', )
     short_body = models.TextField(verbose_name='Анонс', blank=True)
-    body = models.TextField(verbose_name='Содержимое', blank=True)
+    body = RichTextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
     category = TreeManyToManyField(Category, verbose_name='Категория')
     objects = PostManager()

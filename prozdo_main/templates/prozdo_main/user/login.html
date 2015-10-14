@@ -4,7 +4,7 @@
 <p>Вы можете использовать Ваш аккаунт в социальных сетях:</p>
 {% include 'prozdo_main/user/social/_login.html' with process='login' %}
 
-<form class="login" method="POST" action="{% url 'login' %}">
+<form class="login auth-form" method="POST" action="{% url 'login' %}">
   {% csrf_token %}
   {{ form.as_p }}
   {% if redirect_field_value %}

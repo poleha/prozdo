@@ -200,7 +200,7 @@ class UserForm(forms.ModelForm):
 class DrugForm(forms.ModelForm):
     class Meta:
         model = models.Drug
-        exclude = ('post_type', )
+        exclude = ('post_type', 'old_id', 'created', 'updated', 'published')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -213,7 +213,7 @@ class DrugForm(forms.ModelForm):
 class CosmeticsForm(forms.ModelForm):
     class Meta:
         model = models.Cosmetics
-        exclude = ('post_type', )
+        exclude = ('post_type', 'old_id', 'created', 'updated', 'published')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -225,7 +225,7 @@ class CosmeticsForm(forms.ModelForm):
 class BlogForm(forms.ModelForm):
     class Meta:
         model = models.Blog
-        exclude = ('post_type', )
+        exclude = ('post_type', 'old_id', 'created', 'updated', 'published')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -236,7 +236,7 @@ class BlogForm(forms.ModelForm):
 class ComponentForm(forms.ModelForm):
     class Meta:
         model = models.Component
-        exclude = ('post_type', )
+        exclude = ('post_type', 'old_id', 'created', 'updated', 'published')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -261,9 +261,9 @@ BOOL_CHOICES = (
 class CommentDoctorListFilterForm(forms.Form):
     consult_required = forms.ChoiceField(label='Нужна консультация', required=False, choices=BOOL_CHOICES)
     consult_done = forms.ChoiceField(label='Консультация оказана', required=False, choices=BOOL_CHOICES)
-    consult_only = forms.BooleanField(label='Только консультации', required=False)
     start_date = forms.DateField(label='Дата начала', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
     end_date = forms.DateField(label='Дата окончания', required=False, widget=forms.DateInput(attrs={'class':'date-input'}))
+    consult_only = forms.BooleanField(label='Только консультации', required=False)
 
 
 

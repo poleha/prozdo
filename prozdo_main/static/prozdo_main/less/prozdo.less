@@ -161,31 +161,6 @@ margin-left: 202px;
        background-size: 585px * 0.8 110px * 0.8;
        padding: 15px * 0.8 20px * 0.8 20px * 0.8 135px * 0.8;
      }
-    .row1 {
-     color: #15959a;
-    font-size: 1.14em;
-    margin: 0;
-    padding: 0;
-    max-width: 430px;
- 
-    @media (max-width: @container-lg) {
-font-size: 0.9em;
-}
-
-      @media (max-width: @container-md) {
-font-size: 0.7em;
-}
-    
-    }
-
-    .row2 {
-     color: #e00658;
-    font-size: 1.28em;
-    text-transform: uppercase;
-    padding: 0;
-    margin: 0;
-    max-width: 430px;
-
 
 
       @media (max-width: @container-lg) {
@@ -198,6 +173,24 @@ font-size: 0.7em;
 
 
 
+    .row1 {
+     color: #15959a;
+    font-size: 1.14em;
+    margin: 0;
+    padding: 0;
+    max-width: 430px;
+
+
+    
+    }
+
+    .row2 {
+     color: #e00658;
+    font-size: 1.18em;
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0;
+    max-width: 430px;
     }
 
     .row3 {
@@ -208,13 +201,6 @@ font-size: 0.7em;
     max-width: 430px;
 
 
-   @media (max-width: @container-lg) {
-font-size: 0.7em;
-}
-   
-   @media (max-width: @container-md) {
-font-size: 0.6em;
-}
     }
 }
 
@@ -291,7 +277,7 @@ font-size: 0.8em;
 #user-info-top {
 text-align: right;
 
-  a {
+  .btn  {
    @media (max-width: @container-md) {
 font-size: 0.5em;
 
@@ -814,4 +800,33 @@ float: right;
 margin-bottom: 10px;
 padding: 10px;
 width: 180px;
+}
+
+
+.form-mixin {
+   input, select {
+    display: block;
+    &[type="checkbox"] {
+      display: inline;
+      width: inherit;
+
+    }
+    width: 400px;
+  }
+  textarea {
+    width: 100%;
+  }
+
+}
+
+.auth-form {
+ .form-mixin;
+}
+
+#post-create-form {
+ .form-mixin;
+}
+
+#comment-doctor-filter-form {
+ .form-mixin;
 }
