@@ -19,6 +19,7 @@ from sorl.thumbnail import ImageField, get_thumbnail
 import re
 from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 
@@ -554,7 +555,7 @@ class Blog(Post):
     class Meta:
         ordering = ('-created', )
     short_body = models.TextField(verbose_name='Анонс', blank=True)
-    body = RichTextField(verbose_name='Содержимое', blank=True)
+    body = RichTextUploadingField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
     category = TreeManyToManyField(Category, verbose_name='Категория')
     objects = PostManager()

@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'compressor',
     'reversion',
     'ckeditor',
+    'ckeditor_uploader',
 
 )
 
@@ -234,3 +235,7 @@ STATICFILES_FINDERS = (
 )
 
 BEST_COMMENTS_DAYS = 100
+
+
+CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
+

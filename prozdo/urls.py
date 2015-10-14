@@ -39,3 +39,4 @@ urlpatterns += [
 
 ]
 
+urlpatterns += [url(r'^ckeditor/', include('ckeditor_uploader.urls'))]
