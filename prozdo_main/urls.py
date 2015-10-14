@@ -73,6 +73,14 @@ urlpatterns = [
     url(r'^get_ajax_login_form$', views.GetAjaxLoginFormView.as_view(), name='get-ajax-login-form'),
     url(r'^ajax_login$', views.AjaxLoginView.as_view(), name='ajax-login'),
 
+    #social
+    url(r'^social_login$', views.ProzdoSocialSignupView.as_view(), name='socialaccount_signup'), #Перекрываем их url. Иначе не получилось.
+    url(r'^login_cancelled$', views.ProzdoLoginCancelledView.as_view(),
+        name='socialaccount_login_cancelled'),
+    url(r'^login_error$', views.ProzdoLoginErrorView.as_view(), name='socialaccount_login_error'),
+    url(r'^connections$', views.ProzdoConnectionsView.as_view(), name='socialaccount_connections'),
+
+
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
 

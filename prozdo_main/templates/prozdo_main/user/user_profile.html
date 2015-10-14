@@ -13,5 +13,7 @@
 </form>
         </div>
 <a class="btn btn-menu" href="{% url 'password-change' %}">Сменить пароль</a>
+<a class="btn btn-menu" href="{% url 'socialaccount_connections' %}">Управление учетными записями соцсетей</a>
 <a class="btn btn-menu" href="{% url 'user-detail' user.pk %}">Информация о пользователе</a>
+
 {% endblock content %}

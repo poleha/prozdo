@@ -1,15 +1,17 @@
 {% extends "prozdo_main/base/base.html" %}
-
 {% load staticfiles %}
 {% block content %}
-<h1>Зарегистрироваться</h1>
+<p>Вы можете использовать Ваш аккаунт в социальных сетях для быстрой регистрации:</p>
+{% include 'prozdo_main/user/social/_login.html' with process='login' %}
+
+    <h1>Зарегистрироваться</h1>
  <form class='auth-form form' action="{% url 'signup' %}" method="post" id="signup-form">
     {% csrf_token %}
   {{ form.as_p }}
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
-  <button type="submit">Зарегистрироваться</button>
+  <button class="btn btn-success" type="submit">Зарегистрироваться</button>
 </form>
 
 {% endblock content %}

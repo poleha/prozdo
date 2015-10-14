@@ -1,20 +1,19 @@
 from django.views import generic
-from . import models, forms
 from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponseRedirect
-from .helper import get_client_ip, to_int
 from django.db import transaction
-from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
-from django.db.models.aggregates import Sum, Count
+from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from allauth.account.models import EmailAddress
-from django.core.paginator import Paginator
 from allauth.account.forms import LoginForm
+from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
+from . import models, forms
+from .helper import get_client_ip, to_int
 
 
 class ProzdoListView(generic.ListView):
@@ -571,6 +570,20 @@ class ProzdoPasswordResetFromKeyView(PasswordResetFromKeyView):
 
 class ProzdoPasswordResetFromKeyDoneView(PasswordResetFromKeyDoneView):
     template_name = 'prozdo_main/user/password_reset_from_key_done.html'
+
+
+class ProzdoSocialSignupView(SocialSignupView):
+    template_name = 'prozdo_main/user/social/signup.html'
+
+class ProzdoLoginCancelledView(LoginCancelledView):
+    template_name = 'prozdo_main/user/social/login_cancelled.html'
+
+class ProzdoLoginErrorView(LoginErrorView):
+    template_name = 'prozdo_main/user/social/authentication_error.html'
+
+class ProzdoConnectionsView(ConnectionsView):
+    template_name = 'prozdo_main/user/social/connections.html'
+
 
 
 #*********************************Account>

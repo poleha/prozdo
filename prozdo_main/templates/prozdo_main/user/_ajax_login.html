@@ -1,5 +1,9 @@
 {% load account %}
+
+
 <form id="ajax-login-form" class="login-form" method="POST" action="{% url 'ajax-login' %}">
+{% include 'prozdo_main/user/social/_login.html' with process='login' %}
+
   {% csrf_token %}
   {{ form.as_p }}
   {% if redirect_field_value %}
