@@ -20,6 +20,7 @@ import re
 from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
+from django.db.models import Q
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 
@@ -336,9 +337,15 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
                 mark = ''
         else:
             try:
-                mark = History.objects.get(ip=get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+                mark_by_ip = History.objects.get(ip=get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
             except:
-                mark = ''
+                mark_by_ip = 0
+            try:
+                mark_by_key = History.objects.get(session_key=request.session.session_key, history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+            except:
+                mark_by_key = 0
+
+            mark = max(mark_by_ip, mark_by_key)
         return mark
 
     @property
@@ -560,6 +567,7 @@ class Blog(Post):
     category = TreeManyToManyField(Category, verbose_name='Категория')
     objects = PostManager()
 
+
     @property
     def thumb110(self):
         try:
@@ -595,7 +603,30 @@ class Blog(Post):
         else:
             return cut_text(strip_tags(self.body), 200)
 
+    @property
+    def mark(self):
+        try:
+            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('pk'))['pk__count']
+            if mark is None:
+                mark = 0
+        except:
+            mark = 0
+        return mark
 
+    def get_mark_blog_by_request(self, request):
+        user = request.user
+        if user.is_authenticated():
+            try:
+                mark = History.objects.filter(user=user, history_type=HISTORY_TYPE_POST_RATED, post=self).count()
+            except:
+                mark = 0
+        else:
+            try:
+                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None).filter(session_key=request.session.session_key).count()
+            except:
+                mark = 0
+
+        return mark
 
 #class Forum(Post):
 #    body = models.TextField(verbose_name='Содержимое', blank=True)
@@ -791,30 +822,33 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
 
-    def performed_action(self, history_type, user=None, ip=None, request=None):
+    def performed_action(self, history_type, user=None, ip=None, session_key=None, request=None):
         if not ip and request:
             ip = get_client_ip(request)
+        if not session_key and request:
+            session_key = request.session.session_key
         if not user and request:
             user = request.user
 
         if user and user.is_authenticated():
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
         else:
+
             hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
-            hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self).exists()
+            session_key = session_key
+            if session_key:
+                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self).exists()
+            else:
+                hist_exists_by_key = False
             hist_exists = hist_exists_by_ip or hist_exists_by_key
 
         return hist_exists
 
-    def can_perform_action(self, history_type, user=None, ip=None, request=None):
-        return not self.performed_action(history_type=history_type, user=user, ip=ip, request=request) and not self.is_author(user=user, ip=ip, request=request)
+    def can_perform_action(self, history_type, user=None, ip=None, session_key=None, request=None):
+        return not self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user, ip=ip, request=request)
 
-    def can_undo_action(self, history_type, user):
-        if user.is_authenticated():
-            res = self.performed_action(history_type=history_type, user=user)
-        else:
-            res = False
-        return res
+    def can_undo_action(self, history_type, user=None, ip=None, session_key=None, request=None):
+        return self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user, ip=ip, request=request)
 
 
     def is_author(self, user=None, ip=None, request=None):
@@ -837,17 +871,20 @@ HISTORY_TYPE_POST_CREATED = 4
 HISTORY_TYPE_POST_SAVED = 5
 HISTORY_TYPE_POST_RATED = 6
 HISTORY_TYPE_COMMENT_COMPLAINT = 7
-HISTORY_TYPE_POST_COMPLAINT = 8
+#HISTORY_TYPE_POST_COMPLAINT = 8
+#HISTORY_TYPE_BLOG_RATED = 8
 
 HISTORY_TYPES = (
     (HISTORY_TYPE_COMMENT_CREATED, 'Комментарий создан'),
     (HISTORY_TYPE_COMMENT_SAVED, 'Комментарий сохранен'),
     (HISTORY_TYPE_COMMENT_RATED, 'Комментарий оценен'),
-    (HISTORY_TYPE_POST_CREATED, 'Пост создан'),
-    (HISTORY_TYPE_POST_SAVED, 'Пост сохранен'),
-    (HISTORY_TYPE_POST_RATED, 'Пост оценен'),
-    (HISTORY_TYPE_COMMENT_COMPLAINT, 'Жалоба на коммент'),
-    (HISTORY_TYPE_POST_COMPLAINT, 'Жалоба на пост'),
+    (HISTORY_TYPE_POST_CREATED, 'Материал создан'),
+    (HISTORY_TYPE_POST_SAVED, 'Материал сохранен'),
+    (HISTORY_TYPE_POST_RATED, 'Материал оценен'),
+    (HISTORY_TYPE_COMMENT_COMPLAINT, 'Жалоба на комментарий'),
+    #(HISTORY_TYPE_POST_COMPLAINT, 'Жалоба на материал'),
+    #(HISTORY_TYPE_BLOG_RATED, 'Запись блога оценена'),
+
 )
 
 HISTORY_TYPES_POINTS = {
@@ -858,7 +895,7 @@ HISTORY_TYPE_POST_CREATED: 0,
 HISTORY_TYPE_POST_SAVED: 0,
 HISTORY_TYPE_POST_RATED: 1,
 HISTORY_TYPE_COMMENT_COMPLAINT: 0,
-HISTORY_TYPE_POST_COMPLAINT: 0,
+#HISTORY_TYPE_BLOG_RATED: 0,
 }
 
 
@@ -903,12 +940,12 @@ class History(SuperModel):
             hist_exists = History.objects.filter(history_type=history_type, post=post).exists()
             if not hist_exists:
                 h = History.objects.create(history_type=history_type, post=post, user=user,
-                                       user_points=History.get_points(history_type), ip=ip, author=post_author)
+                                       user_points=History.get_points(history_type), ip=ip, author=post_author, session_key=session_key)
             else:
                 h = History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, session_key, comment)
             return h
         elif history_type == HISTORY_TYPE_POST_SAVED:
-            h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author)
+            h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author, session_key=session_key)
             return h
         elif history_type == HISTORY_TYPE_COMMENT_CREATED:
             hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
@@ -916,13 +953,13 @@ class History(SuperModel):
 
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author=post_author, mark=mark)
+                                       author=post_author, mark=mark, session_key=session_key)
             else:
                 h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, session_key, comment, mark=mark)
             return h
         elif history_type == HISTORY_TYPE_COMMENT_SAVED:
             h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
-                                   user_points=History.get_points(history_type), author=post_author)
+                                   user_points=History.get_points(history_type), author=post_author, session_key=session_key)
             return h
         elif history_type in [HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]:
             #if history_type == HISTORY_TYPE_COMMENT_RATED:
@@ -930,21 +967,32 @@ class History(SuperModel):
             #else:
             #    author_points = 0
 
-            if comment.can_perform_action(history_type=history_type, user=user, ip=ip):
+            if comment.can_perform_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
-                                       author=comment.user)
+                                       author=comment.user, session_key=session_key)
                 return h
         elif history_type == HISTORY_TYPE_POST_RATED:
             if user and user.is_authenticated():
                 hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
             else:
-                hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
+                hist_exists = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None).exists()
 
-            if not hist_exists and mark and mark > 0:
+            if not hist_exists and ((not post.is_blog and mark and mark > 0) or post.is_blog):
                 h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
-                                   user_points=History.get_points(history_type), author=post_author, mark=mark)
+                                   user_points=History.get_points(history_type), author=post_author, mark=mark, session_key=session_key)
                 return h
+
+        #elif history_type == HISTORY_TYPE_BLOG_RATED:
+        #    if user and user.is_authenticated():
+        #        hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
+        #    else:
+        #        hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
+
+        #    if not hist_exists and mark and mark > 0:
+        #        h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip,
+        #                           user_points=History.get_points(history_type), author=post_author)
+        #        return h
         #При сохранении отзыва сохраняем оценку поста
         #if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
             #h = History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)

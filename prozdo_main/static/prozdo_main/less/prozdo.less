@@ -469,7 +469,11 @@ box-shadow: 0 0 0 1px rgba(0,0,0,.1),0 3px 4px -3px rgba(0,0,0,.3);
 
 .blog-grid-main-item {
 
-
+.image-wrapper {
+    a {
+      display: block;
+    }
+  }
 
 
   img {
@@ -493,8 +497,17 @@ box-shadow: 0 0 0 1px rgba(0,0,0,.1),0 3px 4px -3px rgba(0,0,0,.3);
 a {
  font-size: 0.9em;
   }
+
+  .image-wrapper {
+    a {
+      display: block;
+    }
+  }
+
 .blog-grid-wrapper-mixin;
  .post-comment-count-grid-mixin;
+
+
 }
 
 
@@ -829,4 +842,20 @@ width: 180px;
 
 #comment-doctor-filter-form {
  .form-mixin;
+}
+
+#full-post {
+  #blog-image {
+    float: left;
+    margin: 5px;
+    display: block;
+  }
+}
+
+
+#blog-full-mark-block {
+  float: right;
+  .box-shadow-mixin;
+  padding: 10px;
+  margin: 5px;
 }

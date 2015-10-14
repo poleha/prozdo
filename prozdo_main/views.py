@@ -134,6 +134,14 @@ class PostDetail(ProzdoListView):
         context['comments_options_form'] = comments_options_form
         context['mark'] = self.post.get_mark_by_request(request)
 
+        if self.obj.is_blog:
+            user_mark = self.obj.get_mark_blog_by_request(request)
+            if user_mark == 0:
+                context['can_mark_blog'] = True
+            else:
+                context['can_mark_blog'] = False
+
+
         #visibility
         if context['mark']:
             if user.is_authenticated():
@@ -288,10 +296,11 @@ class HistoryAjaxSave(generic.View):
         action = request.POST['action']
         ip = get_client_ip(request)
         user = request.user
+        session_key = request.session.session_key
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
             data = {'mark': comment.comment_mark}
             if h:
                 data['saved'] = True
@@ -303,7 +312,11 @@ class HistoryAjaxSave(generic.View):
             if request.user.is_authenticated():
                 h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment)
             else:
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None)
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key)
+                #if session_key:
+                #    h = h.filter(Q(session_key=session_key)|Q(ip=ip))
+                #else:
+                #    h = h.filter(ip=ip)
             data = {}
             if h.exists():
                 h.delete()
@@ -326,7 +339,7 @@ class HistoryAjaxSave(generic.View):
             if request.user.is_authenticated():
                 h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment)
             else:
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None)
+                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key)
             data = {}
             if h.exists():
                 h.delete()
@@ -355,7 +368,7 @@ class HistoryAjaxSave(generic.View):
             if request.user.is_authenticated():
                 h = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post)
             else:
-                h = models.History.objects.filter(ip=ip, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
+                h = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
             data = {}
             if h.exists():
                 h.delete()
@@ -367,6 +380,26 @@ class HistoryAjaxSave(generic.View):
             data['mark'] = 0
             return JsonResponse(data)
 
+        """
+        elif action == 'blog-mark':
+            post = models.Post.objects.get(pk=pk)
+            blog = post.obj
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session.session_key)
+            data = {}
+            if h:
+                data['saved'] = True
+            else:
+                data['saved'] = False
+
+            data = {'mark': blog.mark}
+
+            if h:
+                data['saved'] = True
+            else:
+                data['saved'] = False
+
+            return JsonResponse(data)
+        """
 
 class CommentGetTreeAjax(generic.TemplateView):
     template_name = 'prozdo_main/widgets/_get_child_comments.html'

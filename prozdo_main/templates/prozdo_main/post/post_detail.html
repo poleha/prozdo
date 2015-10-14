@@ -12,6 +12,7 @@
             <a href="{{ obj.update_url }}">Редактировать</a>
 
         {% endif %}
+        {% if obj.is_drug or obj.is_cosmetics %}
         <div class="row">
             <div class="col-md-6">
 
@@ -24,7 +25,7 @@
                 </div>
             </div>
             <div class="col-md-6 post-right-block">
-                {% if obj.is_drug %}
+
                     <div id="post-mark-block>">
                         <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}">
                             <label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span>
@@ -60,13 +61,40 @@
                         </div>
                     {% endif %}
                     <a href="#comment-form" class="btn btn-success">Оставить отзыв</a>
-                {% endif %}
+
             </div>
 
 
         </div>
+
+    {% endif %}
+
         <div class="row">
+
             <div class="col-xs-12">
+            {% if obj.is_blog %}
+  <div id="blog-full-mark-block">
+             <div class="blog-mark-block">
+        <span class="blog-current-mark">Материал сочли полезным: <span class="blog-current-mark-span">{{ obj.mark }}</span></span>
+
+
+    </div>   
+                
+        {% if can_mark_blog %}
+         <input class="blog-unmark-button btn btn-cancel hidden" type="button" value='Отозвать оценку'>
+         <input class="blog-mark-button btn btn-success" type="button" value='Материал полезен'>
+        {% else %}
+        <input class="blog-unmark-button btn btn-cancel" type="button" value='Отозвать оценку'>
+        <input class="blog-mark-button btn btn-success hidden" type="button" value='Материал полезен'>
+        {% endif %}
+                
+      </div>
+                
+            <a id="blog-image" href="{{ obj.get_absolute_url }}">
+                        <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
+                    </a>
+
+        {% endif %}
                 <div id="post-block">
                     {% if obj.body %}
                         <div>
@@ -526,6 +554,55 @@
                     });
 
                 });
+
+
+                $(document).on('click', '.blog-mark-button', function (e) {
+                    var pk = $('#post-pk').val();
+                    var actionData = {'action': 'post-mark', 'mark': 0, 'pk': pk};
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'history-ajax-save' %}',
+                        data: actionData,
+                        success: function (data) {
+                            $('.blog-current-mark-span').html(data['marks_count']);
+                            $('.blog-mark-button').addClass('hidden');
+                            $('.blog-unmark-button').removeClass('hidden');
+                            if (!data.saved) {
+                                alert('Повторное действие не засчитано');
+                            }
+
+                        },
+                        error: function (data) {
+
+                        }
+                    });
+
+                });
+
+
+                $(document).on('click', '.blog-unmark-button', function (e) {
+                    var pk = $('#post-pk').val();
+                    var actionData = {'action': 'post-unmark', 'mark': 0, 'pk': pk};
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url 'history-ajax-save' %}',
+                        data: actionData,
+                        success: function (data) {
+                            $('.blog-current-mark-span').html(data['marks_count']);
+                            $('.blog-mark-button').removeClass('hidden');
+                            $('.blog-unmark-button').addClass('hidden');
+                            if (!data.saved) {
+                                alert('Повторное действие не засчитано');
+                            }
+
+                        },
+                        error: function (data) {
+
+                        }
+                    });
+
+                });
+
 
                 $(document).on('click', '.comment-show-marked-users, .comment-hide-marked-users', function (e) {
 
