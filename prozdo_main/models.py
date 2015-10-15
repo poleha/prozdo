@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, pre_save
-from .helper import make_alias, get_client_ip, cut_text, comment_body_ok, comment_author_ok, generate_key, trim_title
+from . import helper
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
 #from multi_image_upload.models import MyImageField
@@ -337,7 +337,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
                 mark = ''
         else:
             try:
-                mark_by_ip = History.objects.get(ip=get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+                mark_by_ip = History.objects.get(ip=helper.get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
             except:
                 mark_by_ip = 0
             try:
@@ -387,7 +387,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
 
 
     def make_alias(self):
-        return make_alias(self.title)
+        return helper.make_alias(self.title)
 
     def clean(self):
         if self.alias:
@@ -402,7 +402,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
 
     def save(self, *args, **kwargs):
         self.clean()
-        self.title = trim_title(self.title)
+        self.title = helper.trim_title(self.title)
         #saved_version = self.saved_version
         if hasattr(self, 'title') and self.title and not self.alias:
             self.alias = self.make_alias()
@@ -601,7 +601,7 @@ class Blog(Post):
         if self.short_body:
             return self.short_body
         else:
-            return cut_text(strip_tags(self.body), 200)
+            return helper.cut_text(strip_tags(self.body), 200)
 
     @property
     def mark(self):
@@ -715,7 +715,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if not user and request:
             user = request.user
         if request:
-            ip = get_client_ip(request)
+            ip = helper.get_client_ip(request)
             session_key = request.session.session_key
         else:
             ip = None
@@ -756,7 +756,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     @property
     def short_body(self):
-        return cut_text(self.body)
+        return helper.cut_text(self.body)
 
 
     @property
@@ -784,7 +784,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if self.user and (self.user.is_admin or self.user.is_author or self.user.is_doctor):
             return COMMENT_STATUS_PUBLISHED
         else:
-            if comment_body_ok(self.body) and comment_author_ok(self.username):
+            if helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username):
                 return COMMENT_STATUS_PUBLISHED
             else:
                 return COMMENT_STATUS_PENDING_APPROVAL
@@ -803,7 +803,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if self.key:
             return self.key
         else:
-            return generate_key(128)
+            return helper.generate_key(128)
 
     def save(self, *args, **kwargs):
         if not self.confirmed:
@@ -822,9 +822,10 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
 
-    def performed_action(self, history_type, user=None, ip=None, session_key=None, request=None):
+    def performed_action(self, history_type, user=None, ip=None, session_key=None, request=None, check_type=1):
+        #1 - ip and key, 2 - ip only, 3 - key only
         if not ip and request:
-            ip = get_client_ip(request)
+            ip = helper.get_client_ip(request)
         if not session_key and request:
             session_key = request.session.session_key
         if not user and request:
@@ -834,10 +835,12 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
         else:
 
-            hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
-            session_key = session_key
-            if session_key:
-                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self).exists()
+            if check_type in [1, 2]:
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
+            else:
+                hist_exists_by_ip = False
+            if check_type in [1, 3] and session_key:
+                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key).exists()
             else:
                 hist_exists_by_key = False
             hist_exists = hist_exists_by_ip or hist_exists_by_key
@@ -845,15 +848,15 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return hist_exists
 
     def can_perform_action(self, history_type, user=None, ip=None, session_key=None, request=None):
-        return not self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user, ip=ip, request=request)
+        return not self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user)
 
     def can_undo_action(self, history_type, user=None, ip=None, session_key=None, request=None):
-        return self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user, ip=ip, request=request)
+        return self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request, check_type=3) and not self.is_author(user=user, ip=ip, request=request)
 
 
     def is_author(self, user=None, ip=None, request=None):
         if not ip and request:
-            ip = get_client_ip(request)
+            ip = helper.get_client_ip(request)
         if not user and request:
             user = request.user
         if user and user.is_authenticated():
@@ -1147,3 +1150,17 @@ class Mail(SuperModel):
     session_key = models.TextField(null=True, blank=True)
 
 
+def request_with_empty_guest(request):
+    user = request.user
+    if user.is_authenticated():
+        return False
+
+    session_key = request.session.session_key
+    if not session_key:
+        return True
+
+    hs = History.objects.filter(session_key=session_key)
+    if not hs.exists():
+        return True
+
+    return False

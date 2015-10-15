@@ -65,6 +65,9 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
+    #'django.middleware.gzip.GZipMiddleware',
+    #'debug_toolbar.middleware.DebugToolbarMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,6 +78,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
+    'prozdo_main.middleware.ProzdoFetchFromCacheMiddleware',    #cache
 )
 
 ROOT_URLCONF = 'prozdo.urls'
@@ -83,7 +87,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'prozdo_main/templates/prozdo_main')],
-        'APP_DIRS': True,
+        #'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -236,6 +240,57 @@ STATICFILES_FINDERS = (
 
 BEST_COMMENTS_DAYS = 100
 
-
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
+PROZDO_CACHE_ENABLED = True
+
+
+DEBUG_TOOLBAR = True
+
+
+if DEBUG_TOOLBAR:
+
+    DEBUG = True
+
+    TEMPLATE_DEBUG = False
+
+    INSTALLED_APPS += ('debug_toolbar',)
+
+    DEBUG_TOOLBAR_PATCH_SETTINGS = True
+    DEBUG_TOOLBAR_PANELS = [
+        'debug_toolbar.panels.versions.VersionsPanel',
+        'debug_toolbar.panels.timer.TimerPanel',
+        'debug_toolbar.panels.settings.SettingsPanel',
+        'debug_toolbar.panels.headers.HeadersPanel',
+        'debug_toolbar.panels.request.RequestPanel',
+        'debug_toolbar.panels.sql.SQLPanel',
+        'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+        'debug_toolbar.panels.templates.TemplatesPanel',
+        'debug_toolbar.panels.cache.CachePanel',
+        'debug_toolbar.panels.signals.SignalsPanel',
+        'debug_toolbar.panels.logging.LoggingPanel',
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+    ]
+
+    INTERNAL_IPS = ['127.0.0.1']
+
+    MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
+
+
+
+
+if PROZDO_CACHE_ENABLED:
+
+    TEMPLATES[0]['OPTIONS']['loaders'] = [
+            ('django.template.loaders.cached.Loader',
+                  [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+            ],
+                ),
+        ]
+else:
+       TEMPLATES[0]['OPTIONS']['loaders'] = [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+        ]

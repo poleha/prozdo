@@ -1,8 +1,7 @@
-import string
 from django.conf import settings
 import string
 import random
-from django.utils import timezone
+
 
 def transliterate(text):
     text = text.lower()
@@ -191,3 +190,5 @@ def to_int(val):
     except:
         res = 0
     return res
+
+
