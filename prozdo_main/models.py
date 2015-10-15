@@ -820,50 +820,64 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
 
-
-
-    def performed_action(self, history_type, user=None, ip=None, session_key=None, request=None, check_type=1):
-        #1 - ip and key, 2 - ip only, 3 - key only
-        if not ip and request:
-            ip = helper.get_client_ip(request)
-        if not session_key and request:
-            session_key = request.session.session_key
-        if not user and request:
-            user = request.user
-
+    #******************
+    def hist_exists_by_request(self, history_type, request):
+        user = request.user
         if user and user.is_authenticated():
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
         else:
+            session_key = request.session.session_key
+            if session_key is None:
+                return False
+            hist_exists = History.objects.filter(history_type=history_type, comment=self, session_key=session_key).exists()
+        return hist_exists
 
-            if check_type in [1, 2]:
-                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
-            else:
-                hist_exists_by_ip = False
-            if check_type in [1, 3] and session_key:
+    def show_do_action_button(self, history_type, request):
+        return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
+
+    def show_undo_action_button(self, history_type, request):
+        return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
+
+    def is_author_for_show_buttons(self, request):
+        user = request.user
+        if user and user.is_authenticated():
+            return user == self.user
+        else:
+            session_key = request.session.session_key
+            return self.session_key == session_key
+
+    #******************
+
+    def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
+        if user and user.is_authenticated():
+            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
+        else:
+            if session_key:
                 hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key).exists()
             else:
                 hist_exists_by_key = False
-            hist_exists = hist_exists_by_ip or hist_exists_by_key
+            if ip:
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
+            else:
+                hist_exists_by_ip = False
+            hist_exists = hist_exists_by_key or hist_exists_by_ip
 
         return hist_exists
 
-    def can_perform_action(self, history_type, user=None, ip=None, session_key=None, request=None):
-        return not self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request) and not self.is_author(user=user)
 
-    def can_undo_action(self, history_type, user=None, ip=None, session_key=None, request=None):
-        return self.performed_action(history_type=history_type, user=user, ip=ip, session_key=session_key, request=request, check_type=3) and not self.is_author(user=user, ip=ip, request=request)
+    def can_do_action(self, history_type, user, ip, session_key):
+        return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
+    #def can_undo_action(self, history_type, user, session_key):
+    #    return self.hist_exists_by_data(history_type=history_type, user=user, session_key=session_key) and not self.is_author_for_save_history(user=user, session_key=session_key)
 
-    def is_author(self, user=None, ip=None, request=None):
-        if not ip and request:
-            ip = helper.get_client_ip(request)
-        if not user and request:
-            user = request.user
+    def is_author_for_save_history(self, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
-            res = self.user == user
+            return user == self.user
         else:
-            res = self.ip == ip
-        return res
+            return self.session_key == session_key or self.ip == ip
+
+    #******************
 
 
 
@@ -925,6 +939,9 @@ class History(SuperModel):
 
     @staticmethod
     def save_history(history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
+        if session_key is None:
+            return None
+
         if hasattr(post, 'user'):
             post_author = post.user
         else:
@@ -969,8 +986,7 @@ class History(SuperModel):
             #    author_points = 1
             #else:
             #    author_points = 0
-
-            if comment.can_perform_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
+            if comment.can_do_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
                                        author=comment.user, session_key=session_key)
@@ -979,7 +995,9 @@ class History(SuperModel):
             if user and user.is_authenticated():
                 hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
             else:
-                hist_exists = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None).exists()
+                hist_exists_by_key = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None).exists()
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, post=post, ip=ip, user=None).exists()
+                hist_exists = hist_exists_by_key or hist_exists_by_ip
 
             if not hist_exists and ((not post.is_blog and mark and mark > 0) or post.is_blog):
                 h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,

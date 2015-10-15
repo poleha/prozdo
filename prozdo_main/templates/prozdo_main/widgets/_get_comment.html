@@ -96,8 +96,6 @@
         {% if can_mark %}
          <input class="comment-unmark-button btn btn-cancel hidden" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
          <input class="comment-mark-button btn btn-success" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
-        {% elif is_author and comment.user.is_authenticated %}
-         <div>Вы не можете голосовать за свой отзыв</div>
         {% elif can_unmark %}
         <input class="comment-unmark-button btn btn-cancel" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
         <input class="comment-mark-button btn btn-success hidden" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>

@@ -78,13 +78,13 @@ def get_comment(context, comment):
     res['show_tree'] = context.get('show_tree', False)
 
     res['comment'] = comment
-    res['is_author'] = comment.is_author(request=request)
+    #res['is_author'] = comment.is_author(request=request)
 
-    res['can_mark'] = comment.can_perform_action(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
-    res['can_unmark'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    res['can_mark'] = comment.show_do_action_button(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    res['can_unmark'] = comment.show_undo_action_button(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
 
-    res['can_complain'] = comment.can_perform_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
-    res['can_uncomplain'] = comment.can_undo_action(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_complain'] = comment.show_do_action_button(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_uncomplain'] = comment.show_undo_action_button(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
 
 
     #if show_as_child:

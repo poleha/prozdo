@@ -145,6 +145,10 @@ class PostDetail(ProzdoListView):
         #visibility
         if context['mark']:
             if user.is_authenticated():
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post).exists()
+            else:
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.session_key, post=self.post).exists()
+            if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
             else:
