@@ -314,16 +314,17 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment)
             else:
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key)
                 #if session_key:
                 #    h = h.filter(Q(session_key=session_key)|Q(ip=ip))
                 #else:
                 #    h = h.filter(ip=ip)
             data = {}
-            if h.exists():
-                h.delete()
+            if hs.exists():
+                for h in hs:
+                    h.delete()
                 data['saved'] = True
             else:
                 data['saved'] = False
@@ -341,12 +342,13 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-uncomplain':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment)
             else:
-                h = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key)
             data = {}
-            if h.exists():
-                h.delete()
+            if hs.exists():
+                for h in hs:
+                    h.delete()
                 data['saved'] = True
             else:
                 data['saved'] = False
@@ -370,12 +372,13 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-unmark':
             post = models.Post.objects.get(pk=pk)
             if request.user.is_authenticated():
-                h = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post)
+                hs = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post)
             else:
-                h = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
+                hs = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
             data = {}
-            if h.exists():
-                h.delete()
+            if hs.exists():
+                for h in hs:
+                    h.delete()
                 data['saved'] = True
             else:
                 data['saved'] = False

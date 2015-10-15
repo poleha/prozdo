@@ -2,7 +2,6 @@ from django.conf import settings
 import string
 import random
 
-
 def transliterate(text):
     text = text.lower()
     mapping = {
@@ -190,5 +189,6 @@ def to_int(val):
     except:
         res = 0
     return res
+
 
 

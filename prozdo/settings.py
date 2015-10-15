@@ -220,7 +220,7 @@ AUTHENTICATION_BACKENDS = (
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'prozdo_main.backends.ProzdoMemcachedCacheCacheBackend',
         'LOCATION': '127.0.0.1:11211',
     }
 }
@@ -242,10 +242,15 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_DURATION = 60 * 60
+PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
+#PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
+PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
+HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = False
+DEBUG_TOOLBAR = True
 
 
 if DEBUG_TOOLBAR:

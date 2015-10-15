@@ -100,6 +100,7 @@ def recent_comments():
     res = {}
     comments = models.Comment.objects.get_available().order_by('-created')[:10]
     res['comments'] = comments
+    res['portlet_type'] = 'recent_comments'
     return res
 
 
@@ -110,6 +111,7 @@ def best_comments():
     comments = models.Comment.objects.filter(history_comment__history_type=models.HISTORY_TYPE_COMMENT_RATED, history_comment__created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
 
     res['comments'] = comments
+    res['portlet_type'] = 'best_comments'
     return res
 
 

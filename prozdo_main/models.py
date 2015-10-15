@@ -23,6 +23,11 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.db.models import Q
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+
+
+
+
 
 #<Constants***********************************************************
 
@@ -111,11 +116,76 @@ COMPONENT_TYPES = (
 
 #<Posts******************************************************************
 
+CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
+
+def cached_property(func):
+    @property
+    def wrapper(self):
+        key = CACHED_ATTRIBUTE_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
+        res = cache.get(key)
+        if res is None:
+            res = func(self)
+            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+        return res
+    return wrapper
 
 
-class SuperModel(models.Model):
-    created = models.DateTimeField(blank=True, verbose_name='Время создания')
-    updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения')
+
+class CachedModelMixin(models.Model):
+    class Meta:
+        abstract = True
+
+    cache_key_template = CACHED_ATTRIBUTE_KEY_TEMPLATE
+
+    def get_cache_key(self, attr_name):
+        return self.cache_key_template.format(type(self).__name__, attr_name, self.pk)
+
+    def get_cached(self, attr_name):
+        key = self.get_cache_key(attr_name)
+        res = cache.get(key)
+        if res is None:
+            res = getattr(self, attr_name)
+            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+        return res
+
+    def invalidate_cache(self, attr_name):
+        key = self.get_cache_key(attr_name)
+        cache.delete(key)
+        res = getattr(self, attr_name)
+        cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+
+    def full_invalidate_cache(self):
+        for attr_name in self.__dict__.keys():
+            self.invalidate_cache(attr_name)
+
+    def clean_cache(self, attr_name):
+        key = self.get_cache_key(attr_name)
+        cache.delete(key)
+
+    def full_clean_cache(self):
+        for attr_name in self.__dict__.keys():
+            self.clean_cache(attr_name)
+
+    def __getattr__(self, item):
+        if item[:7] == 'cached_':
+            attr_name = item[7:]
+            return self.get_cached(attr_name)
+        else:
+            raise AttributeError
+
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.full_invalidate_cache()
+
+    def delete(self, *args, **kwargs):
+        self.full_invalidate_cache()
+        super().delete(*args, **kwargs)
+
+
+class SuperModel(CachedModelMixin):
+    created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
+    updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения', db_index=True)
 
     class Meta:
         abstract = True
@@ -153,7 +223,7 @@ def class_with_published_mixin(published_status):
         class Meta:
             abstract = True
 
-        published = models.DateTimeField(null=True, blank=True, verbose_name='Время публикации')
+        published = models.DateTimeField(null=True, blank=True, verbose_name='Время публикации', db_index=True)
         def save(self, *args, **kwargs):
             if self.status == published_status and not self.published:
                 self.published = timezone.now()
@@ -321,12 +391,17 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         elif self.post_type == POST_TYPE_CATEGORY:
             return self.category
 
-    def get_absolute_url(self):
+    @cached_property
+    def _cached_get_absolute_url(self):
         alias = self.alias
         if alias:
             return reverse('post-detail-alias', kwargs={'alias': alias})
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
+
+
+    def get_absolute_url(self):
+        return self._cached_get_absolute_url
 
     def get_mark_by_request(self, request):
         user = request.user
@@ -348,7 +423,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
             mark = max(mark_by_ip, mark_by_key)
         return mark
 
-    @property
+    @cached_property
     def average_mark(self):
         try:
             mark = History.objects.filter(post=self).aggregate(Sum('mark'))['mark__sum']
@@ -362,7 +437,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         else:
             return 0
 
-    @property
+    @cached_property
     def marks_count(self):
         try:
             count = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('mark'))['mark__count']
@@ -372,11 +447,11 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
             count = 0
         return count
 
-    @property
+    @cached_property
     def published_comments_count(self):
         return self.comments.get_available().count()
 
-    @property
+    @cached_property
     def last_comment_date(self):
         try:
             last_comment = self.comments.get_available().latest('created')
@@ -656,14 +731,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     body = models.TextField(verbose_name='Сообщение')
     user = models.ForeignKey(User, null=True, blank=True, related_name='comments')
-    ip = models.CharField(max_length=15)
-    session_key = models.TextField(blank=True)
-    consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора')
+    ip = models.CharField(max_length=15, db_index=True)
+    session_key = models.TextField(blank=True, db_index=True)
+    consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
-    status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус')
+    status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус', db_index=True)
     updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
     key = models.CharField(max_length=128, blank=True)
-    confirmed = models.BooleanField(default=False)
+    confirmed = models.BooleanField(default=False, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
     objects = CommentManager()
@@ -759,7 +834,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return helper.cut_text(self.body)
 
 
-    @property
+    @cached_property
     def comment_mark(self):
         try:
             mark = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_RATED).aggregate(Count('pk'))['pk__count']
@@ -770,11 +845,15 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return mark
 
 
-    def get_absolute_url(self):
+    @cached_property
+    def _cached_get_absolute_url(self):
         if self.status == COMMENT_STATUS_PUBLISHED:
             return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
         else:
             return self.post.get_absolute_url()
+
+    def get_absolute_url(self):
+        return self._cached_get_absolute_url
 
     def get_confirm_url(self):
         return settings.SITE_URL + reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
@@ -819,6 +898,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
+        self.post.full_invalidate_cache()
+
 
     #******************
     def hist_exists_by_request(self, history_type, request):
@@ -829,7 +910,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             session_key = request.session.session_key
             if session_key is None:
                 return False
-            hist_exists = History.objects.filter(history_type=history_type, comment=self, session_key=session_key).exists()
+            hist_exists = History.exists(session_key)
         return hist_exists
 
     def show_do_action_button(self, history_type, request):
@@ -918,16 +999,17 @@ HISTORY_TYPE_COMMENT_COMPLAINT: 0,
 
 class History(SuperModel):
     post = models.ForeignKey(Post, related_name='history_post')
-    history_type = models.IntegerField(choices=HISTORY_TYPES)
+    history_type = models.IntegerField(choices=HISTORY_TYPES, db_index=True)
     author = models.ForeignKey(User, null=True, blank=True, related_name='history_author')
     user = models.ForeignKey(User, null=True, blank=True, related_name='history_user')
     comment = models.ForeignKey(Comment, null=True, blank=True, related_name='history_comment')
     user_points = models.PositiveIntegerField(default=0, blank=True)
     #author_points = models.PositiveIntegerField(default=0, blank=True)
-    ip = models.CharField(max_length=15, null=True, blank=True)
-    session_key = models.TextField(blank=True)
+    ip = models.CharField(max_length=15, null=True, blank=True, db_index=True)
+    session_key = models.TextField(blank=True, db_index=True)
     mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     old_id = models.PositiveIntegerField(null=True, blank=True)
+
 
     @staticmethod
     def get_points(history_type):
@@ -935,6 +1017,8 @@ class History(SuperModel):
 
     def __str__(self):
         return "{0} - {1} - {2}".format(self.history_type, self.post, self.comment)
+
+
 
 
     @staticmethod
@@ -1004,20 +1088,41 @@ class History(SuperModel):
                                    user_points=History.get_points(history_type), author=post_author, mark=mark, session_key=session_key)
                 return h
 
-        #elif history_type == HISTORY_TYPE_BLOG_RATED:
-        #    if user and user.is_authenticated():
-        #        hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
-        #    else:
-        #        hist_exists = History.objects.filter(history_type=history_type, post=post, ip=ip, user=user).exists()
 
-        #    if not hist_exists and mark and mark > 0:
-        #        h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip,
-        #                           user_points=History.get_points(history_type), author=post_author)
-        #        return h
-        #При сохранении отзыва сохраняем оценку поста
-        #if history_type in [HISTORY_TYPE_COMMENT_CREATED, HISTORY_TYPE_COMMENT_SAVED] and mark:
-            #h = History.save_history(HISTORY_TYPE_POST_RATED, post, user=user, ip=ip, comment=comment, mark=mark)
-            #return h
+    @classmethod
+    def exists(cls, session_key):
+        if not session_key:
+            return False
+        prefix = '_cached_history_exists_'
+        key = prefix + session_key
+        res = cache.get(key)
+        if res is None:
+            res = History.objects.filter(session_key=session_key).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        return res
+
+    def invalidate_exists(self):
+        prefix = '_cached_history_exists_'
+        key = prefix + self.session_key
+        cache.delete(key)
+        res = History.objects.filter(session_key=self.session_key).exists()
+        cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.comment:
+            self.comment.full_invalidate_cache()
+        if self.post:
+            self.post.full_invalidate_cache()
+        self.invalidate_exists()
+
+    def delete(self, *args, **kwargs):
+        post = self.post
+        comment = self.comment
+        super().delete(*args, **kwargs)
+        comment.full_invalidate_cache()
+        post.full_invalidate_cache()
+
 
 class UserProfile(SuperModel):
     # required by the auth model
@@ -1174,11 +1279,8 @@ def request_with_empty_guest(request):
         return False
 
     session_key = request.session.session_key
-    if not session_key:
-        return True
-
-    hs = History.objects.filter(session_key=session_key)
-    if not hs.exists():
+    exists = History.exists(session_key)
+    if not exists:
         return True
 
     return False

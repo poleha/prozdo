@@ -31,3 +31,30 @@ class SEOThumbnailBackend(ThumbnailBackend):
             return '%s%s' % (settings.THUMBNAIL_PREFIX, path)
 
         return path
+
+
+
+from django.core.cache.backends.db import DatabaseCache
+
+
+class ProzdoCacheBackendMixin:
+    def get(self, key, default=None, version=None):
+        if settings.PROZDO_CACHE_ENABLED:
+            return super().get(key, default=None, version=None)
+        else:
+            return None
+
+    def set(self, key, value, timeout=settings.PROZDO_FULL_PAGE_CACHE_DURATION, version=None):
+        if settings.PROZDO_CACHE_ENABLED:
+            return super().set(key, value, timeout, version=None)
+        else:
+            return
+
+
+
+class ProzdoDBCacheBackend(ProzdoCacheBackendMixin, DatabaseCache):
+    pass
+
+from django.core.cache.backends.memcached import MemcachedCache
+class ProzdoMemcachedCacheCacheBackend(ProzdoCacheBackendMixin, MemcachedCache):
+    pass
