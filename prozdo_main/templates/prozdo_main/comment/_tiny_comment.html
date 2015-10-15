@@ -1,14 +1,14 @@
 {% load staticfiles %}
 <div class="tiny-comment">
 
-{% if comment.user %}
-         <a class="user" href="{{ comment.user.get_absolute_url }}">
-    {% if comment.user.thumb50 %}
-             <img class="img-rounded" src="{{ comment.user.thumb50 }}">
+{% if comment.cached_user %}
+         <a class="user" href="{{ comment.cached_user.get_absolute_url }}">
+    {% if comment.cached_user.thumb50 %}
+             <img class="img-rounded" src="{{ comment.cached_user.thumb50 }}">
     {% else %}
      <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
     {% endif %}
-     {{ comment.user }}</a>
+     {{ comment.cached_user }}</a>
     {% else %}
     <img class="img-rounded" src="{% static "prozdo_main/images/guest.png" %}">
     <span class="guest">{{ comment.username }}</span>

@@ -116,16 +116,25 @@ COMPONENT_TYPES = (
 
 #<Posts******************************************************************
 
+EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
+
 CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
 
+class CachedProperty(property):
+    pass
+
 def cached_property(func):
-    @property
+    @CachedProperty
     def wrapper(self):
         key = CACHED_ATTRIBUTE_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
         res = cache.get(key)
         if res is None:
             res = func(self)
+            if res is None:
+                res = EMPTY_CACHE_PLACEHOLDER
             cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+        if res == EMPTY_CACHE_PLACEHOLDER:
+            res = None
         return res
     return wrapper
 
@@ -145,17 +154,25 @@ class CachedModelMixin(models.Model):
         res = cache.get(key)
         if res is None:
             res = getattr(self, attr_name)
+            if res is None:
+                res = EMPTY_CACHE_PLACEHOLDER
             cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+        if res == EMPTY_CACHE_PLACEHOLDER:
+            res = None
         return res
 
     def invalidate_cache(self, attr_name):
         key = self.get_cache_key(attr_name)
         cache.delete(key)
         res = getattr(self, attr_name)
+        if res is None:
+            res = EMPTY_CACHE_PLACEHOLDER
         cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
 
     def full_invalidate_cache(self):
-        for attr_name in self.__dict__.keys():
+        instance_keys = tuple(self.__dict__.keys())
+        prop_keys = tuple((k for k, v in type(self).__dict__.items() if isinstance(v, CachedProperty)))
+        for attr_name in (instance_keys + prop_keys):
             self.invalidate_cache(attr_name)
 
     def clean_cache(self, attr_name):
@@ -746,7 +763,12 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     def __str__(self):
         return self.short_body
 
+    @cached_property
+    def has_avaliable_children(self):
+        return self.children.get_available().exists()
 
+
+    @property
     def get_tree_level(self):
         if hasattr(self, 'tree_level'):
             return self.tree_level
@@ -761,7 +783,12 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     def update_url(self):
             return reverse('comment-update', kwargs={'pk': self.pk})
 
-    def get_children_tree(self, cur=None, level=1):
+
+    @cached_property
+    def get_children_tree(self):
+        return self._get_children_tree()
+
+    def _get_children_tree(self, cur=None, level=1):
         tree = []
         if cur is None:
             cur = self
@@ -769,7 +796,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             tree.append(cur)
         for child in cur.children.get_available().order_by('created'):
             child.tree_level = level
-            tree += child.get_children_tree(child, level+1)
+            tree += child._get_children_tree(child, level+1)
         return tree
 
     @property
@@ -822,11 +849,9 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
                 except:
                     pass
 
-
-
-    @property
+    @cached_property
     def available_children(self):
-        return self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED)
+        return list(self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED))
 
 
     @property
@@ -868,7 +893,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             else:
                 return COMMENT_STATUS_PENDING_APPROVAL
 
-    @property
+    @cached_property
     def complain_count(self):
         try:
             count = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_COMPLAINT).aggregate(Count('pk'))['pk__count']
@@ -900,8 +925,25 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
         self.post.full_invalidate_cache()
 
+        for ancestor in self.get_ancestors():
+            ancestor.full_invalidate_cache()
+
+    def delete(self, *args, **kwargs):
+        post = self.post
+        user = self.user
+        ancestors = self.get_ancestors()
+        super().delete(*args, **kwargs)
+        if post:
+            post.full_invalidate_cache()
+        if user:
+            user.user_profile.full_invalidate_cache()
+        for ancestor in ancestors:
+            ancestor.full_invalidate_cache()
+
+
 
     #******************
+
     def hist_exists_by_request(self, history_type, request):
         user = request.user
         if user and user.is_authenticated():
@@ -910,7 +952,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             session_key = request.session.session_key
             if session_key is None:
                 return False
-            hist_exists = History.exists(session_key)
+            hist_exists = History.exists_by_comment(session_key, self)
         return hist_exists
 
     def show_do_action_button(self, history_type, request):
@@ -1108,20 +1150,62 @@ class History(SuperModel):
         res = History.objects.filter(session_key=self.session_key).exists()
         cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
+    def delete_exists(self):
+        prefix = '_cached_history_exists_'
+        key = prefix + self.session_key
+        cache.delete(key)
+
+
+    @classmethod
+    def exists_by_comment(cls, session_key, comment):
+        if not session_key:
+            return False
+        template = '_cached_history_exists_by_comment_{0}-{1}'
+        key = template.format(session_key, comment.pk)
+        res = cache.get(key)
+        if res is None:
+            res = History.objects.filter(session_key=session_key, comment=comment).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        return res
+
+    def invalidate_exists_by_comment(self):
+        template = '_cached_history_exists_by_comment_{0}-{1}'
+        key = template.format(self.session_key, self.comment.pk)
+        cache.delete(key)
+        res = History.objects.filter(session_key=self.session_key, comment=self.comment).exists()
+        cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+
+    def delete_exists_by_comment(self):
+        template = '_cached_history_exists_by_comment_{0}-{1}'
+        key = template.format(self.session_key, self.comment.pk)
+        cache.delete(key)
+
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.comment:
             self.comment.full_invalidate_cache()
         if self.post:
             self.post.full_invalidate_cache()
+        if self.user:
+            self.user.user_profile.full_invalidate_cache()
         self.invalidate_exists()
+        self.invalidate_exists_by_comment()
 
     def delete(self, *args, **kwargs):
         post = self.post
         comment = self.comment
+        user = self.user
+        self.delete_exists_by_comment()
+        self.delete_exists()
         super().delete(*args, **kwargs)
-        comment.full_invalidate_cache()
-        post.full_invalidate_cache()
+        if comment:
+            comment.full_invalidate_cache()
+        if post:
+            post.full_invalidate_cache()
+        if user:
+            user.user_profile.full_invalidate_cache()
+
 
 
 class UserProfile(SuperModel):
@@ -1133,6 +1217,46 @@ class UserProfile(SuperModel):
     #first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
     #last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
+
+
+
+    def karm_history(self):
+        return self._karm_history().order_by('-created')
+
+    def _karm_history(self):
+        hists = History.objects.filter(author=self.user, history_type=HISTORY_TYPE_COMMENT_RATED)
+        return hists
+
+
+    def _activity_history(self):
+        return History.objects.filter(user=self.user, user_points__gt=0)
+
+    @cached_property
+    def activity_history(self):
+        return self._activity_history().order_by('-created')
+
+    @cached_property
+    def get_user_activity(self):
+        try:
+            activity = self.activity_history.aggregate(Sum('user_points'))['user_points__sum']
+        except:
+            activity = ''
+        return activity
+
+
+    @cached_property
+    def get_user_karm(self):
+        try:
+            karm = self.karm_history().aggregate(Sum('user_points'))['user_points__sum']
+        except:
+            karm = ''
+        return karm
+
+
+    def get_email_confirmed(self):
+        return EmailAddress.objects.filter(user=self.user, verified=True, email=self.email).exists()
+
+
 
     @property
     def thumb50(self):
@@ -1198,45 +1322,39 @@ def is_regular(self):
 def get_user_image(self):
     return self.user_profile.image
 
-
+@property
 def karm_history(self):
-    return self._karm_history.order_by('-created')
+    return self.user_profile.karm_history
 
-def _karm_history(self):
-    hists = History.objects.filter(author=self, history_type=HISTORY_TYPE_COMMENT_RATED)
-    return hists
-
-
-def _activity_history(self):
-    return History.objects.filter(user=self, user_points__gt=0)
-
+@property
 def activity_history(self):
-    return self._activity_history.order_by('-created')
+    return self.user_profile.activity_history
 
+@property
 def get_user_activity(self):
-    try:
-        activity =  self._activity_history.aggregate(Sum('user_points'))['user_points__sum']
-    except:
-        activity = ''
-    return activity
+    return self.user_profile.get_user_activity
 
+@property
+def get_user_karm(self):
+    return self.user_profile.get_user_karm
+
+
+@property
 def get_email_confirmed(self):
-    return EmailAddress.objects.filter(user=self, verified=True, email=self.email).exists()
+    return self.user_profile.get_email_confirmed()
 
 
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
 User.karm_history = property(karm_history)
-User._karm_history = property(_karm_history)
 User.activity_history = property(activity_history)
-User._activity_history = property(_activity_history)
-User.karm = property(lambda self: self._karm_history.count())
+User.karm = get_user_karm
 User.get_karm_url = lambda self: reverse('user-karma', kwargs={'pk': self.pk})
 User.get_comments_url = lambda self: reverse('user-comments', kwargs={'pk': self.pk})
 User.get_activity_url = lambda self: reverse('user-activity', kwargs={'pk': self.pk})
 User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
 
-User.activity = property(get_user_activity)
+User.activity = get_user_activity
 User.email_confirmed = property(get_email_confirmed)
 
 User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)

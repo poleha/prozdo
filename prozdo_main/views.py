@@ -66,7 +66,7 @@ class PostDetail(ProzdoListView):
             order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
 
         if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent=None)
+            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent_id=None)
         else:
             comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
         if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
@@ -424,7 +424,7 @@ class CommentGetTreeAjax(generic.TemplateView):
 
         if action == 'comment-tree-show':
             context['show_as_child'] = True
-            context['children'] = comment.get_children_tree()
+            context['children'] = comment.get_children_tree
         return context
 
     def post(self, request, *args, **kwargs):

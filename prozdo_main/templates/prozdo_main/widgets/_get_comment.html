@@ -3,11 +3,11 @@
 <div class="single-comment {{ comment_class }}">
 <div class="comment-top">
     <div class="avatar">
-    {% if comment.user and comment.user.thumb50 %}
+    {% if comment.cached_user and comment.cached_user.thumb50 %}
 <div>
 <div class="image-wrapper">
-<a class="user" href="{{ comment.user.get_absolute_url }}">
-    <img class="img-rounded" src="{{ comment.user.thumb50 }}">
+<a class="user" href="{{ comment.cached_user.get_absolute_url }}">
+    <img class="img-rounded" src="{{ comment.cached_user.thumb50 }}">
 </a>
 </div>
 </div>
@@ -20,12 +20,12 @@
 
 
  <div class="user-block">
-{% if comment.user %}
+{% if comment.cached_user %}
 <div>
-<a class="user" href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
+<a class="user" href="{{ comment.cached_user.get_absolute_url }}">{{ comment.cached_user }}</a>
 <span class="user-info-top">
-<a href="{{ comment.user.get_karm_url }}"><span>Карма: </span>{{ comment.user.karm }}</a>
-<a href="{{ comment.user.get_activity_url }}"><span>Активность: </span>{{ comment.user.activity }}</a>
+<a href="{{ comment.cached_user.get_karm_url }}"><span>Карма: </span>{{ comment.cached_user.karm }}</a>
+<a href="{{ comment.cached_user.get_activity_url }}"><span>Активность: </span>{{ comment.cached_user.activity }}</a>
 </span>
 </div>
 {% else %}
@@ -86,7 +86,7 @@
 
 </div>
 
-{% if comment.user == user %}
+{% if comment.cached_user == user %}
 
 <a href="{{ comment.update_url }}">Редактировать</a>
 {% endif %}
@@ -109,7 +109,7 @@
         <input class="comment-complain-button btn btn-danger hidden" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% endif %}
 </div>
- {% if comment.children.get_available.exists and not show_as_child %}
+ {% if comment.has_avaliable_children and not show_as_child %}
  <div class="comment-all-children-block">
   {% if show_tree %}
          <div>
@@ -119,7 +119,7 @@
 {% else %}
   <div>
         <label>Ответы на отзыв:</label>
-         {% for child in comment.children.get_available %}
+         {% for child in comment.available_children %}
          {% include 'prozdo_main/comment/_tiny_comment.html' with comment=child %}
          {% endfor %}
         </div>
