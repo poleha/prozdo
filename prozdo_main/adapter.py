@@ -8,17 +8,18 @@ from django.conf import settings
 #I could do it with a signal, but it looks more convenient to store apapter here
 class ProzdoSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
-        email_adress = None
-        for email in sociallogin.email_addresses:
-            if email.verified:
-                email_adress = email.email
-                break
-        if email_adress:
-            try:
-                user = User.objects.get(email=email_adress)
-                sociallogin.connect(request, user)
-            except:
-                pass
+        if not request.user.is_authenticated():
+            email_adress = None
+            for email in sociallogin.email_addresses:
+                if email.verified:
+                    email_adress = email.email
+                    break
+            if email_adress:
+                try:
+                    user = User.objects.get(email=email_adress)
+                    sociallogin.connect(request, user)
+                except:
+                    pass
         super().pre_social_login(request, sociallogin)
 
 

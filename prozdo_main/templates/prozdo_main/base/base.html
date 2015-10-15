@@ -68,14 +68,25 @@
 </div>
 
 
-
-
-
 <div class="col-lg-8 col-md-6 col-sm-8 col-xs-12">
 {% block breadcrumbs %}
 {% breadcrumbs %}
-
 {% endblock breadcrumbs %}
+
+    {% block messages %}
+ {% if messages %}
+    <div>
+      <ul>
+	{% for message in messages %}
+	<li>{{message}}</li>
+	{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+{% endblock %}
+
+
+
     {% block content %}
 {% endblock content %}
 </div>
