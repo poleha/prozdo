@@ -718,7 +718,7 @@ class UserKarmaView(ProzdoListView):
     def get_queryset(self):
         pk = self.kwargs['pk']
         user = models.User.objects.get(pk=pk)
-        return user.karm_history
+        return user.user_profile.karm_history()
 
 
     def get_context_data(self, **kwargs):

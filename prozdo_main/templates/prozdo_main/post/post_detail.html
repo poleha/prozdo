@@ -507,19 +507,20 @@
                     var mark = e.currentTarget.id.replace('post-mark-', '');
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk};
-                    $('#post-mark').addClass('hidden');
+                    $('.star').addClass('hidden');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
-                            $('#post-mark').removeClass('hidden');
+                            $('.star').removeClass('hidden');
                          if (data.saved) {
                             $('#post-average-mark').html(data['average_mark']);
                             $('#post-marks-count').html(data['marks_count']);
                             $('#current-post-mark-block').removeClass('hidden');
                             $('#current-post-mark').html(data.mark);
                             $('#cancel-mark-button').removeClass('hidden');
+                             $('#post-mark').addClass('hidden');
                             $('#id_post_mark').closest('p').addClass('hidden');
                             $('#id_post_mark').closest('p').find('select').val('');
                         }
@@ -529,7 +530,7 @@
 
                         },
                         error: function (data) {
-                        $('#post-mark').removeClass('hidden');
+                        $('.star').removeClass('hidden');
                         }
                     });
 

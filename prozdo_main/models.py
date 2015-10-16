@@ -241,7 +241,7 @@ class AbstractModel(SuperModel):
     class Meta:
         abstract = True
         ordering = ('title', )
-    title = models.CharField(max_length=500, verbose_name='Название')
+    title = models.CharField(max_length=500, verbose_name='Название', db_index=True)
 
     def __str__(self):
         return self.title
@@ -276,9 +276,9 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
 
 
 class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
-    alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним')
-    post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи')
-    status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT)
+    alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
+    post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи', db_index=True )
+    status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
     objects = PostManager()
 
@@ -441,15 +441,10 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
                 mark = ''
         else:
             try:
-                mark_by_ip = History.objects.get(ip=helper.get_client_ip(request), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+                mark = History.objects.get(session_key=request.session.session_key, history_type=HISTORY_TYPE_POST_RATED, user=None).mark
             except:
-                mark_by_ip = 0
-            try:
-                mark_by_key = History.objects.get(session_key=request.session.session_key, history_type=HISTORY_TYPE_POST_RATED, user=None).mark
-            except:
-                mark_by_key = 0
+                mark = 0
 
-            mark = max(mark_by_ip, mark_by_key)
         return mark
 
     @cached_property
@@ -1382,8 +1377,8 @@ def get_email_confirmed(self):
 
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
-User.karm_history = property(karm_history)
-User.activity_history = property(activity_history)
+User.karm_history = karm_history
+User.activity_history = activity_history
 User.karm = get_user_karm
 User.get_karm_url = lambda self: reverse('user-karma', kwargs={'pk': self.pk})
 User.get_comments_url = lambda self: reverse('user-comments', kwargs={'pk': self.pk})

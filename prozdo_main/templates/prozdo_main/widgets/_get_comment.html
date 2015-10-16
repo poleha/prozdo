@@ -61,7 +61,13 @@
 <span class="date">{{ comment.created }}</span>
 
 
-        <div><span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">{{ comment.body|linebreaks }}</span></div>
+        <div><span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">
+            {% if comment.cached_user.is_regular %}
+            {{ comment.body|linebreaks }}
+            {% else %}
+            {{ comment.body|safe }}
+            {% endif %}
+        </span></div>
 
 
 
