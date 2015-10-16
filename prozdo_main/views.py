@@ -65,14 +65,23 @@ class PostDetail(ProzdoListView):
         except:
             order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
 
-        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED, parent_id=None)
-        else:
-            comments = self.post.comments.filter(status=models.COMMENT_STATUS_PUBLISHED)
-        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-            comments = comments.order_by('-created')
-        else:
-            comments = comments.order_by('created')
+        #if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+        #    comments = self.post.first_level_available_comments
+        #else:
+        #    comments = self.post.available_comments
+        #if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+        #    comments = comments.order_by('-created')
+        #else:
+        #    comments = comments.order_by('created')
+
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = self.post.first_level_available_comments_created_dec
+        elif show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
+            comments = self.post.first_level_available_comments_created_inc
+        elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = self.post.available_comments_created_dec
+        elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
+            comments = self.post.available_comments_created_inc
 
         return comments
 
@@ -296,6 +305,8 @@ class HistoryAjaxSave(generic.View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        if not request.session.get('has_session'):
+            request.session['has_session'] = True
         pk = request.POST['pk']
         action = request.POST['action']
         ip = get_client_ip(request)

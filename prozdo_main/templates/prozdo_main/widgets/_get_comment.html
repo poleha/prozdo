@@ -113,8 +113,8 @@
  <div class="comment-all-children-block">
   {% if show_tree %}
          <div>
-    <input type="button" class="show-comment-tree btn btn-success hidden" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
-    <input type="button" class="hide-comment-tree btn btn-default" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="show-comment-tree btn btn-success hidden" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children_count }})">
+    <input type="button" class="hide-comment-tree btn btn-default" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children_count }})">
         </div>
 {% else %}
   <div>
@@ -124,8 +124,8 @@
          {% endfor %}
         </div>
 
-    <input type="button" class="show-comment-tree btn btn-success" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children.count }})">
-    <input type="button" class="hide-comment-tree btn btn-default hidden" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children.count }})">
+    <input type="button" class="show-comment-tree btn btn-success" id="show-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Развернуть ответы({{ comment.available_children_count }})">
+    <input type="button" class="hide-comment-tree btn btn-default hidden" id="hide-comment-tree-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Свернуть ответы({{ comment.available_children_count }})">
 {% endif %}
 </div>
  {% endif %}

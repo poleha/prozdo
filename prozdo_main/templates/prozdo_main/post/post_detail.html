@@ -273,7 +273,7 @@
                         {% endfor %}
                     </div>
 
-                    {% if comments.count > 0 %}
+                    {% if paginator.num_pages > 1 %}
                         {% include 'prozdo_main/base/_pager.html' with url=obj.get_absolute_url %}
                     {% endif %}
 
@@ -350,23 +350,26 @@
 
 
                 function commentAjaxAction(actionData, targetSpan, toHide, toShow) {
+                    toHide.attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
+                            toHide.removeAttr('disabled');
                             if (data.saved) {
                                 targetSpan.html(data.mark);
 
                                 toHide.addClass('hidden');
                                 toShow.removeClass('hidden');
+
                             }
                             else {
                                 alert('Действие не засчитано');
                             }
                         },
                         error: function (data) {
-
+                        toHide.removeAttr('disabled');
                         }
                     });
 
@@ -504,16 +507,17 @@
                     var mark = e.currentTarget.id.replace('post-mark-', '');
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-mark', 'mark': mark, 'pk': pk};
+                    $('#post-mark').addClass('hidden');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
+                            $('#post-mark').removeClass('hidden');
                          if (data.saved) {
                             $('#post-average-mark').html(data['average_mark']);
                             $('#post-marks-count').html(data['marks_count']);
                             $('#current-post-mark-block').removeClass('hidden');
-                            $('#post-mark').addClass('hidden');
                             $('#current-post-mark').html(data.mark);
                             $('#cancel-mark-button').removeClass('hidden');
                             $('#id_post_mark').closest('p').addClass('hidden');
@@ -525,7 +529,7 @@
 
                         },
                         error: function (data) {
-
+                        $('#post-mark').removeClass('hidden');
                         }
                     });
 
@@ -536,16 +540,19 @@
 
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-unmark', 'pk': pk}
+                    $('#cancel-mark-button').attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
-                         if (data.saved) {
+                         $('#cancel-mark-button').removeAttr('disabled');
+                            if (data.saved) {
                             $('#current-post-mark-block').addClass('hidden');
                             $('#post-mark').removeClass('hidden');
                             $('#current-post-mark').html('');
                             $('#cancel-mark-button').addClass('hidden');
+
                             $('#id_post_mark').closest('p').removeClass('hidden');
                             $('#post-average-mark').html(data['average_mark']);
                             $('#post-marks-count').html(data['marks_count']);
@@ -555,7 +562,7 @@
                             }
                         },
                         error: function (data) {
-
+                        $('#cancel-mark-button').removeAttr('disabled');
                         }
                     });
 
@@ -565,11 +572,13 @@
                 $(document).on('click', '.blog-mark-button', function (e) {
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-mark', 'mark': 0, 'pk': pk};
+                    $('.blog-mark-button').attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
+                         $('.blog-mark-button').removeAttr('disabled');
                          if (data.saved) {
                             $('.blog-current-mark-span').html(data['marks_count']);
                             $('.blog-mark-button').addClass('hidden');
@@ -581,6 +590,7 @@
 
                         },
                         error: function (data) {
+                        $('.blog-mark-button').removeAttr('disabled');
 
                         }
                     });
@@ -591,11 +601,13 @@
                 $(document).on('click', '.blog-unmark-button', function (e) {
                     var pk = $('#post-pk').val();
                     var actionData = {'action': 'post-unmark', 'mark': 0, 'pk': pk};
+                    $('.blog-unmark-button').attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
+                            $('.blog-unmark-button').removeAttr('disabled');
                             if (data.saved) {
                                 $('.blog-current-mark-span').html(data['marks_count']);
                                 $('.blog-mark-button').removeClass('hidden');
@@ -607,7 +619,7 @@
 
                         },
                         error: function (data) {
-
+                        $('.blog-unmark-button').removeAttr('disabled');
                         }
                     });
 

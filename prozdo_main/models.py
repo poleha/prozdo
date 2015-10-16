@@ -126,16 +126,19 @@ class CachedProperty(property):
 def cached_property(func):
     @CachedProperty
     def wrapper(self):
-        key = CACHED_ATTRIBUTE_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
-        res = cache.get(key)
-        if res is None:
-            res = func(self)
+        if settings.PROZDO_CACHE_ENABLED:
+            key = CACHED_ATTRIBUTE_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
+            res = cache.get(key)
             if res is None:
-                res = EMPTY_CACHE_PLACEHOLDER
-            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
-        if res == EMPTY_CACHE_PLACEHOLDER:
-            res = None
-        return res
+                res = func(self)
+                if res is None:
+                    res = EMPTY_CACHE_PLACEHOLDER
+                cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+            if res == EMPTY_CACHE_PLACEHOLDER:
+                res = None
+            return res
+        else:
+            return func(self)
     return wrapper
 
 
@@ -150,38 +153,45 @@ class CachedModelMixin(models.Model):
         return self.cache_key_template.format(type(self).__name__, attr_name, self.pk)
 
     def get_cached(self, attr_name):
-        key = self.get_cache_key(attr_name)
-        res = cache.get(key)
-        if res is None:
+        if settings.PROZDO_CACHE_ENABLED:
+            key = self.get_cache_key(attr_name)
+            res = cache.get(key)
+            if res is None:
+                res = getattr(self, attr_name)
+                if res is None:
+                    res = EMPTY_CACHE_PLACEHOLDER
+                cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+            if res == EMPTY_CACHE_PLACEHOLDER:
+                res = None
+        else:
+            res = getattr(self, attr_name)
+        return res
+
+    def invalidate_cache(self, attr_name):
+        if settings.PROZDO_CACHE_ENABLED:
+            key = self.get_cache_key(attr_name)
+            cache.delete(key)
             res = getattr(self, attr_name)
             if res is None:
                 res = EMPTY_CACHE_PLACEHOLDER
             cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
-        if res == EMPTY_CACHE_PLACEHOLDER:
-            res = None
-        return res
-
-    def invalidate_cache(self, attr_name):
-        key = self.get_cache_key(attr_name)
-        cache.delete(key)
-        res = getattr(self, attr_name)
-        if res is None:
-            res = EMPTY_CACHE_PLACEHOLDER
-        cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
 
     def full_invalidate_cache(self):
-        instance_keys = tuple(self.__dict__.keys())
-        prop_keys = tuple((k for k, v in type(self).__dict__.items() if isinstance(v, CachedProperty)))
-        for attr_name in (instance_keys + prop_keys):
-            self.invalidate_cache(attr_name)
+        if settings.PROZDO_CACHE_ENABLED:
+            instance_keys = tuple((field.name for field in self._meta.fields))
+            prop_keys = tuple((k for k, v in type(self).__dict__.items() if isinstance(v, CachedProperty)))
+            for attr_name in (instance_keys + prop_keys):
+                self.invalidate_cache(attr_name)
 
     def clean_cache(self, attr_name):
-        key = self.get_cache_key(attr_name)
-        cache.delete(key)
+        if settings.PROZDO_CACHE_ENABLED:
+            key = self.get_cache_key(attr_name)
+            cache.delete(key)
 
     def full_clean_cache(self):
-        for attr_name in self.__dict__.keys():
-            self.clean_cache(attr_name)
+        if settings.PROZDO_CACHE_ENABLED:
+            for attr_name in self.__dict__.keys():
+                self.clean_cache(attr_name)
 
     def __getattr__(self, item):
         if item[:7] == 'cached_':
@@ -193,11 +203,13 @@ class CachedModelMixin(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.full_invalidate_cache()
+        if settings.PROZDO_CACHE_ENABLED:
+            self.full_invalidate_cache()
 
     def delete(self, *args, **kwargs):
         self.full_invalidate_cache()
-        super().delete(*args, **kwargs)
+        if settings.PROZDO_CACHE_ENABLED:
+            super().delete(*args, **kwargs)
 
 
 class SuperModel(CachedModelMixin):
@@ -506,6 +518,24 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         self.post_type = self.get_post_type()
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
+
+
+    @cached_property
+    def first_level_available_comments_created_dec(self):
+        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED, parent_id=None).order_by('-created')
+
+    @cached_property
+    def first_level_available_comments_created_inc(self):
+        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED, parent_id=None).order_by('created')
+
+
+    @cached_property
+    def available_comments_created_dec(self):
+        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED).order_by('-created')
+
+    @cached_property
+    def available_comments_created_inc(self):
+        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED).order_by('created')
 
 
 
@@ -851,7 +881,12 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     @cached_property
     def available_children(self):
-        return list(self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED))
+        return self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED)
+
+
+    @cached_property
+    def available_children_count(self):
+        return self.available_children.count()
 
 
     @property
@@ -952,7 +987,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             session_key = request.session.session_key
             if session_key is None:
                 return False
-            hist_exists = History.exists_by_comment(session_key, self)
+            hist_exists = History.exists_by_comment(session_key, self, history_type)
         return hist_exists
 
     def show_do_action_button(self, history_type, request):
@@ -1157,11 +1192,11 @@ class History(SuperModel):
 
 
     @classmethod
-    def exists_by_comment(cls, session_key, comment):
+    def exists_by_comment(cls, session_key, comment, history_type):
         if not session_key:
             return False
-        template = '_cached_history_exists_by_comment_{0}-{1}'
-        key = template.format(session_key, comment.pk)
+        template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+        key = template.format(session_key, comment.pk, history_type)
         res = cache.get(key)
         if res is None:
             res = History.objects.filter(session_key=session_key, comment=comment).exists()
@@ -1169,16 +1204,18 @@ class History(SuperModel):
         return res
 
     def invalidate_exists_by_comment(self):
-        template = '_cached_history_exists_by_comment_{0}-{1}'
-        key = template.format(self.session_key, self.comment.pk)
-        cache.delete(key)
-        res = History.objects.filter(session_key=self.session_key, comment=self.comment).exists()
-        cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        if self.comment:
+            template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+            key = template.format(self.session_key, self.comment.pk, self.history_type)
+            cache.delete(key)
+            res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists_by_comment(self):
-        template = '_cached_history_exists_by_comment_{0}-{1}'
-        key = template.format(self.session_key, self.comment.pk)
-        cache.delete(key)
+        if self.comment:
+            template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+            key = template.format(self.session_key, self.comment.pk, self.history_type)
+            cache.delete(key)
 
 
     def save(self, *args, **kwargs):
@@ -1254,7 +1291,7 @@ class UserProfile(SuperModel):
 
 
     def get_email_confirmed(self):
-        return EmailAddress.objects.filter(user=self.user, verified=True, email=self.email).exists()
+        return EmailAddress.objects.filter(user=self.user, verified=True, email=self.user.email).exists()
 
 
 
@@ -1343,7 +1380,6 @@ def get_user_karm(self):
 def get_email_confirmed(self):
     return self.user_profile.get_email_confirmed()
 
-
 User.is_regular = property(is_regular)
 User.image = property(get_user_image)
 User.karm_history = property(karm_history)
@@ -1355,7 +1391,7 @@ User.get_activity_url = lambda self: reverse('user-activity', kwargs={'pk': self
 User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
 
 User.activity = get_user_activity
-User.email_confirmed = property(get_email_confirmed)
+User.email_confirmed = get_email_confirmed
 
 User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)
 User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHOR)

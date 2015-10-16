@@ -62,12 +62,13 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
 
+
 )
 
 MIDDLEWARE_CLASSES = (
+
     'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
     #'django.middleware.gzip.GZipMiddleware',
-    #'debug_toolbar.middleware.DebugToolbarMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -143,8 +144,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
-#SESSION_SAVE_EVERY_REQUEST = True
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+#SESSION_CACHE_ALIAS = "default"
+SESSION_SAVE_EVERY_REQUEST = True
 
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30
@@ -218,10 +220,21 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'prozdo_main.backends.ProzdoMemcachedCacheCacheBackend',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
+
+
 CACHES = {
-    'default': {
-        'BACKEND': 'prozdo_main.backends.ProzdoMemcachedCacheCacheBackend',
-        'LOCATION': '127.0.0.1:11211',
+    "default": {
+        'BACKEND': 'redis_cache.RedisCache',
+        "LOCATION": "redis://127.0.0.1:6379/1",
+#        "OPTIONS": {
+#            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#        }
     }
 }
 
@@ -250,7 +263,7 @@ PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = False
+DEBUG_TOOLBAR = True
 
 
 if DEBUG_TOOLBAR:
