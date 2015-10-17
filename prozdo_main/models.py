@@ -253,6 +253,11 @@ class CachedModelMixin(models.Model):
         if settings.PROZDO_CACHE_ENABLED:
             super().delete(*args, **kwargs)
 
+#TODO make middleware
+class CachedUser(User, CachedModelMixin):
+    class Meta:
+        proxy = True
+
 
 class SuperModel(CachedModelMixin):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
@@ -1388,6 +1393,7 @@ def confirm_user_comments_by_email(sender, instance, created, **kwargs):
 post_save.connect(create_user_profile, sender=User)
 post_save.connect(confirm_user_comments, sender=User)
 post_save.connect(confirm_user_comments_by_email, sender=EmailAddress)
+
 
 
 
