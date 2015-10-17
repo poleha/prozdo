@@ -24,8 +24,8 @@ from django.db.models import Q
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-
-
+from cacheops.query import ManagerMixin
+from cacheops import invalidate_obj, invalidate_model, invalidate_all
 
 
 
@@ -215,15 +215,17 @@ class CachedModelMixin(models.Model):
             self.full_delete_method_cache()
 
     def full_delete_method_cache(self):
-        meth_keys = (k for k, v in type(self).__dict__.items() if isinstance(v, cached_method))
-        for attr_name in meth_keys:
-            self.delete_method_cache(attr_name)
+        if settings.PROZDO_CACHE_ENABLED:
+            meth_keys = (k for k, v in type(self).__dict__.items() if isinstance(v, cached_method))
+            for attr_name in meth_keys:
+                self.delete_method_cache(attr_name)
 
 
     #TODO chec`k delete_pattern
     def delete_method_cache(self, attr_name):
-        keys = CACHED_METHOD_SHORT_KEY_TEMPLATE.format(type(self).__name__, self.pk) + '*'
-        cache.delete_pattern(keys)
+        if settings.PROZDO_CACHE_ENABLED:
+            keys = CACHED_METHOD_SHORT_KEY_TEMPLATE.format(type(self).__name__, self.pk) + '*'
+            cache.delete_pattern(keys)
 
     def clean_cache(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:
@@ -249,9 +251,11 @@ class CachedModelMixin(models.Model):
             self.full_invalidate_cache()
 
     def delete(self, *args, **kwargs):
-        self.full_invalidate_cache()
         if settings.PROZDO_CACHE_ENABLED:
-            super().delete(*args, **kwargs)
+            self.full_invalidate_cache()
+        super().delete(*args, **kwargs)
+
+
 
 #TODO make middleware
 class CachedUser(User, CachedModelMixin):
@@ -313,7 +317,7 @@ class PostQueryset(models.QuerySet):
         return queryset
 
 
-class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
+class PostManager(models.manager.BaseManager.from_queryset(PostQueryset), ManagerMixin):
     use_for_related_fields = True
 
     def get_queryset(self):
@@ -806,7 +810,7 @@ class CommentTreeQueryset(TreeQuerySet):
         return queryset
 
 
-class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset)):
+class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset), ManagerMixin):
     use_for_related_fields = True
 
 
@@ -1215,6 +1219,8 @@ class History(SuperModel):
     def exists(cls, session_key):
         if not session_key:
             return False
+        if not settings.PROZDO_CACHE_ENABLED:
+            return History.objects.filter(session_key=session_key).exists()
         prefix = '_cached_history_exists_'
         key = prefix + session_key
         res = cache.get(key)
@@ -1224,53 +1230,62 @@ class History(SuperModel):
         return res
 
     def invalidate_exists(self):
-        prefix = '_cached_history_exists_'
-        key = prefix + self.session_key
-        cache.delete(key)
-        res = History.objects.filter(session_key=self.session_key).exists()
-        cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        if settings.PROZDO_CACHE_ENABLED:
+            prefix = '_cached_history_exists_'
+            key = prefix + self.session_key
+            cache.delete(key)
+            res = History.objects.filter(session_key=self.session_key).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists(self):
-        prefix = '_cached_history_exists_'
-        key = prefix + self.session_key
-        cache.delete(key)
+        if settings.PROZDO_CACHE_ENABLED:
+            prefix = '_cached_history_exists_'
+            key = prefix + self.session_key
+            cache.delete(key)
 
 
     @classmethod
     def exists_by_comment(cls, session_key, comment, history_type):
         if not session_key:
             return False
+        if not settings.PROZDO_CACHE_ENABLED:
+            return History.objects.filter(session_key=session_key, comment=comment, history_type=history_type).exists()
         template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
         key = template.format(session_key, comment.pk, history_type)
         res = cache.get(key)
         if res is None:
-            res = History.objects.filter(session_key=session_key, comment=comment).exists()
+            res = History.objects.filter(session_key=session_key, comment=comment, history_type=history_type).exists()
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
         return res
 
     def invalidate_exists_by_comment(self):
-        if self.comment:
-            template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
-            key = template.format(self.session_key, self.comment.pk, self.history_type)
-            cache.delete(key)
-            res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type).exists()
-            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        if settings.PROZDO_CACHE_ENABLED:
+            if self.comment:
+                template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+                key = template.format(self.session_key, self.comment.pk, self.history_type)
+                cache.delete(key)
+                res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type).exists()
+                cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists_by_comment(self):
-        if self.comment:
-            template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
-            key = template.format(self.session_key, self.comment.pk, self.history_type)
-            cache.delete(key)
+        if settings.PROZDO_CACHE_ENABLED:
+            if self.comment:
+                template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+                key = template.format(self.session_key, self.comment.pk, self.history_type)
+                cache.delete(key)
 
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.comment:
             self.comment.full_invalidate_cache()
+            invalidate_obj(self.comment)
         if self.post:
             self.post.full_invalidate_cache()
+            invalidate_obj(self.post)
         if self.user:
             self.user.user_profile.full_invalidate_cache()
+            invalidate_obj(self.user)
         self.invalidate_exists()
         self.invalidate_exists_by_comment()
 
@@ -1283,11 +1298,13 @@ class History(SuperModel):
         super().delete(*args, **kwargs)
         if comment:
             comment.full_invalidate_cache()
+            invalidate_obj(comment)
         if post:
             post.full_invalidate_cache()
+            invalidate_obj(post)
         if user:
             user.user_profile.full_invalidate_cache()
-
+            invalidate_obj(user)
 
 
 class UserProfile(SuperModel):

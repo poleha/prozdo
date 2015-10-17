@@ -72,4 +72,15 @@ for i in range(15):
 
 #print(remove_tags(txt, 'p img br'))
 
-print(list(models.User.objects.filter(email='1191@bk.ru')))
+#u = models.User.objects.get(email='a.polekha@gmail.com')
+#pu = models.ProzdoUser.objects.get(pk=u.pk)
+#print(pu.cached_user_profile)
+#pu.save()
+
+h = models.History.objects.latest('created')
+pk = h.pk
+h.delete()
+
+
+h1 = models.History.objects.get(pk=pk)
+print(h1.pk == pk)

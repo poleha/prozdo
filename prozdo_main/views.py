@@ -325,9 +325,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment).nocache()
             else:
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key).nocache()
                 #if session_key:
                 #    h = h.filter(Q(session_key=session_key)|Q(ip=ip))
                 #else:

@@ -61,9 +61,37 @@ INSTALLED_APPS = (
     'reversion',
     'ckeditor',
     'ckeditor_uploader',
+    'cacheops',
 
 
 )
+
+
+CACHEOPS_REDIS = {
+    'host': 'localhost', # redis-server is on same machine
+    'port': 6379,        # default redis port
+    'db': 1,             # SELECT non-default redis database
+                         # using separate redis db or redis instance
+                         # is highly recommended
+
+}
+
+
+
+CACHEOPS_DEFAULTS = {
+    'timeout': 60 * 60 * 24 * 30
+}
+CACHEOPS = {
+    #'auth.user': {'ops': 'get', 'timeout': 60*15},
+    #'auth.*': {'ops': ('fetch', 'get')},
+    #'auth.permission': {'ops': 'all'},#
+    '*.*': {'ops': 'all'},
+    #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
+    #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
+    #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
+}
+
+
 
 MIDDLEWARE_CLASSES = (
 
@@ -255,7 +283,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_ENABLED = False
 PROZDO_CACHE_DURATION = 60 * 60
 PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
@@ -263,7 +291,7 @@ PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = False
+DEBUG_TOOLBAR = True
 
 
 if DEBUG_TOOLBAR:
