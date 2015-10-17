@@ -51,9 +51,9 @@
 {% if comment.get_tree_level == 0 or not show_tree %}
 <div id="c{{ comment.pk }}"></div>
 {% endif %}
-{% if comment.parent and not show_tree and not show_as_child %}
+{% if comment.cached_parent and not show_tree and not show_as_child %}
     <div>
-    <label>В ответ на:</label>{% include 'prozdo_main/comment/_tiny_comment.html' with comment=comment.parent %}
+    <label>В ответ на:</label>{% include 'prozdo_main/comment/_tiny_comment.html' with comment=comment.cached_parent %}
 </div>
 {% endif %}
 

@@ -115,7 +115,7 @@ COMPONENT_TYPES = (
 #Constants>***********************************************************
 
 #<Posts******************************************************************
-
+#TODO move it to cache
 EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
 
 CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
@@ -141,6 +141,35 @@ def cached_property(func):
             return func(self)
     return wrapper
 
+CACHED_METHOD_SHORT_KEY_TEMPLATE = '_cached_method_{0}_{1}'
+CACHED_METHOD_KEY_TEMPLATE = CACHED_METHOD_SHORT_KEY_TEMPLATE + '_{2}_{3}'
+
+class cached_method:
+    def __init__(self, func):
+        self.func = func
+
+    #TODO make it module aware
+    def generate_cache_key(self, *args, **kwargs):
+        instance = args[0]
+        args = args[1:]
+        name = type(instance).__name__
+        pk = instance.pk
+        return CACHED_METHOD_KEY_TEMPLATE.format(name, pk, str(args), str(kwargs))
+
+    def __call__(self, *args, **kwargs):
+        if not settings.PROZDO_CACHE_ENABLED:
+            return self.func(*args, **kwargs)
+        key = self.generate_cache_key(*args, **kwargs)
+        res = cache.get(key)
+        if res is None:
+            res = self.func(*args, **kwargs)
+            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+        return res
+
+    def __get__(self, instance, owner):
+        def wrapper(*args, **kwargs):
+            return self(instance, *args, **kwargs)
+        return wrapper
 
 
 class CachedModelMixin(models.Model):
@@ -176,12 +205,25 @@ class CachedModelMixin(models.Model):
                 res = EMPTY_CACHE_PLACEHOLDER
             cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
 
+    #TODO make only if instance key attr is instance of models.Model
     def full_invalidate_cache(self):
         if settings.PROZDO_CACHE_ENABLED:
             instance_keys = tuple((field.name for field in self._meta.fields))
             prop_keys = tuple((k for k, v in type(self).__dict__.items() if isinstance(v, CachedProperty)))
             for attr_name in (instance_keys + prop_keys):
                 self.invalidate_cache(attr_name)
+            self.full_delete_method_cache()
+
+    def full_delete_method_cache(self):
+        meth_keys = (k for k, v in type(self).__dict__.items() if isinstance(v, cached_method))
+        for attr_name in meth_keys:
+            self.delete_method_cache(attr_name)
+
+
+    #TODO chec`k delete_pattern
+    def delete_method_cache(self, attr_name):
+        keys = CACHED_METHOD_SHORT_KEY_TEMPLATE.format(type(self).__name__, self.pk) + '*'
+        cache.delete_pattern(keys)
 
     def clean_cache(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:
@@ -973,11 +1015,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
     #******************
+    @cached_method
+    def hist_exists_by_comment_and_user(self, history_type, user):
+        return History.objects.filter(history_type=history_type, comment=self, user=user).exists()
 
     def hist_exists_by_request(self, history_type, request):
         user = request.user
         if user and user.is_authenticated():
-            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
+            hist_exists = self.hist_exists_by_comment_and_user(history_type, user)
         else:
             session_key = request.session.session_key
             if session_key is None:
@@ -1343,6 +1388,7 @@ def confirm_user_comments_by_email(sender, instance, created, **kwargs):
 post_save.connect(create_user_profile, sender=User)
 post_save.connect(confirm_user_comments, sender=User)
 post_save.connect(confirm_user_comments_by_email, sender=EmailAddress)
+
 
 
 def is_regular(self):
