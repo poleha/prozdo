@@ -65,23 +65,23 @@ class PostDetail(ProzdoListView):
         except:
             order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
 
-        #if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-        #    comments = self.post.first_level_available_comments
-        #else:
-        #    comments = self.post.available_comments
-        #if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-        #    comments = comments.order_by('-created')
-        #else:
-        #    comments = comments.order_by('created')
+        if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
+            comments = self.post.comments.get_available().filter(parent=None)
+        else:
+            comments = self.post.comments.get_available()
+        if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+            comments = comments.order_by('-created')
+        else:
+            comments = comments.order_by('created')
 
-        if show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-            comments = self.post.first_level_available_comments_created_dec
-        elif show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
-            comments = self.post.first_level_available_comments_created_inc
-        elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-            comments = self.post.available_comments_created_dec
-        elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
-            comments = self.post.available_comments_created_inc
+        #if show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+        #    comments = self.post.first_level_available_comments_created_dec
+        #elif show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
+        #    comments = self.post.first_level_available_comments_created_inc
+        #elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
+        #    comments = self.post.available_comments_created_dec
+        #elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
+        #    comments = self.post.available_comments_created_inc
 
         return comments
 
@@ -375,8 +375,8 @@ class HistoryAjaxSave(generic.View):
                 data['saved'] = True
             else:
                 data['saved'] = False
-            data['average_mark'] = post.average_mark,
-            data['marks_count'] = post.marks_count
+            data['average_mark'] = post.obj.average_mark,
+            data['marks_count'] = post.obj.marks_count
             data['mark'] = post.get_mark_by_request(request)
             return JsonResponse(data)
 
@@ -393,8 +393,8 @@ class HistoryAjaxSave(generic.View):
                 data['saved'] = True
             else:
                 data['saved'] = False
-            data['average_mark'] = post.average_mark,
-            data['marks_count'] = post.marks_count
+            data['average_mark'] = post.obj.average_mark,
+            data['marks_count'] = post.obj.marks_count
             data['mark'] = 0
             return JsonResponse(data)
 

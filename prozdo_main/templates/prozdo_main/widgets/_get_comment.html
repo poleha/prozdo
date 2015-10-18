@@ -3,11 +3,11 @@
 <div class="single-comment {{ comment_class }}">
 <div class="comment-top">
     <div class="avatar">
-    {% if comment.cached_user and comment.cached_user.thumb50 %}
+    {% if comment.user and comment.user.thumb50 %}
 <div>
 <div class="image-wrapper">
-<a class="user" href="{{ comment.cached_user.get_absolute_url }}">
-    <img class="img-rounded" src="{{ comment.cached_user.thumb50 }}">
+<a class="user" href="{{ comment.user.get_absolute_url }}">
+    <img class="img-rounded" src="{{ comment.user.thumb50 }}">
 </a>
 </div>
 </div>
@@ -20,12 +20,12 @@
 
 
  <div class="user-block">
-{% if comment.cached_user %}
+{% if comment.user %}
 <div>
-<a class="user" href="{{ comment.cached_user.get_absolute_url }}">{{ comment.cached_user }}</a>
+<a class="user" href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
 <span class="user-info-top">
-<a href="{{ comment.cached_user.get_karm_url }}"><span>Карма: </span>{{ comment.cached_user.karm }}</a>
-<a href="{{ comment.cached_user.get_activity_url }}"><span>Активность: </span>{{ comment.cached_user.activity }}</a>
+<a href="{{ comment.user.get_karm_url }}"><span>Карма: </span>{{ comment.user.karm }}</a>
+<a href="{{ comment.user.get_activity_url }}"><span>Активность: </span>{{ comment.user.activity }}</a>
 </span>
 </div>
 {% else %}
@@ -51,9 +51,9 @@
 {% if comment.get_tree_level == 0 or not show_tree %}
 <div id="c{{ comment.pk }}"></div>
 {% endif %}
-{% if comment.cached_parent and not show_tree and not show_as_child %}
+{% if comment.parent and not show_tree and not show_as_child %}
     <div>
-    <label>В ответ на:</label>{% include 'prozdo_main/comment/_tiny_comment.html' with comment=comment.cached_parent %}
+    <label>В ответ на:</label>{% include 'prozdo_main/comment/_tiny_comment.html' with comment=comment.parent %}
 </div>
 {% endif %}
 
@@ -62,7 +62,7 @@
 
 
         <div><span class="comment-body" id="comment-body-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}">
-            {% if comment.cached_user.is_regular %}
+            {% if comment.user.is_regular %}
             {{ comment.body|linebreaks }}
             {% else %}
             {{ comment.body|safe }}
@@ -92,7 +92,7 @@
 
 </div>
 
-{% if comment.cached_user == user %}
+{% if comment.user == user %}
 
 <a href="{{ comment.update_url }}">Редактировать</a>
 {% endif %}

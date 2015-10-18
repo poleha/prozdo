@@ -39,8 +39,8 @@
     </td>
 
     <td class="col-md-1">
-     {% if comment.cached_user %}
-        <a href="{{ comment.cached_user.get_absolute_url }}">{{ comment.cached_user }}</a>
+     {% if comment.user %}
+        <a href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
         {% else %}
          {{ comment.username }}
         {% endif %}

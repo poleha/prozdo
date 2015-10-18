@@ -3,8 +3,8 @@
 {% for comment in comments %}
 <div class="portlet-item">
     <p>
-    {% if comment.cached_user.is_authenticated %}
-     <a class="user" href="{{ comment.cached_user.get_absolute_url }}">{{ comment.cached_user }}</a>
+    {% if comment.user.is_authenticated %}
+     <a class="user" href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
     {% else %}
         <span class="guest">{{ comment.username }}</span>
     {% endif %}
@@ -21,12 +21,12 @@
     <label>Посчитали полезным: </label>{{ comment.comment_mark }}
   </p>
     <p>
-   {% if comment.cached_post.is_drug %}
+   {% if comment.post.is_drug %}
        <label>Препарат: </label>
         {% else %}
        <label>Тема: </label>
         {% endif %}
-    <a href="{{ comment.cached_post.get_absolute_url }}">{{ comment.cached_post }}</a>
+    <a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a>
 </p>
 </div>
 </div>

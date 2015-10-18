@@ -79,7 +79,7 @@ CACHEOPS_REDIS = {
 
 
 CACHEOPS_DEFAULTS = {
-    'timeout': 60 * 60 * 24 * 30
+    'timeout': 60 * 60 * 24 * 7
 }
 CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
@@ -260,9 +260,9 @@ CACHES = {
     "default": {
         'BACKEND': 'redis_cache.RedisCache',
         "LOCATION": "redis://127.0.0.1:6379/1",
-#        "OPTIONS": {
-#            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#        }
+        "OPTIONS": {
+            'DB': 2,
+        }
     }
 }
 
@@ -283,8 +283,8 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
-PROZDO_CACHE_DURATION = 60 * 60
+PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30

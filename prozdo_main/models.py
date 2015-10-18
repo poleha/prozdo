@@ -144,6 +144,7 @@ def cached_property(func):
 CACHED_METHOD_SHORT_KEY_TEMPLATE = '_cached_method_{0}_{1}'
 CACHED_METHOD_KEY_TEMPLATE = CACHED_METHOD_SHORT_KEY_TEMPLATE + '_{2}_{3}'
 
+"""
 class cached_method:
     def __init__(self, func):
         self.func = func
@@ -170,7 +171,7 @@ class cached_method:
         def wrapper(*args, **kwargs):
             return self(instance, *args, **kwargs)
         return wrapper
-
+"""
 
 class CachedModelMixin(models.Model):
     class Meta:
@@ -181,20 +182,20 @@ class CachedModelMixin(models.Model):
     def get_cache_key(self, attr_name):
         return self.cache_key_template.format(type(self).__name__, attr_name, self.pk)
 
-    def get_cached(self, attr_name):
-        if settings.PROZDO_CACHE_ENABLED:
-            key = self.get_cache_key(attr_name)
-            res = cache.get(key)
-            if res is None:
-                res = getattr(self, attr_name)
-                if res is None:
-                    res = EMPTY_CACHE_PLACEHOLDER
-                cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
-            if res == EMPTY_CACHE_PLACEHOLDER:
-                res = None
-        else:
-            res = getattr(self, attr_name)
-        return res
+    #def get_cached(self, attr_name):
+    #    if settings.PROZDO_CACHE_ENABLED:
+    #        key = self.get_cache_key(attr_name)
+    #        res = cache.get(key)
+    #        if res is None:
+    #            res = getattr(self, attr_name)
+    #            if res is None:
+    #                res = EMPTY_CACHE_PLACEHOLDER
+    #            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+    #        if res == EMPTY_CACHE_PLACEHOLDER:
+    #            res = None
+    #    else:
+    #        res = getattr(self, attr_name)
+    #    return res
 
     def invalidate_cache(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:
@@ -208,51 +209,26 @@ class CachedModelMixin(models.Model):
     #TODO make only if instance key attr is instance of models.Model
     def full_invalidate_cache(self):
         if settings.PROZDO_CACHE_ENABLED:
-            instance_keys = tuple((field.name for field in self._meta.fields))
-            prop_keys = tuple((k for k, v in type(self).__dict__.items() if isinstance(v, CachedProperty)))
-            for attr_name in (instance_keys + prop_keys):
+            #instance_keys = tuple((field.name for field in self._meta.fields))
+            prop_keys = []
+            for c in type(self).mro():
+                prop_keys += [k for k, v in c.__dict__.items() if isinstance(v, CachedProperty)]
+
+            for attr_name in set(prop_keys):
                 self.invalidate_cache(attr_name)
-            self.full_delete_method_cache()
-
-    def full_delete_method_cache(self):
-        if settings.PROZDO_CACHE_ENABLED:
-            meth_keys = (k for k, v in type(self).__dict__.items() if isinstance(v, cached_method))
-            for attr_name in meth_keys:
-                self.delete_method_cache(attr_name)
-
-
-    #TODO chec`k delete_pattern
-    def delete_method_cache(self, attr_name):
-        if settings.PROZDO_CACHE_ENABLED:
-            keys = CACHED_METHOD_SHORT_KEY_TEMPLATE.format(type(self).__name__, self.pk) + '*'
-            cache.delete_pattern(keys)
 
     def clean_cache(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:
             key = self.get_cache_key(attr_name)
             cache.delete(key)
 
-    def full_clean_cache(self):
-        if settings.PROZDO_CACHE_ENABLED:
-            for attr_name in self.__dict__.keys():
-                self.clean_cache(attr_name)
-
-    def __getattr__(self, item):
-        if item[:7] == 'cached_':
-            attr_name = item[7:]
-            return self.get_cached(attr_name)
-        else:
-            raise AttributeError
-
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if settings.PROZDO_CACHE_ENABLED:
             self.full_invalidate_cache()
 
+    #TODO
     def delete(self, *args, **kwargs):
-        if settings.PROZDO_CACHE_ENABLED:
-            self.full_invalidate_cache()
         super().delete(*args, **kwargs)
 
 
@@ -565,7 +541,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
 
-
+    """
     @cached_property
     def first_level_available_comments_created_dec(self):
         return self.comments.filter(status=COMMENT_STATUS_PUBLISHED, parent_id=None).order_by('-created')
@@ -582,7 +558,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     @cached_property
     def available_comments_created_inc(self):
         return self.comments.filter(status=COMMENT_STATUS_PUBLISHED).order_by('created')
-
+    """
 
 
 class Brand(Post):
@@ -1004,7 +980,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
-        self.post.full_invalidate_cache()
+        self.post.obj.full_invalidate_cache()
 
         for ancestor in self.get_ancestors():
             ancestor.full_invalidate_cache()
@@ -1015,7 +991,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         ancestors = self.get_ancestors()
         super().delete(*args, **kwargs)
         if post:
-            post.full_invalidate_cache()
+            post.obj.full_invalidate_cache()
         if user:
             user.user_profile.full_invalidate_cache()
         for ancestor in ancestors:
@@ -1024,7 +1000,6 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
     #******************
-    @cached_method
     def hist_exists_by_comment_and_user(self, history_type, user):
         return History.objects.filter(history_type=history_type, comment=self, user=user).exists()
 
@@ -1281,7 +1256,7 @@ class History(SuperModel):
             self.comment.full_invalidate_cache()
             invalidate_obj(self.comment)
         if self.post:
-            self.post.full_invalidate_cache()
+            self.post.obj.full_invalidate_cache()
             invalidate_obj(self.post)
         if self.user:
             self.user.user_profile.full_invalidate_cache()
@@ -1300,7 +1275,7 @@ class History(SuperModel):
             comment.full_invalidate_cache()
             invalidate_obj(comment)
         if post:
-            post.full_invalidate_cache()
+            post.obj.full_invalidate_cache()
             invalidate_obj(post)
         if user:
             user.user_profile.full_invalidate_cache()
