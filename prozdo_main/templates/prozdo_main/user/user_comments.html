@@ -20,7 +20,7 @@
 <tr>
 <td>{{ comment.created }}</td>
 <td><a href="{{ comment.get_absolute_url }}">{{ comment }}</a></td>
-<td><a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a></td>
+<td><a href="{{ comment.post.obj.get_absolute_url }}">{{ comment.post }}</a></td>
 <td>{{ comment.comment_mark }}</td>
 </tr>
 

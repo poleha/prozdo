@@ -66,9 +66,9 @@ class PostDetail(ProzdoListView):
             order_by_created = forms.COMMENTS_ORDER_BY_CREATED_DEC
 
         if show_type == forms.COMMENTS_SHOW_TYPE_TREE:
-            comments = self.post.comments.get_available().filter(parent=None)
+            comments = self.post.obj.comments.get_available().filter(parent=None)
         else:
-            comments = self.post.comments.get_available()
+            comments = self.post.obj.comments.get_available()
         if order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
             comments = comments.order_by('-created')
         else:
@@ -141,7 +141,7 @@ class PostDetail(ProzdoListView):
         context['comment_form'] = comment_form
         comments_options_form = forms.CommentsOptionsForm(self.request.GET)
         context['comments_options_form'] = comments_options_form
-        context['mark'] = self.post.get_mark_by_request(request)
+        context['mark'] = self.post.obj.get_mark_by_request(request)
 
         if self.obj.is_blog:
             user_mark = self.obj.get_mark_blog_by_request(request)

@@ -844,6 +844,20 @@ width: 180px;
  .form-mixin;
 }
 
+
+#comment-form {
+  .form-mixin;
+
+  #id_post_mark {
+  width: inherit;
+}
+
+  input {
+   width: 200px;
+  }
+  margin-bottom: 20px;
+}
+
 #full-post {
   #blog-image {
     float: left;
@@ -858,4 +872,17 @@ width: 180px;
   .box-shadow-mixin;
   padding: 10px;
   margin: 5px;
+}
+
+
+#mobile-menu-button {
+  width: 24px;
+  height: 15px;
+  display: block;
+  cursor: pointer;
+  background: url(../images/mobile-menu-button.png) no-repeat;
+  &.active {
+  background: url(../images/mobile-menu-button-active.png) no-repeat;
+  }
+
 }

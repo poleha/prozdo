@@ -20,7 +20,7 @@
 <tr>
 <td>{{ hist.created }}</td>
 <td><a href="{{ hist.comment.get_absolute_url }}">{{ hist.comment }}</a></td>
-<td><a href="{{ hist.post.get_absolute_url }}">{{ hist.post }}</a></td>
+<td><a href="{{ hist.post.obj.get_absolute_url }}">{{ hist.post }}</a></td>
 {% if hist.user %}
     <td><a class="user" href="{{ hist.user.get_absolute_url }}">{{ hist.user }}</a></td>
 {% else %}

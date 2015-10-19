@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load prozdo_main_tags %}
+{% load compress %}
 <!DOCTYPE html>
 <html lang="ru">
 {% block head %}
@@ -36,7 +37,12 @@
 
 {% block header  %}
 <div class="row" id="header">
-<div class="col-xs-5 col-sm-3 col-md-3 col-lg-2" id="top-logo">
+<div class="col-xs-1 hidden-sm hidden-md hidden-lg">
+<span id="mobile-menu-button">
+
+</span>
+</div>
+    <div class="col-xs-4 col-sm-3 col-md-3 col-lg-2" id="top-logo">
 <a href="/"></a>
 </div>
 <div class="hidden-xs col-sm-5 col-md-5 col-lg-offset-1 " id="top-consult-banner">
@@ -52,7 +58,7 @@
 </div>
 
 </div>
- <div class="row" id="top-menu">
+ <div class="row hidden-xs" id="top-menu">
 {% top_menu %}
 </div>
 {% endblock header  %}
@@ -125,6 +131,24 @@
 {% endblock footer %}
 
 {% block bottom_scripts %}
+{% compress js %}
+<script>
+$(function () {
+$('#mobile-menu-button').click(function(){
+var button = $('#mobile-menu-button');
+ if (button.hasClass('active')) {
+$('#top-menu').addClass('hidden-xs');
+$('#mobile-menu-button').removeClass('active');
+}
+   else {
+ $('#top-menu').removeClass('hidden-xs');
+$('#mobile-menu-button').addClass('active');
+ }
+ });
+
+});
+</script>
+{% endcompress %}
 {% endblock bottom_scripts %}
 </div>
 </div>

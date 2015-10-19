@@ -3,7 +3,7 @@
 <div class="recent-consults">
    {% for comment in recent_consults %}
        <div class="col-lg-4 col-md-6 item">
-       <h4><a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a></h4>
+       <h4><a href="{{ comment.post.obj.get_absolute_url }}">{{ comment.post.obj }}</a></h4>
  <p class="date">{{ comment.created }}</p>
 
 <p class="comment">

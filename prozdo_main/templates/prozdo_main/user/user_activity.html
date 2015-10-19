@@ -23,7 +23,7 @@
     <a href="{{ hist.comment.get_absolute_url }}">{{ hist.comment }}</a>
     {% endif %}
 </td>
-<td><a href="{{ hist.post.get_absolute_url }}">{{ hist.post }}</a></td>
+<td><a href="{{ hist.post.obj.get_absolute_url }}">{{ hist.post }}</a></td>
 
     <td>{{ hist.user_points }}</td>
 </tr>

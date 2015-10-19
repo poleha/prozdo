@@ -26,8 +26,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from cacheops.query import ManagerMixin
 from cacheops import invalidate_obj, invalidate_model, invalidate_all
-
-
+from django.core.cache.utils import make_template_fragment_key
 
 #<Constants***********************************************************
 
@@ -230,13 +229,6 @@ class CachedModelMixin(models.Model):
     #TODO
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-
-
-
-#TODO make middleware
-class CachedUser(User, CachedModelMixin):
-    class Meta:
-        proxy = True
 
 
 class SuperModel(CachedModelMixin):
@@ -747,7 +739,7 @@ class Blog(Post):
         else:
             return helper.cut_text(strip_tags(self.body), 200)
 
-    @property
+    @cached_property
     def mark(self):
         try:
             mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('pk'))['pk__count']
@@ -980,15 +972,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
-        self.post.obj.full_invalidate_cache()
 
-        for ancestor in self.get_ancestors():
-            ancestor.full_invalidate_cache()
+
 
     def delete(self, *args, **kwargs):
         post = self.post
         user = self.user
         ancestors = self.get_ancestors()
+        descendants = self.get_descendants()
         super().delete(*args, **kwargs)
         if post:
             post.obj.full_invalidate_cache()
@@ -996,6 +987,10 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             user.user_profile.full_invalidate_cache()
         for ancestor in ancestors:
             ancestor.full_invalidate_cache()
+            invalidate_obj(ancestor)
+        for descendant in descendants:
+            descendant.full_invalidate_cache()
+            invalidate_obj(descendant)
 
 
 
@@ -1255,14 +1250,27 @@ class History(SuperModel):
         if self.comment:
             self.comment.full_invalidate_cache()
             invalidate_obj(self.comment)
+
+            for ancestor in self.comment.get_ancestors():
+                ancestor.full_invalidate_cache()
+                invalidate_obj(ancestor)
+            for descendant in self.comment.get_descendants():
+                descendant.full_invalidate_cache()
+                invalidate_obj(descendant)
+
         if self.post:
             self.post.obj.full_invalidate_cache()
-            invalidate_obj(self.post)
+            invalidate_obj(self.post.obj)
+            fragments = ('post_detail_1', 'post_detail_2', 'post_detail_3', 'post_detail_4')
+            for fragment in fragments:
+                key = make_template_fragment_key(fragment, (self.post.pk,))
+                cache.delete(key)
         if self.user:
             self.user.user_profile.full_invalidate_cache()
             invalidate_obj(self.user)
         self.invalidate_exists()
         self.invalidate_exists_by_comment()
+
 
     def delete(self, *args, **kwargs):
         post = self.post
@@ -1274,9 +1282,17 @@ class History(SuperModel):
         if comment:
             comment.full_invalidate_cache()
             invalidate_obj(comment)
+
+            for ancestor in comment.get_ancestors():
+                ancestor.full_invalidate_cache()
+                invalidate_obj(ancestor)
+            for descendant in comment.get_descendants():
+                descendant.full_invalidate_cache()
+                invalidate_obj(descendant)
+
         if post:
             post.obj.full_invalidate_cache()
-            invalidate_obj(post)
+            invalidate_obj(post.obj)
         if user:
             user.user_profile.full_invalidate_cache()
             invalidate_obj(user)
@@ -1362,6 +1378,8 @@ class UserProfile(SuperModel):
             self.role = USER_ROLE_ADMIN
 
         super().save(*args, **kwargs)
+        invalidate_obj(self.user)
+
 
 
 def create_user_profile(sender, instance, created, **kwargs):

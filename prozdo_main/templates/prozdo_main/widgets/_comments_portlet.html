@@ -21,12 +21,12 @@
     <label>Посчитали полезным: </label>{{ comment.comment_mark }}
   </p>
     <p>
-   {% if comment.post.is_drug %}
+   {% if comment.post.obj.is_drug %}
        <label>Препарат: </label>
         {% else %}
        <label>Тема: </label>
         {% endif %}
-    <a href="{{ comment.post.get_absolute_url }}">{{ comment.post }}</a>
+    <a href="{{ comment.post.obj.get_absolute_url }}">{{ comment.post.obj }}</a>
 </p>
 </div>
 </div>
