@@ -78,3 +78,7 @@ class CosmeticsAdmin(AdminImageMixin, PostAdmin):
 @admin.register(models.Blog)
 class BlogAdmin(AdminImageMixin, PostAdmin):
     pass
+
+@admin.register(models.Mail)
+class MailAdmin(reversion.VersionAdmin):
+    pass

@@ -85,7 +85,7 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*': {'ops': 'all'},
+    '*.*': {},#{'ops': ('fetch', 'get')},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
@@ -142,6 +142,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'TEST': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'test.sqlite3')
+        }
     }
 }
 
@@ -256,13 +260,21 @@ AUTHENTICATION_BACKENDS = (
 #}
 
 
+#CACHES = {
+#    "default": {
+#        'BACKEND': 'redis_cache.RedisCache',
+#        "LOCATION": "redis://127.0.0.1:6379/1",
+#        "OPTIONS": {
+#            'DB': 2,
+#        }
+#    }
+#}
+
+
 CACHES = {
     "default": {
-        'BACKEND': 'redis_cache.RedisCache',
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            'DB': 2,
-        }
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
     }
 }
 
@@ -291,7 +303,7 @@ PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = True
+DEBUG_TOOLBAR = False
 
 
 if DEBUG_TOOLBAR:
@@ -325,7 +337,7 @@ if DEBUG_TOOLBAR:
 
 
 
-if PROZDO_CACHE_ENABLED:
+if PROZDO_CACHE_ENABLED and not DEBUG:
 
     TEMPLATES[0]['OPTIONS']['loaders'] = [
             ('django.template.loaders.cached.Loader',
@@ -340,4 +352,5 @@ else:
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
         ]
+
 

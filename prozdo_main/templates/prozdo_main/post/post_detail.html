@@ -478,6 +478,8 @@
                 $(document).on('submit', '#comment-form', function (e) {
                     var frm = $('#comment-form');
                     var innerForm = frm.find('#comment-form-inner');
+                    var button = frm.find('.btn');
+                    button.attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: frm.attr('action'),
@@ -492,10 +494,12 @@
                             }
                             else {
                                 innerForm.html(data.comment_form);
+                                button.removeAttr('disabled');
                             }
 
                         },
                         error: function (data) {
+                            button.removeAttr('disabled');
                         }
                     });
 

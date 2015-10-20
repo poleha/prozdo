@@ -12,9 +12,7 @@ from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
 from django.utils import timezone
-from allauth.account.models import EmailAddress
-from django.template.loader import render_to_string
-from django.core.mail.message import EmailMultiAlternatives
+from allauth.account.models import EmailAddress, EmailConfirmation
 from sorl.thumbnail import ImageField, get_thumbnail
 import re
 from django.utils.html import strip_tags
@@ -26,7 +24,10 @@ from django.db.models import Q
 from django.core.cache import cache
 from cacheops.query import ManagerMixin
 from cacheops import invalidate_obj, invalidate_model, invalidate_all
-from django.core.cache.utils import make_template_fragment_key
+from django.core.mail.message import EmailMultiAlternatives
+from django.utils import timezone
+from django.template.loader import render_to_string
+
 
 #<Constants***********************************************************
 
@@ -460,7 +461,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
                 mark = ''
         else:
             try:
-                mark = History.objects.get(session_key=request.session.session_key, history_type=HISTORY_TYPE_POST_RATED, user=None).mark
+                mark = History.objects.get(session_key=request.session._get_or_create_session_key(), history_type=HISTORY_TYPE_POST_RATED, user=None).mark
             except:
                 mark = 0
 
@@ -758,7 +759,7 @@ class Blog(Post):
                 mark = 0
         else:
             try:
-                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None).filter(session_key=request.session.session_key).count()
+                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None).filter(session_key=request.session._get_or_create_session_key()).count()
             except:
                 mark = 0
 
@@ -857,18 +858,62 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             current_page = 1
         return current_page
 
+
+    def send_answer_to_comment_message(self):
+        user = self.parent.user
+        if user.user_profile.receive_messages:
+            email_to = user.email
+
+            email_sent = Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
+                                                     entity_id=self.pk,
+                                                     user=user).exists()
+            if email_sent:
+                return False
+
+            txt_template_name = 'prozdo_main/comment/email/answer_to_comment.txt'
+            html_template_name = 'prozdo_main/comment/email/answer_to_comment.html'
+
+            text = render_to_string(txt_template_name, {'comment': self})
+            html = render_to_string(html_template_name, {'comment': self})
+
+            subject = 'Получен ответ на Ваш отзыв на Prozdo.ru'
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            try:
+                msg = EmailMultiAlternatives(subject, text, from_email, [email_to])
+                msg.attach_alternative(html, "text/html")
+                res = msg.send()
+                if res:
+                    Mail.objects.create(
+                                mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
+                                user=user if user.is_authenticated() else None,
+                                subject=subject,
+                                body_html=html,
+                                body_text=text,
+                                email=email_to,
+                                ip=self.ip,
+                                session_key=self.session_key,
+                                entity_id=self.pk,
+                                email_from=from_email,
+                            )
+                    return True
+
+            except:
+                pass
+
+
     def send_confirmation_mail(self, user=None, request=None):
         if not user and request:
             user = request.user
         if request:
             ip = helper.get_client_ip(request)
-            session_key = request.session.session_key
+            session_key = request.session._get_or_create_session_key()
         else:
             ip = None
             session_key = None
 
-        confirm_comment_text_template_name = 'prozdo_main/mail/confirm_comment_html_template.html'
-        confirm_comment_html_template_name = 'prozdo_main/mail/confirm_comment_text_template.txt'
+        confirm_comment_text_template_name = 'prozdo_main/comment/email/confirm_comment_html_template.html'
+        confirm_comment_html_template_name = 'prozdo_main/comment/email/confirm_comment_text_template.txt'
         if not user.email_confirmed and not self.confirmed:
                 html = render_to_string(confirm_comment_html_template_name, {'comment': self})
                 text = render_to_string(confirm_comment_text_template_name, {'comment': self})
@@ -889,6 +934,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
                             email=to,
                             ip=ip,
                             session_key=session_key,
+                            entity_id=self.pk,
+                            email_from=from_email,
                         )
                 except:
                     pass
@@ -934,7 +981,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
     def get_status(self):
-        if self.user and (self.user.is_admin or self.user.is_author or self.user.is_doctor):
+        if self.user and self.user.user_profile.can_publish_comment():
             return COMMENT_STATUS_PUBLISHED
         else:
             if helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username):
@@ -973,6 +1020,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
 
+        if self.status == COMMENT_STATUS_PUBLISHED and self.parent and self.parent.confirmed and self.parent.user:
+            self.send_answer_to_comment_message()
 
 
     def delete(self, *args, **kwargs):
@@ -1003,7 +1052,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if user and user.is_authenticated():
             hist_exists = self.hist_exists_by_comment_and_user(history_type, user)
         else:
-            session_key = request.session.session_key
+            session_key = request.session._get_or_create_session_key()
             if session_key is None:
                 return False
             hist_exists = History.exists_by_comment(session_key, self, history_type)
@@ -1020,7 +1069,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if user and user.is_authenticated():
             return user == self.user
         else:
-            session_key = request.session.session_key
+            session_key = request.session._get_or_create_session_key()
             return self.session_key == session_key
 
     #******************
@@ -1261,10 +1310,7 @@ class History(SuperModel):
         if self.post:
             self.post.obj.full_invalidate_cache()
             invalidate_obj(self.post.obj)
-            fragments = ('post_detail_1', 'post_detail_2', 'post_detail_3', 'post_detail_4')
-            for fragment in fragments:
-                key = make_template_fragment_key(fragment, (self.post.pk,))
-                cache.delete(key)
+
         if self.user:
             self.user.user_profile.full_invalidate_cache()
             invalidate_obj(self.user)
@@ -1309,6 +1355,16 @@ class UserProfile(SuperModel):
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
 
+    def can_publish_comment(self):
+        if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= 10:
+            return True
+        else:
+            return False
+
+    def get_unsubscribe_url(self):
+        email_adress = EmailAddress.objects.get(email=self.user.email)
+        key = email_adress.emailconfirmation_set.latest('created').key
+        return reverse('unsubscribe', kwargs={'email': self.user.email, 'key': key})
 
     def karm_history(self):
         return self._karm_history().order_by('-created')
@@ -1339,8 +1395,8 @@ class UserProfile(SuperModel):
         try:
             karm = self.karm_history().aggregate(Sum('user_points'))['user_points__sum']
         except:
-            karm = ''
-        return karm
+            karm = 0
+        return karm if karm is not None else 0
 
 
     def get_email_confirmed(self):
@@ -1461,16 +1517,20 @@ User.thumb50 = property(lambda self: self.user_profile.thumb50)
 AnonymousUser.is_regular = True
 AnonymousUser.image = None
 AnonymousUser.email_confirmed = False
+AnonymousUser.karm = 0
+AnonymousUser.activity = 0
 
 
 MAIL_TYPE_COMMENT_CONFIRM = 1
 MAIL_TYPE_USER_REGISTRATION = 2
 MAIL_TYPE_PASSWORD_RESET = 3
+MAIL_TYPE_ANSWER_TO_COMMENT = 4
 
 MAIL_TYPES = (
     (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
     (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
     (MAIL_TYPE_COMMENT_CONFIRM, 'Сброс пароля'),
+    (MAIL_TYPE_ANSWER_TO_COMMENT, 'Ответ на отзыв'),
 )
 
 class Mail(SuperModel):
@@ -1482,6 +1542,8 @@ class Mail(SuperModel):
     user = models.ForeignKey(User, blank=True, null=True)
     ip = models.CharField(max_length=15, null=True, blank=True)
     session_key = models.TextField(null=True, blank=True)
+    email_from = models.EmailField()
+    entity_id = models.CharField(max_length=20, blank=True)
 
 
 def request_with_empty_guest(request):
@@ -1489,9 +1551,16 @@ def request_with_empty_guest(request):
     if user.is_authenticated():
         return False
 
-    session_key = request.session.session_key
+    session_key = request.session._get_or_create_session_key()
     exists = History.exists(session_key)
     if not exists:
         return True
 
     return False
+
+
+
+
+
+
+

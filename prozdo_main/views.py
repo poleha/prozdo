@@ -14,6 +14,8 @@ from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
 from .helper import get_client_ip, to_int
+from django.contrib import messages
+
 
 
 class ProzdoListView(generic.ListView):
@@ -156,7 +158,7 @@ class PostDetail(ProzdoListView):
             if user.is_authenticated():
                 hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.session_key, post=self.post).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session._get_or_create_session_key(), post=self.post).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -179,13 +181,18 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
+            comment_form.instance.session_key = request.session._get_or_create_session_key()
             if user.is_authenticated() and not comment_form.instance.user:
                 comment_form.instance.user = user
             comment_form.instance.status = comment_form.instance.get_status()
 
             comment = comment_form.save()
             published = comment.status == models.COMMENT_STATUS_PUBLISHED
+
+            if not published:
+                messages.add_message(request, messages.INFO, 'Ваш отзыв будет опубликован после проверки модератором')
             comment.send_confirmation_mail(request=request)
+
             #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
             if request.is_ajax():
                 return JsonResponse({'href': comment.get_absolute_url(), 'status': 1, 'published': published})
@@ -311,7 +318,7 @@ class HistoryAjaxSave(generic.View):
         action = request.POST['action']
         ip = get_client_ip(request)
         user = request.user
-        session_key = request.session.session_key
+        session_key = request.session._get_or_create_session_key()
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
@@ -343,7 +350,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session._get_or_create_session_key())
             data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
@@ -369,7 +376,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session._get_or_create_session_key())
             data = {}
             if h:
                 data['saved'] = True
@@ -402,7 +409,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'blog-mark':
             post = models.Post.objects.get(pk=pk)
             blog = post.obj
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session._get_or_create_session_key())
             data = {}
             if h:
                 data['saved'] = True
@@ -793,6 +800,12 @@ class CommentConfirm(generic.TemplateView):
                 comment.confirmed = True
                 comment.save()
                 context['saved'] = True
+
+                if comment.user and not comment.user.email_confirmed:
+                    email = EmailAddress.objects.get(user=comment.user, verified=False, email=comment.user.email)
+                    email.verified = True
+                    email.save()
+
             else:
                 context['not_saved'] = True
 
@@ -888,4 +901,23 @@ class GetAjaxLoginFormView(generic.TemplateView):
 
 class AjaxLoginView(LoginView):
     template_name = 'prozdo_main/user/_ajax_login.html'
+
+
+class UnsubscribeView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+        email = kwargs['email']
+        key_from_request = kwargs['key']
+        email_address = EmailAddress.objects.get(email=email)
+        email_confirmation = email_address.email_confirmation
+        key = email_confirmation.key
+
+        if key == key_from_request:
+            user = EmailAddress.user
+            user_profile = user.user_profile
+            user_profile.receive_messages = False
+            user_profile.save()
+            messages.add_message(request, messages.INFO, 'Вы больше не будете получать сообщения с сайта Prozdo.ru')
+            return HttpResponseRedirect(reverse_lazy('main-page'))
+
 
