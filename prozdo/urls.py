@@ -34,7 +34,7 @@ urlpatterns += [
     url(r'^accounts/', include('allauth.urls')),
     url(r'^', include('prozdo_main.urls')),
     #url(r'^', include('prozdo_main.urls')),
-    url(r'^sitemap\.xml$', cache_page(60 * 60)(sitemap), {'sitemaps': sitemaps},
+    url(r'^sitemap\.xml$', cache_page(60 * 60 * 12)(sitemap), {'sitemaps': sitemaps},
     name='django.contrib.sitemaps.views.sitemap')
 
 ]

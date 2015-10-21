@@ -85,7 +85,7 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*': {'ops': ('fetch', 'get')},
+    '*.*': {}, #{'ops': 'all'},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
@@ -280,6 +280,8 @@ CACHES = {
 
 THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
+THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
+THUMBNAIL_REDIS_DB = 3
 
 
 #COMPRESS_ENABLED = True
@@ -295,7 +297,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_ENABLED = False
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
@@ -303,7 +305,7 @@ PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = False
+DEBUG_TOOLBAR = True
 
 
 if DEBUG_TOOLBAR:
