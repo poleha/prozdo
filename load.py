@@ -14,12 +14,13 @@ import sqlite3
 from allauth.account.models import EmailAddress, EmailConfirmation
 import datetime
 from django.conf import settings
-#from django.core.exceptions import MultipleObjectsReturned
-from django.utils.timezone import get_default_timezone, now
+from django.utils.timezone import get_default_timezone
 from prozdo_main.helper import make_alias
 from django.contrib.redirects.models import Redirect
 from django.db.models import Q
 from django.utils.html import strip_tags
+from django.contrib.sites.models import Site
+from allauth.socialaccount.models import SocialApp
 
 try:
     last_hist_pk = models.History.objects.latest('created').pk
@@ -34,22 +35,30 @@ def date_from_timestamp(ts):
         return datetime.datetime.fromtimestamp(ts, tz)
 
 
-#models.Post.objects.all().delete()
-#models.User.objects.all().exclude(username='kulik').delete()
-#EmailAddress.objects.all().delete()
-#EmailConfirmation.objects.all().delete()
-#models.Comment.objects.all().delete()
-#models.History.objects.all().delete()
-#Redirect.objects.all().delete()
 
-load_users = True
-load_posts = True
-load_comments = True
-load_history = True
-load_images = True
+delete_all = False
+load_users = False
+load_posts = False
+load_comments = False
+load_history = False
+load_images = False
 create_redirects = True
 fix_aliases = True
-create_other_models = True
+create_other_models = False
+fix_news_images = False
+
+
+if delete_all:
+    models.Post.objects.all().delete()
+    models.User.objects.all().exclude(username='kulik').delete()
+    EmailAddress.objects.all().delete()
+    EmailConfirmation.objects.all().delete()
+    models.Comment.objects.all().delete()
+    models.History.objects.all().delete()
+    Redirect.objects.all().delete()
+    Site.objects.all().delete()
+    SocialApp.objects.all().delete()
+
 
 conn = sqlite3.connect('prozdo.sqlite')
 conn.row_factory = sqlite3.Row
@@ -594,7 +603,6 @@ if load_images:
             print(user_profile)
 
 if create_redirects:
-    from django.contrib.sites.models import Site
     current_site = Site.objects.get_current()
     posts = models.Post.objects.filter(Q(alias__contains='bad/')|Q(alias__contains='vitamin/'))
     #print(list(posts))
@@ -626,6 +634,13 @@ if create_redirects:
         obj.alias = alias
         obj.save()
 
+    Redirect.objects.get_or_create(
+        site=current_site,
+        old_path='/raskrytyi_tsvetok_vashego_vysshego_ia_',
+        new_path='/raskrytyi_tsvetok_vashego_vysshego_ia',
+    )
+
+
 if fix_aliases:
     import re
     for post in models.Post.objects.filter(~Q(alias='')):
@@ -642,6 +657,10 @@ if fix_aliases:
             obj.alias = make_alias(obj.title)
             obj.save()
             print(obj.title, obj.alias)
+
+    b = models.Blog.objects.get(alias='raskrytyi_tsvetok_vashego_vysshego_ia_')
+    b.alias = 'raskrytyi_tsvetok_vashego_vysshego_ia'
+    b.save()
 
 
 if create_other_models:
@@ -661,3 +680,9 @@ if create_other_models:
 
     for elem in elems:
         elem.save()
+
+
+if fix_news_images:
+    for blog in models.Blog.objects.filter(body__contains='images/news'):
+        blog.body = blog.body.replace('images/news', 'static/prozdo_main/images/news')
+        blog.save()

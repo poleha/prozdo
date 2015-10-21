@@ -440,17 +440,20 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         elif self.post_type == POST_TYPE_CATEGORY:
             return self.category
 
-    @cached_property
-    def _cached_get_absolute_url(self):
+    #@cached_property
+    #def _cached_get_absolute_url(self):
+    #    alias = self.alias
+    #    if alias:
+    #        return reverse('post-detail-alias', kwargs={'alias': alias})
+    #    else:
+    #        return reverse('post-detail-pk', kwargs={'pk': self.pk})
+
+    def get_absolute_url(self):
         alias = self.alias
         if alias:
             return reverse('post-detail-alias', kwargs={'alias': alias})
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
-
-
-    def get_absolute_url(self):
-        return self._cached_get_absolute_url
 
     def get_mark_by_request(self, request):
         user = request.user

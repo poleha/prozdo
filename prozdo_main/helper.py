@@ -92,6 +92,12 @@ def full_trim(text):
     text = text.replace('__', '_')
     text = text.replace('__', '_')
     text = text.replace('__', '_')
+
+    if text[-1] == '_':
+        text = text[:-1]
+    if text[0] == '_':
+        text = text[1:]
+
     text = text.strip()
     return text
 
