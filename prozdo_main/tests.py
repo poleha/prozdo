@@ -209,6 +209,68 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
 
 
+    def test_comment_antispan_comment_with_errors_published_for_user_with_karm_above_9(self):
+        drug = self.drug
+        u = self.user
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
+        form = page.forms['comment-form']
+        body = 'zzzzzzzz1111'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.body, body)
+        self.assertEqual(comment.username, username)
+        self.assertEqual(comment.email, email)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        comment.status = models.COMMENT_STATUS_PUBLISHED
+        comment.save()
+        for k in range(10):
+            models.History.save_history(post=comment.post, comment=comment, history_type=models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
+        form = page.forms['comment-form']
+        username = settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        self.assertEqual(u.karm, 10)
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.body, body)
+        self.assertEqual(comment.username, username)
+        self.assertEqual(comment.email, email)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+
+
+    def test_comment_antispan_comment_with_errors_published_for_doctor(self):
+        drug = self.drug
+        u = self.user
+        u.user_profile.role = models.USER_ROLE_DOCTOR
+        u.user_profile.save()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
+        form = page.forms['comment-form']
+        body = 'zzzzzzzz1111'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.body, body)
+        self.assertEqual(comment.username, username)
+        self.assertEqual(comment.email, email)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+
+
+
 class HistoryTests(BaseTest):
     def test_comment_create_without_mark_for_drug(self):
         drug = self.drug
@@ -597,6 +659,8 @@ class CommentConfirmationTests(BaseTest):
 
     def test_user_comment_with_unapproved_mail_is_unapproved_but_approves_on_comment_by_mail_approve(self):
         user = self.user2
+        email = user.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, False)
         mail_count_start = models.Mail.objects.all().count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=user)
         form = page.forms['comment-form']
@@ -615,6 +679,8 @@ class CommentConfirmationTests(BaseTest):
         comment = comment.saved_version
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
+        email = user.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, True)
 
     def test_user_with_approved_mail_approve_comments_by_click(self):
         user = self.user
@@ -668,6 +734,7 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(mail_count_1, mail_count_2)
 
 
+
 class PublishedModelMixinTests(BaseTest):
     def test_comment_takes_publish_time_on_publish_only(self):
         comment = models.Comment.objects.create(
@@ -716,3 +783,119 @@ class PublishedModelMixinTests(BaseTest):
         self.assertEqual(drug.status, models.POST_STATUS_PUBLISHED)
         self.assertEqual(drug.published, published)
 
+class CommentMessagesTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+
+    def test_user_gets_email_when_his_approved_comment_is_answered(self):
+        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        drug = self.drug
+        u1 = self.user
+        email = u1.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, True)
+
+        u2 = self.user2
+        email = u2.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, False)
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u1)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, True)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+
+        self.assertEqual(mails_count0, mails_count1)
+
+        self.renew_app()
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u2)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        form['parent'] = comment.pk
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, False)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        self.assertEqual(mails_count1 + 1, mails_count2)
+
+
+
+    def test_user_doesnt_get_email_when_his_unapproved_comment_is_answered(self):
+        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        drug = self.drug
+        u1 = self.user
+        email = u1.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, True)
+
+        u2 = self.user2
+        email = u2.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, False)
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u2)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, False)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+
+        self.assertEqual(mails_count0, mails_count1)
+
+        self.renew_app()
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u1)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        form['parent'] = comment.pk
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, True)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        self.assertEqual(mails_count1, mails_count2)
+
+    def test_user_doesnt_get_email_when_his_approved_comment_is_answered_by_himself(self):
+        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        drug = self.drug
+        u1 = self.user
+        email = u1.emailaddress_set.all()[0]
+        self.assertEqual(email.verified, True)
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u1)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, True)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+
+        self.assertEqual(mails_count0, mails_count1)
+
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u1)
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший коммент'
+        form['body'] = body
+        form['parent'] = comment.pk
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.confirmed, True)
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        self.assertEqual(mails_count1, mails_count2)

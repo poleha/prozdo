@@ -1,4 +1,5 @@
-Вы оставили отзыв на сайте Про здоровье.
-{{ comment }}
-{{ comment.get_absolute_url }}
-{{ comment.get_confirm_url }}
+<p>Здравствуйте!</p>
+<p>Вы оставили отзыв <a href="{{ site_url }}{{ comment.get_absolute_url }}">{{ comment }}</a> на сайте Prozdo.ru - Про здоровье.</p>
+<p>Для того, чтобы подтвердить, что это Ваш электронный адрес, пройдите, пожалуйста по этой <a href="{{ site_url }}{{ comment.get_confirm_url }}">ссылке</a>.</p>
+
+

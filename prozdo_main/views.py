@@ -680,6 +680,7 @@ class UserProfileView(generic.TemplateView):
         if user_form.is_valid() and user_profile_form.is_valid():
             user_form.save()
             user_profile_form.save()
+            messages.add_message(request, messages.INFO, 'Данные о пользователе изменены.')
             return HttpResponseRedirect(reverse_lazy('user-profile'))
         else:
             return self.render_to_response(self.get_context_data(user_profile_form=user_profile_form, user_form=user_form, **kwargs))
@@ -909,11 +910,13 @@ class UnsubscribeView(generic.View):
         email = kwargs['email']
         key_from_request = kwargs['key']
         email_address = EmailAddress.objects.get(email=email)
-        email_confirmation = email_address.email_confirmation
-        key = email_confirmation.key
+        try:
+            key = email_address.emailconfirmation_set.latest('created').key
+        except:
+            key = None
 
-        if key == key_from_request:
-            user = EmailAddress.user
+        if key is not None and key == key_from_request:
+            user = email_address.user
             user_profile = user.user_profile
             user_profile.receive_messages = False
             user_profile.save()

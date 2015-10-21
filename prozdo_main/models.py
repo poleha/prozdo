@@ -786,7 +786,7 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
 
 class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
-        ordering = ['created']
+        ordering = ['-created']
     post = models.ForeignKey(Post, related_name='comments')
     username = models.CharField(max_length=256, verbose_name='Имя')
     email = models.EmailField(verbose_name='E-Mail')
@@ -861,7 +861,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     def send_answer_to_comment_message(self):
         user = self.parent.user
-        if user.user_profile.receive_messages:
+        if user.user_profile.receive_messages and not self.user == self.parent.user:
             email_to = user.email
 
             email_sent = Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
@@ -873,8 +873,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             txt_template_name = 'prozdo_main/comment/email/answer_to_comment.txt'
             html_template_name = 'prozdo_main/comment/email/answer_to_comment.html'
 
-            text = render_to_string(txt_template_name, {'comment': self})
-            html = render_to_string(html_template_name, {'comment': self})
+            text = render_to_string(txt_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+            html = render_to_string(html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
 
             subject = 'Получен ответ на Ваш отзыв на Prozdo.ru'
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -915,8 +915,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         confirm_comment_text_template_name = 'prozdo_main/comment/email/confirm_comment_html_template.html'
         confirm_comment_html_template_name = 'prozdo_main/comment/email/confirm_comment_text_template.txt'
         if not user.email_confirmed and not self.confirmed:
-                html = render_to_string(confirm_comment_html_template_name, {'comment': self})
-                text = render_to_string(confirm_comment_text_template_name, {'comment': self})
+                html = render_to_string(confirm_comment_html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+                text = render_to_string(confirm_comment_text_template_name, {'comment': self, 'site_url': settings.SITE_URL})
                 subject = 'Вы оставили отзыв на {}'.format('Prozdo.ru')
                 from_email = settings.DEFAULT_FROM_EMAIL
                 to = self.email
@@ -1313,7 +1313,9 @@ class History(SuperModel):
 
         if self.user:
             self.user.user_profile.full_invalidate_cache()
-            invalidate_obj(self.user)
+        if self.author:
+            self.author.user_profile.full_invalidate_cache()
+            invalidate_obj(self.author)
         self.invalidate_exists()
         self.invalidate_exists_by_comment()
 
@@ -1322,6 +1324,7 @@ class History(SuperModel):
         post = self.post
         comment = self.comment
         user = self.user
+        author = self.author
         self.delete_exists_by_comment()
         self.delete_exists()
         super().delete(*args, **kwargs)
@@ -1342,6 +1345,9 @@ class History(SuperModel):
         if user:
             user.user_profile.full_invalidate_cache()
             invalidate_obj(user)
+        if author:
+            author.user_profile.full_invalidate_cache()
+            invalidate_obj(author)
 
 
 class UserProfile(SuperModel):
@@ -1363,7 +1369,11 @@ class UserProfile(SuperModel):
 
     def get_unsubscribe_url(self):
         email_adress = EmailAddress.objects.get(email=self.user.email)
-        key = email_adress.emailconfirmation_set.latest('created').key
+        try:
+            key = email_adress.emailconfirmation_set.latest('created').key
+        except:
+            key = EmailConfirmation.create(email_adress).key
+
         return reverse('unsubscribe', kwargs={'email': self.user.email, 'key': key})
 
     def karm_history(self):

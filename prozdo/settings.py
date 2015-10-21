@@ -85,7 +85,7 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*': {},#{'ops': ('fetch', 'get')},
+    '*.*': {'ops': ('fetch', 'get')},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
