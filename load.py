@@ -43,12 +43,13 @@ def date_from_timestamp(ts):
 #Redirect.objects.all().delete()
 
 load_users = True
-load_posts = False
-load_comments = False
-load_history = False
-load_images = False
-create_redirects = False
-fix_aliases = False
+load_posts = True
+load_comments = True
+load_history = True
+load_images = True
+create_redirects = True
+fix_aliases = True
+create_other_models = True
 
 conn = sqlite3.connect('prozdo.sqlite')
 conn.row_factory = sqlite3.Row
@@ -642,3 +643,21 @@ if fix_aliases:
             obj.save()
             print(obj.title, obj.alias)
 
+
+if create_other_models:
+    from django.core import serializers
+
+    data = '[{"model": "socialaccount.socialapp", "pk": 1, "fields": {"sites": [], "client_id": "771139626663-800skijd1dkjem43dm66p2ltqvvjli34.apps.googleusercontent.com", "key": "", "name": "Google", "provider": "google", "secret": "lQrQkLZPFmFLi69oh32FBxzI"}}, {"model": "socialaccount.socialapp", "pk": 2, "fields": {"sites": [], "client_id": "5105342", "key": "", "name": "VK", "provider": "vk", "secret": "LA6KHXiHlwCaXsjVdIns"}}, {"model": "socialaccount.socialapp", "pk": 3, "fields": {"sites": [], "client_id": "1512092622435264", "key": "", "name": "Facebook", "provider": "facebook", "secret": "2fea43726ed1e66b116c6d84c3d1f7a8"}}]'
+
+    elems = serializers.deserialize("json", data)
+
+    for elem in elems:
+        elem.save()
+
+
+    data = '[{"model": "sites.site", "pk": 1, "fields": {"domain": "prozdo.ru", "name": "prozdo.ru"}}]'
+
+    elems = serializers.deserialize("json", data)
+
+    for elem in elems:
+        elem.save()

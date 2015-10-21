@@ -140,8 +140,8 @@
  {% endif %}
 
 {% if comment.updater %}
-<div>
-Отзыв изменен пользователем <a href="{{ comment.updater.get_absolute_url }}">{{ comment.updater }}</a> {{ comment.updated }}
+<div class="comment-updater">
+Отзыв изменен пользователем <a class="user" href="{{ comment.updater.get_absolute_url }}">{{ comment.updater }}</a> {{ comment.updated }}
 </div>
 
 {% endif %}

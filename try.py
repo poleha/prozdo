@@ -77,10 +77,19 @@ for i in range(15):
 #print(pu.cached_user_profile)
 #pu.save()
 
-h = models.History.objects.latest('created')
-pk = h.pk
-h.delete()
+from django.core import serializers
+
+data = '[{"model": "socialaccount.socialapp", "pk": 1, "fields": {"sites": [], "client_id": "771139626663-800skijd1dkjem43dm66p2ltqvvjli34.apps.googleusercontent.com", "key": "", "name": "Google", "provider": "google", "secret": "lQrQkLZPFmFLi69oh32FBxzI"}}, {"model": "socialaccount.socialapp", "pk": 2, "fields": {"sites": [], "client_id": "5105342", "key": "", "name": "VK", "provider": "vk", "secret": "LA6KHXiHlwCaXsjVdIns"}}, {"model": "socialaccount.socialapp", "pk": 3, "fields": {"sites": [], "client_id": "1512092622435264", "key": "", "name": "Facebook", "provider": "facebook", "secret": "2fea43726ed1e66b116c6d84c3d1f7a8"}}]'
+
+elems = serializers.deserialize("json", data)
+
+for elem in elems:
+    elem.save()
 
 
-h1 = models.History.objects.get(pk=pk)
-print(h1.pk == pk)
+data = '[{"model": "sites.site", "pk": 1, "fields": {"domain": "prozdo.ru", "name": "prozdo.ru"}}]'
+
+elems = serializers.deserialize("json", data)
+
+for elem in elems:
+    elem.save()
