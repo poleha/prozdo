@@ -416,30 +416,39 @@
                     var childrenBlock = $(this).closest('.full-comment').find('.comment-children-block');
                     var actionData = {'pk': pk, 'action': 'comment-tree-show'};
                     var cur = this;
+                    var showCommentTreeButton = $(cur).closest('.full-comment').find('.show-comment-tree');
+                    var hideCommentTreeButton = $(cur).closest('.full-comment').find('.hide-comment-tree');
+                    showCommentTreeButton.attr('disabled', 'disabled');
+                    hideCommentTreeButton.attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'get-comment-tree-ajax' %}',
                         data: actionData,
                         success: function (data) {
-                            $(cur).closest('.full-comment').find('.show-comment-tree').addClass('hidden');
-                            $(cur).closest('.full-comment').find('.hide-comment-tree').removeClass('hidden');
+                            showCommentTreeButton.removeAttr('disabled');
+                            hideCommentTreeButton.removeAttr('disabled');
+                            showCommentTreeButton.addClass('hidden');
+                            hideCommentTreeButton.removeClass('hidden');
                             childrenBlock.fadeTo('slow', 1, function () {
                                 childrenBlock.html(data);
                             });
                         },
                         error: function (data) {
-                            //childrenBlock.html('');
+                            showCommentTreeButton.removeAttr('disabled');
+                            hideCommentTreeButton.removeAttr('disabled');
                         }
                     });
 
                 });
 
                 $(document).on('click', '.hide-comment-tree', function (e) {
+                    var showCommentTreeButton = $(this).closest('.full-comment').find('.show-comment-tree');
+                    var hideCommentTreeButton = $(this).closest('.full-comment').find('.hide-comment-tree');
                     $(this).closest('.full-comment').find('.comment-children-block').fadeTo('slow', 0, function () {
                         $(this).closest('.full-comment').find('.comment-children-block').html('');
                     });
-                    $(this).closest('.full-comment').find('.show-comment-tree').removeClass('hidden');
-                    $(this).closest('.full-comment').find('.hide-comment-tree').addClass('hidden');
+                    showCommentTreeButton.removeClass('hidden');
+                    hideCommentTreeButton.addClass('hidden');
                 });
 
 

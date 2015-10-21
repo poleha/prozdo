@@ -257,7 +257,7 @@ font-size: 0.8em;
 #full-drug {
   .post-title {
       display: block;
-      box-shadow: 0 -2px 0 #46c500 inset;
+      box-shadow: 0 -2px 0 #8AB029 inset;
       font-size: 25px !important;
       text-transform: uppercase;
       color: black;
@@ -334,7 +334,7 @@ font-size: 0.6em;
   //color: #9cb8b3;
 
   a {
- color: #0bc17f;
+ color: @btn-menu-bg;
 }
 
 
@@ -348,7 +348,7 @@ font-size: 0.6em;
 
 
 a.user {
-    color: #46c500;
+    color: #8AB029;
     text-decoration: underline;
 }
 
@@ -370,7 +370,7 @@ color: #9cb8b3;
       bottom: 7px;
       right: 20px;
       margin-right: 5px;
-      color: #0bc17f;
+      color: @btn-menu-bg;
       display: block;
       background: url(../images/comment_count.png) left 3px no-repeat;
 
@@ -538,7 +538,7 @@ word-wrap: break-word;
 #bottom-menu {
 
   a {
-    color: #46c500;
+    color: #8AB029;
     text-decoration: underline;
   }
 
@@ -590,7 +590,7 @@ word-wrap: break-word;
 #post-block {
 
   a {
-    color: #0BC17F;
+    color: @btn-menu-bg;
     text-decoration: underline;
     margin-right: 10px;
     font-size: .85em;
@@ -606,6 +606,12 @@ padding: 10px;
 
 
 .single-comment {
+
+   .btn{
+    font-size: 0.8em;
+    padding: 3px 6px 3px 6px;
+  }
+
 position: relative;
 margin-top: 20px;
 
@@ -642,6 +648,7 @@ font-size: 0.8em;
 
   .btn{
     font-size: inherit;
+
   }
 
 }
@@ -662,15 +669,13 @@ height: 15px;
     width: 60px;
     text-align: center;
   }
-    .permalink {
+    .permalink, .update-url {
   float: right;
 
-     a {
-     color: #0bc17f;
+     color: @btn-menu-bg;
     font-size: .85em;
        font-style: italic;
-     }
-
+    margin-left: 10px;
       }
 
          .user-block{
@@ -679,7 +684,7 @@ height: 15px;
    .user-info-top {
      margin-left: 5px;
      a {
-     color: #0bc17f;
+     color: @btn-menu-bg;
     font-size: .85em;
        font-style: italic;
      }
@@ -718,6 +723,13 @@ right: 0;
 
 }
 
+
+
+}
+
+
+.update-url {
+  float: right;
 }
 
 }
@@ -725,16 +737,32 @@ right: 0;
 .tiny-comment {
 font-size: 0.8em;
 img {
-  float: left;
+  margin-right: 3px;
+  display: inline-block;
 }
 
+.user, .guest {
+  display: block;
+}
+
+.user-info {
+  float: left;
+  text-align: center;
+}  
+  
 .btn {
   font-size: inherit;
 }
 
-.clearfix;
+.go-to-comment-link {
+    color: @btn-menu-bg;
+    font-size: .95em;
+    font-style: italic;
 }
 
+border-bottom: 1px solid #dee7e6;
+.clearfix;
+}
 
 .comment-all-children-block {
   margin-top: 5px;

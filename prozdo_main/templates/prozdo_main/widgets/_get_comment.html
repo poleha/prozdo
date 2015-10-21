@@ -34,7 +34,13 @@
 
 {% endif %}
 </div>
-<div class="permalink"><a href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a></div>
+    <a class="permalink" href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a>
+
+{% if comment.user == user %}
+
+<a class="update-url" href="{{ comment.update_url }}">Редактировать</a>
+{% endif %}
+
 </div>
     <div class="content">
 
@@ -92,10 +98,7 @@
 
 </div>
 
-{% if comment.user == user %}
 
-<a href="{{ comment.update_url }}">Редактировать</a>
-{% endif %}
         <div class="comment-bottom-buttons">
         <input type="button" class="answer-to-comment btn btn-success" id="answer-to-comment-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Ответить">
 
