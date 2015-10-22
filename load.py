@@ -286,9 +286,16 @@ if load_posts:
         except:
             line = None
 
-        try:
-            cosmetics, created = models.Cosmetics.objects.get_or_create(
-                title=post_row['title'],
+        title = post_row['title']
+        new_title = title.encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
+        if not title == new_title:
+            title = new_title
+            alias = make_alias(title)
+            print(title)
+
+        alias = alias.replace('ё', 'e')
+        cosmetics, created = models.Cosmetics.objects.get_or_create(
+                title=title,
                 body=post_row['content'],
                 alias=alias,
                 created=date_from_timestamp(post_row['create_time']),
@@ -298,22 +305,6 @@ if load_posts:
                 line=line,
                 old_id=post_row['id'],
             )
-        except:
-            title = post_row['title'].encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
-            print(post_row['title'], title)
-
-            alias = make_alias(title)
-            cosmetics, created = models.Cosmetics.objects.get_or_create(
-                    title=post_row['title'],
-                    body=post_row['content'],
-                    alias=alias,
-                    created=date_from_timestamp(post_row['create_time']),
-                    updated=date_from_timestamp(post_row['update_time']),
-                    status=models.POST_STATUS_PUBLISHED if post_row['status'] == 2 else models.POST_STATUS_PROJECT,
-                    brand=brand,
-                    line=line,
-                    old_id=post_row['id'],
-                )
 
         params = (post_row['id'], )
         relation_rows = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1=?', params).fetchall()
@@ -339,6 +330,15 @@ if load_posts:
         params = (post_row['id'], )
         alias_row = c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = ?', params).fetchone()
         alias = alias_row['alias']
+
+        title = post_row['title']
+        new_title = title.encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
+        if not title == new_title:
+            title = new_title
+            alias = make_alias(title)
+            print(title)
+
+        alias = alias.replace('ё', 'e')
         blog, created = models.Blog.objects.get_or_create(
             title=post_row['title'],
             body=post_row['content'],

@@ -56,10 +56,13 @@ def trim_title(text):
 def full_trim(text):
     text = text.replace(':', '_')
     text = text.replace('»', '_')
+    text = text.replace('№', '_')
     text = text.replace('«', '_')
     text = text.replace(' ', '_') #Это не пробел, а какой-то гнилой символ
     text = text.replace('…', '_')
     text = text.replace('-', '_')
+    text = text.replace('–', '_')
+    text = text.replace('—', '_')
     text = text.replace('@', '_')
     text = text.replace(',', '_')
     text = text.replace('-', '_')

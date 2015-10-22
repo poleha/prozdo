@@ -77,6 +77,7 @@ for i in range(15):
 #print(pu.cached_user_profile)
 #pu.save()
 
+"""
 from django.core import serializers
 
 data = '[{"model": "socialaccount.socialapp", "pk": 1, "fields": {"sites": [], "client_id": "771139626663-800skijd1dkjem43dm66p2ltqvvjli34.apps.googleusercontent.com", "key": "", "name": "Google", "provider": "google", "secret": "lQrQkLZPFmFLi69oh32FBxzI"}}, {"model": "socialaccount.socialapp", "pk": 2, "fields": {"sites": [], "client_id": "5105342", "key": "", "name": "VK", "provider": "vk", "secret": "LA6KHXiHlwCaXsjVdIns"}}, {"model": "socialaccount.socialapp", "pk": 3, "fields": {"sites": [], "client_id": "1512092622435264", "key": "", "name": "Facebook", "provider": "facebook", "secret": "2fea43726ed1e66b116c6d84c3d1f7a8"}}]'
@@ -93,3 +94,24 @@ elems = serializers.deserialize("json", data)
 
 for elem in elems:
     elem.save()
+
+"""
+
+import sqlite3
+from prozdo_main.helper import make_alias
+conn = sqlite3.connect('prozdo.sqlite')
+conn.row_factory = sqlite3.Row
+c = conn.cursor()
+
+
+post_rows = c.execute('SELECT * FROM post p').fetchall()
+for post_row in post_rows:
+    title = post_row['title'].encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
+    alias = make_alias(title)
+    try:
+        alias.encode('ascii')
+    except:
+        print(alias)
+
+    #if not title == post_row['title']:
+    #    print(title, post_row['title'])

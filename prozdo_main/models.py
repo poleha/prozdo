@@ -516,7 +516,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
             try:
                 self.alias.encode('ascii')
             except:
-                raise ValidationError('Недопустимые символы в синониме')
+                raise ValidationError('Недопустимые символы в синониме {0}'.format(self.alias))
 
             result = re.match('[a-z0-9_\-]{1,}', self.alias)
             if not result:
