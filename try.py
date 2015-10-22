@@ -96,7 +96,7 @@ for elem in elems:
     elem.save()
 
 """
-
+"""
 import sqlite3
 from prozdo_main.helper import make_alias
 conn = sqlite3.connect('prozdo.sqlite')
@@ -115,3 +115,12 @@ for post_row in post_rows:
 
     #if not title == post_row['title']:
     #    print(title, post_row['title'])
+"""
+
+
+#{'email': 'kondratova-sveta@mail.ru', 'key': 'ifyzb7a7vuggalemou7shvzigdwmvgo4atbuezxc7w76bpjgu2fvm4dhbfmuml9d'}' not found. 1 pattern(s) tried: ['unsubscribe/(?P<email>[0-9a-z/.-_@]+)/(?P<key>[0-9A-Za-z]+)$']
+
+
+from django.core.urlresolvers import reverse
+
+url = reverse('unsubscribe', kwargs={'email': 'kondratova-sveta@mail.ru', 'key': 'ifyzb7a7vuggalemou7shvzigdwmvgo4atbuezxc7w76bpjgu2fvm4dhbfmuml9d'})

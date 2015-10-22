@@ -69,7 +69,7 @@ urlpatterns = [
     url(r'^user/comments/(?P<pk>\d+)$', views.UserCommentsView.as_view(), name='user-comments'),
     url(r'^user/karma/(?P<pk>\d+)$', views.UserKarmaView.as_view(), name='user-karma'),
     url(r'^user/activity/(?P<pk>\d+)$', views.UserActivityView.as_view(), name='user-activity'),
-    url(r'^unsubscribe/(?P<email>[0-9a-z/.-_@]+)/(?P<key>[0-9A-Za-z]+)$', views.UnsubscribeView.as_view(), name='unsubscribe'),
+    url(r'^unsubscribe/(?P<email>[0-9a-zA-Z.\-_@]+)/(?P<key>[0-9A-Za-z]+)$', views.UnsubscribeView.as_view(), name='unsubscribe'),
 
     url(r'^get_ajax_login_form$', views.GetAjaxLoginFormView.as_view(), name='get-ajax-login-form'),
     url(r'^ajax_login$', views.AjaxLoginView.as_view(), name='ajax-login'),

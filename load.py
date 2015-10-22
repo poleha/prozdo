@@ -37,7 +37,7 @@ def date_from_timestamp(ts):
 
 delete_all = True
 load_users = False
-load_posts = True
+load_posts = False
 load_comments = True
 load_history = True
 load_images = True
@@ -48,7 +48,7 @@ fix_news_images = True
 
 
 if delete_all:
-    models.Post.objects.all().delete()
+    #models.Post.objects.all().delete()
     #models.User.objects.all().exclude(username='kulik').delete()
     #EmailAddress.objects.all().delete()
     #EmailConfirmation.objects.all().delete()
@@ -293,7 +293,12 @@ if load_posts:
             alias = make_alias(title)
             print(title)
 
-        alias = alias.replace('ё', 'e')
+        try:
+            alias.encode('ascii')
+        except:
+            alias = make_alias(title)
+            print(alias)
+
         cosmetics, created = models.Cosmetics.objects.get_or_create(
                 title=title,
                 body=post_row['content'],
@@ -338,7 +343,12 @@ if load_posts:
             alias = make_alias(title)
             print(title)
 
-        alias = alias.replace('ё', 'e')
+
+        try:
+            alias.encode('ascii')
+        except:
+            alias = make_alias(title)
+            print(alias)
         blog, created = models.Blog.objects.get_or_create(
             title=post_row['title'],
             body=post_row['content'],
@@ -358,6 +368,93 @@ if load_posts:
                 category = models.Category.objects.get(old_id=related_post_row['id'])
                 blog.category.add(category)
         #posts[post_row['id']] = blog
+
+
+if create_other_models:
+    from django.core import serializers
+
+    data = '[{"model": "socialaccount.socialapp", "pk": 1, "fields": {"sites": [], "client_id": "771139626663-800skijd1dkjem43dm66p2ltqvvjli34.apps.googleusercontent.com", "key": "", "name": "Google", "provider": "google", "secret": "lQrQkLZPFmFLi69oh32FBxzI"}}, {"model": "socialaccount.socialapp", "pk": 2, "fields": {"sites": [], "client_id": "5105342", "key": "", "name": "VK", "provider": "vk", "secret": "LA6KHXiHlwCaXsjVdIns"}}, {"model": "socialaccount.socialapp", "pk": 3, "fields": {"sites": [], "client_id": "1512092622435264", "key": "", "name": "Facebook", "provider": "facebook", "secret": "2fea43726ed1e66b116c6d84c3d1f7a8"}}]'
+
+    elems = serializers.deserialize("json", data)
+
+    for elem in elems:
+        elem.save()
+
+
+    data = '[{"model": "sites.site", "pk": 1, "fields": {"domain": "prozdo.ru", "name": "prozdo.ru"}}]'
+
+    elems = serializers.deserialize("json", data)
+
+    for elem in elems:
+        elem.save()
+
+
+
+if create_redirects:
+    current_site = Site.objects.get_current()
+    posts = models.Post.objects.filter(Q(alias__contains='bad/')|Q(alias__contains='vitamin/'))
+    #print(list(posts))
+    for post in posts:
+        if post.alias == 'bad/25':
+            alias = 'cigapan'
+        elif post.alias == 'bad/5':
+            alias = 'oscillococcinum'
+        elif post.alias == 'bad/82':
+            alias = 'linex'
+        elif post.alias == 'bad/85':
+            alias = 'reduxin'
+        elif post.alias == 'vitamin/8':
+            alias = 'supradyn'
+        elif post.alias == 'vitamin/77':
+            alias = 'perfectil'
+        elif post.alias == 'bad/111':
+            alias = 'lasolvan'
+        elif post.alias == 'bad/2':
+            alias = 'qudesan'
+        else:
+            alias = make_alias(post.title)
+        Redirect.objects.get_or_create(
+            site=current_site,
+            old_path='/' + post.alias,
+            new_path='/' + alias
+        )
+        obj = post.obj
+        obj.alias = alias
+        obj.save()
+
+    Redirect.objects.get_or_create(
+        site=current_site,
+        old_path='/raskryityiy_tsvetok_vashego_vyisshego_«ya',
+        new_path='/raskrytyi_tsvetok_vashego_vysshego_ia',
+    )
+
+
+if fix_aliases:
+    import re
+    for post in models.Post.objects.filter(~Q(alias='')):
+        result = re.match('[a-z0-9_\-]{1,}', post.alias)
+        unicode_error = False
+        try:
+            post.alias.encode('ascii')
+        except:
+            unicode_error = True
+        if not result or unicode_error:
+
+            obj = post.obj
+            obj.title = post.title.encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
+            obj.alias = make_alias(obj.title)
+            obj.save()
+            print(obj.title, obj.alias)
+
+    try:
+        b = models.Blog.objects.get(alias='raskryityiy_tsvetok_vashego_vyisshego_«ya')
+        b.alias = 'raskrytyi_tsvetok_vashego_vysshego_ia'
+        b.save()
+    except:
+        pass
+
+
+
 
 #comments = {}
 if load_comments:
@@ -392,8 +489,8 @@ if load_comments:
         except:
             print('Post not found for {0} - {1}'.format(comment_row['id'], comment_row['post_id']))
             continue
-        if user.is_admin or user.is_author or user.is_doctor:
-            body = comment.body
+        if user and (user.is_admin or user.is_author or user.is_doctor):
+            body = comment_row['content']
         else:
             body = strip_tags(comment_row['content'])
 
@@ -620,84 +717,9 @@ if load_images:
             user_profile.save()
             print(user_profile)
 
-if create_redirects:
-    current_site = Site.objects.get_current()
-    posts = models.Post.objects.filter(Q(alias__contains='bad/')|Q(alias__contains='vitamin/'))
-    #print(list(posts))
-    for post in posts:
-        if post.alias == 'bad/25':
-            alias = 'cigapan'
-        elif post.alias == 'bad/5':
-            alias = 'oscillococcinum'
-        elif post.alias == 'bad/82':
-            alias = 'linex'
-        elif post.alias == 'bad/85':
-            alias = 'reduxin'
-        elif post.alias == 'vitamin/8':
-            alias = 'supradyn'
-        elif post.alias == 'vitamin/77':
-            alias = 'perfectil'
-        elif post.alias == 'bad/111':
-            alias = 'lasolvan'
-        elif post.alias == 'bad/2':
-            alias = 'qudesan'
-        else:
-            alias = make_alias(post.title)
-        Redirect.objects.get_or_create(
-            site=current_site,
-            old_path='/' + post.alias,
-            new_path='/' + alias
-        )
-        obj = post.obj
-        obj.alias = alias
-        obj.save()
-
-    Redirect.objects.get_or_create(
-        site=current_site,
-        old_path='/raskrytyi_tsvetok_vashego_vysshego_ia_',
-        new_path='/raskrytyi_tsvetok_vashego_vysshego_ia',
-    )
 
 
-if fix_aliases:
-    import re
-    for post in models.Post.objects.filter(~Q(alias='')):
-        result = re.match('[a-z0-9_\-]{1,}', post.alias)
-        unicode_error = False
-        try:
-            post.alias.encode('ascii')
-        except:
-            unicode_error = True
-        if not result or unicode_error:
 
-            obj = post.obj
-            obj.title = post.title.encode('utf8').replace('и'.encode('utf8') + b'\xcc\x86', 'й'.encode('utf8')).decode('utf8')
-            obj.alias = make_alias(obj.title)
-            obj.save()
-            print(obj.title, obj.alias)
-
-    b = models.Blog.objects.get(alias='raskrytyi_tsvetok_vashego_vysshego_ia_')
-    b.alias = 'raskrytyi_tsvetok_vashego_vysshego_ia'
-    b.save()
-
-
-if create_other_models:
-    from django.core import serializers
-
-    data = '[{"model": "socialaccount.socialapp", "pk": 1, "fields": {"sites": [], "client_id": "771139626663-800skijd1dkjem43dm66p2ltqvvjli34.apps.googleusercontent.com", "key": "", "name": "Google", "provider": "google", "secret": "lQrQkLZPFmFLi69oh32FBxzI"}}, {"model": "socialaccount.socialapp", "pk": 2, "fields": {"sites": [], "client_id": "5105342", "key": "", "name": "VK", "provider": "vk", "secret": "LA6KHXiHlwCaXsjVdIns"}}, {"model": "socialaccount.socialapp", "pk": 3, "fields": {"sites": [], "client_id": "1512092622435264", "key": "", "name": "Facebook", "provider": "facebook", "secret": "2fea43726ed1e66b116c6d84c3d1f7a8"}}]'
-
-    elems = serializers.deserialize("json", data)
-
-    for elem in elems:
-        elem.save()
-
-
-    data = '[{"model": "sites.site", "pk": 1, "fields": {"domain": "prozdo.ru", "name": "prozdo.ru"}}]'
-
-    elems = serializers.deserialize("json", data)
-
-    for elem in elems:
-        elem.save()
 
 
 if fix_news_images:

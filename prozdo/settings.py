@@ -96,7 +96,7 @@ CACHEOPS = {
 MIDDLEWARE_CLASSES = (
 
     'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    #'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -148,6 +148,23 @@ DATABASES = {
         }
     }
 }
+
+
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'prozdo',
+        'USER': 'kulik',
+        'PASSWORD': 'ZaX369Exn',
+       'HOST': '127.0.0.1',
+       'PORT': '5432',
+        'CONN_MAX_AGE': 30,
+        },
+
+
+}
+"""
 
 
 # Internationalization
