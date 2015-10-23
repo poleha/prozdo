@@ -1553,7 +1553,7 @@ class Mail(SuperModel):
     body_text=models.TextField(default='', blank=True)
     email = models.EmailField(db_index=True)
     user = models.ForeignKey(User, blank=True, null=True, db_index=True)
-    ip = models.CharField(max_length=15, null=True, blank=True, db_index=True)
+    ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
     session_key = models.TextField(null=True, blank=True, db_index=True)
     email_from = models.EmailField(db_index=True)
     entity_id = models.CharField(max_length=20, blank=True, db_index=True)

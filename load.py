@@ -82,6 +82,7 @@ c = conn.cursor()
 if load_users:
     print('load_users')
     user_rows = c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id ').fetchall()
+
     for user_row in user_rows:
         user, created = models.User.objects.get_or_create(
         username=user_row['username'],
@@ -704,7 +705,7 @@ if load_images:
 
             cosmetics.image = 'cosmetics/' + new_name
             cosmetics.save()
-            print(cosmetics)
+            #print(cosmetics)
 
     base_image_path = os.path.join(settings.MEDIA_ROOT, 'load_images_user')
     save_path = os.path.join(settings.MEDIA_ROOT, 'user_profile')
@@ -745,7 +746,7 @@ if load_images:
 
             user_profile.image = 'user_profile/' + new_name
             user_profile.save()
-            print(user_profile)
+            #print(user_profile)
 
 
 
