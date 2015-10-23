@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
 
 
@@ -85,7 +85,7 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*': {}, #{'ops': 'all'},
+    '*.*': {'ops': 'all'},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
@@ -137,7 +137,7 @@ WSGI_APPLICATION = 'prozdo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -148,9 +148,9 @@ DATABASES = {
         }
     }
 }
-
-
 """
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -164,7 +164,7 @@ DATABASES = {
 
 
 }
-"""
+
 
 
 # Internationalization
@@ -195,7 +195,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 #SESSION_CACHE_ALIAS = "default"
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False
 
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30
@@ -314,7 +314,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
@@ -322,7 +322,7 @@ PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = True
+DEBUG_TOOLBAR = False
 
 
 if DEBUG_TOOLBAR:
@@ -349,9 +349,13 @@ if DEBUG_TOOLBAR:
         'debug_toolbar.panels.redirects.RedirectsPanel',
     ]
 
-    INTERNAL_IPS = ['127.0.0.1']
+    #INTERNAL_IPS = ['127.0.0.1']
 
     MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
+
+    DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
 
 
 
@@ -371,5 +375,6 @@ else:
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
         ]
+
 
 

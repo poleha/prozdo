@@ -23,14 +23,9 @@ from django.views.decorators.cache import cache_page
 from django.contrib.sitemaps.views import sitemap
 
 
-urlpatterns = staticfiles_urlpatterns()
-urlpatterns += static(settings.MEDIA_URL,
-            document_root=settings.MEDIA_ROOT)
-
-urlpatterns += [
+urlpatterns = [
 
     url(r'^admin/', include(admin.site.urls)),
-
     url(r'^accounts/', include('allauth.urls')),
     url(r'^', include('prozdo_main.urls')),
     #url(r'^', include('prozdo_main.urls')),
@@ -40,3 +35,13 @@ urlpatterns += [
 ]
 
 urlpatterns += [url(r'^ckeditor/', include('ckeditor_uploader.urls'))]
+
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL,
+                document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls))]

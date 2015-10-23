@@ -955,7 +955,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     @property
     def short_body(self):
-        return helper.cut_text(self.body)
+        return helper.cut_text(strip_tags(self.body))
 
 
     @cached_property

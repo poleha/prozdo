@@ -168,7 +168,7 @@ font-size: 0.8em;
 }
 
       @media (max-width: @container-md) {
-font-size: 0.7em;
+font-size: 0.6em;
 }
 
 
@@ -275,11 +275,11 @@ font-size: 0.8em;
 }
 
 #user-info-top {
-text-align: right;
 
   .btn  {
    @media (max-width: @container-md) {
 font-size: 0.5em;
+display: inline-block;
 
 }
 
@@ -607,9 +607,24 @@ padding: 10px;
 
 .single-comment {
 
+
+         @media (max-width: @container-sm) {
+
+	font-size: 0.8em;
+
+}
+
+    @media (max-width: 400px) {
+
+	font-size: 0.7em;
+
+}
+
+
    .btn{
     font-size: 0.8em;
     padding: 3px 6px 3px 6px;
+    margin-top: 5px;
   }
 
 position: relative;
@@ -690,6 +705,9 @@ height: 15px;
      }
    }
 
+
+
+
          }
 
 .avatar {
@@ -758,6 +776,7 @@ img {
   
 .btn {
   font-size: inherit;
+  margin-bottom: 3px;
 }
 
 .go-to-comment-link {
@@ -767,6 +786,7 @@ img {
 }
 
 border-bottom: 1px solid #dee7e6;
+margin-bottom: 5px;
 .clearfix;
 }
 
@@ -821,6 +841,24 @@ float: right;
     padding: 20px;
     .box-shadow-mixin;
     background-color: white;
+
+  /* do not group these rules */
+*::-webkit-input-placeholder {
+    font-size: 0.8em;
+}
+*:-moz-placeholder {
+    /* FF 4-18 */
+    font-size: 0.8em;
+}
+*::-moz-placeholder {
+    /* FF 19+ */
+    font-size: 0.8em;
+}
+*:-ms-input-placeholder {
+    /* IE 10+ */
+    font-size: 0.8em;
+}
+
 
 }
 
@@ -924,5 +962,22 @@ width: 180px;
 #messages{
  font-size: 1.5em;
  color: red;
+
+}
+
+
+.breadcrumb {
+
+@media (max-width: @container-sm) {
+	font-size: 0.8em;
+
+
+}
+
+@media (max-width: 400px) {
+	font-size: 0.7em;
+
+
+}
 
 }
