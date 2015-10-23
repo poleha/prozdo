@@ -33,6 +33,19 @@ def date_from_timestamp(ts):
         return None
     else:
         return datetime.datetime.fromtimestamp(ts, tz)
+#2011-02-06 07:59:50
+
+
+def date_from_string(date):
+    year = date[:4]
+    month = date[5:7]
+    day = date[8:10]
+    hour = date[11:13]
+    minute = date[14:16]
+    second = date[17:19]
+    #print(date, year, month, day, hour, minute, second)
+    res = datetime.datetime(year=int(year), month=int(month), day=int(day), hour=int(hour), minute=int(minute), second=int(second), tzinfo=tz)
+    return res
 
 
 delete_all = True
@@ -48,6 +61,7 @@ fix_news_images = True
 
 
 if delete_all:
+    print('delete_all')
     models.Post.objects.all().delete()
     models.User.objects.all().exclude(username='kulik').delete()
     EmailAddress.objects.all().delete()
@@ -66,6 +80,7 @@ c = conn.cursor()
 #users = {}
 
 if load_users:
+    print('load_users')
     user_rows = c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id ').fetchall()
     for user_row in user_rows:
         user, created = models.User.objects.get_or_create(
@@ -75,7 +90,7 @@ if load_users:
         first_name=user_row['firstname'],
         last_name=user_row['lastname'],
         is_staff=False,
-        date_joined=date_from_timestamp(user_row['create_at']),
+        date_joined=date_from_string(user_row['create_at']),
         )
         user_profile = user.user_profile
         if user_row['role'] == 0:
@@ -111,6 +126,7 @@ if load_users:
 #posts = {}
 
 if load_posts:
+    print('load_posts')
     post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type > 3 AND p.type < 8').fetchall()
     for post_row in post_rows:
         params = (post_row['id'], )
@@ -372,6 +388,7 @@ if load_posts:
 
 
 if create_other_models:
+    print('create_other_models')
     from django.core import serializers
 
 
@@ -399,6 +416,7 @@ if create_other_models:
 
 
 if create_redirects:
+    print('create_redirects')
     current_site = Site.objects.get_current()
     posts = models.Post.objects.filter(Q(alias__contains='bad/')|Q(alias__contains='vitamin/'))
     #print(list(posts))
@@ -438,6 +456,7 @@ if create_redirects:
 
 
 if fix_aliases:
+    print('fix_aliases')
     import re
     for post in models.Post.objects.filter(~Q(alias='')):
         result = re.match('[a-z0-9_\-]{1,}', post.alias)
@@ -466,6 +485,7 @@ if fix_aliases:
 
 #comments = {}
 if load_comments:
+    print('load_comments')
     comment_rows = c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time').fetchall()
     for comment_row in comment_rows:
         if comment_row['parent_id']:
@@ -526,6 +546,7 @@ if load_comments:
 
 #*********************History
 if load_history:
+    print('load_history')
     if last_hist_pk:
         models.History.objects.filter(pk__gt=last_hist_pk).delete()
 
@@ -569,6 +590,7 @@ if load_history:
             print(dict(history_row))
 
 if load_images:
+    print('load_images')
     #from multi_image_upload.models import save_thumbs, generate_filenames
     from django.core.files.storage import FileSystemStorage
     base_image_path = os.path.join(settings.MEDIA_ROOT, 'load_images')
@@ -645,7 +667,7 @@ if load_images:
 
             blog.image = 'blog/' + new_name
             blog.save()
-            print(blog)
+            #print(blog)
 
     save_path = os.path.join(settings.MEDIA_ROOT, 'cosmetics')
     for cosmetics in models.Cosmetics.objects.all():
@@ -731,6 +753,7 @@ if load_images:
 
 
 if fix_news_images:
+    print('fix_news_images')
     for blog in models.Blog.objects.filter(body__contains='images/news'):
         blog.body = blog.body.replace('images/news', 'static/prozdo_main/images/news')
         blog.save()

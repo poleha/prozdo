@@ -616,7 +616,7 @@ class Category(Post, MPTTModel):  #Для блога
 
 class Component(Post):
     body = RichTextField(verbose_name='Содержимое', blank=True)
-    component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента')
+    component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента', db_index=True)
     objects = PostManager()
 
     @property
@@ -640,7 +640,7 @@ class Drug(Post):
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
     components = models.ManyToManyField(Component, verbose_name='Состав', blank=True, related_name='drugs')
-    category = TreeManyToManyField(Category, verbose_name='Категория', blank=True)
+    category = TreeManyToManyField(Category, verbose_name='Категория', blank=True, db_index=True)
     objects = PostManager()
 
     @property
@@ -668,8 +668,8 @@ class Cosmetics(Post):
     body = RichTextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True)
 
-    brand = models.ForeignKey(Brand, verbose_name='Бренд')
-    line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True)
+    brand = models.ForeignKey(Brand, verbose_name='Бренд', db_index=True)
+    line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True, db_index=True)
     dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = PostManager()
@@ -704,7 +704,7 @@ class Blog(Post):
     short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = RichTextUploadingField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
-    category = TreeManyToManyField(Category, verbose_name='Категория')
+    category = TreeManyToManyField(Category, verbose_name='Категория', db_index=True)
     objects = PostManager()
 
 
@@ -790,12 +790,12 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
 class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
         ordering = ['-created']
-    post = models.ForeignKey(Post, related_name='comments')
+    post = models.ForeignKey(Post, related_name='comments', db_index=True)
     username = models.CharField(max_length=256, verbose_name='Имя')
     email = models.EmailField(verbose_name='E-Mail')
     post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     body = models.TextField(verbose_name='Сообщение')
-    user = models.ForeignKey(User, null=True, blank=True, related_name='comments')
+    user = models.ForeignKey(User, null=True, blank=True, related_name='comments', db_index=True)
     ip = models.CharField(max_length=15, db_index=True)
     session_key = models.TextField(blank=True, db_index=True)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
@@ -1146,11 +1146,11 @@ HISTORY_TYPE_COMMENT_COMPLAINT: 0,
 
 
 class History(SuperModel):
-    post = models.ForeignKey(Post, related_name='history_post')
+    post = models.ForeignKey(Post, related_name='history_post', db_index=True)
     history_type = models.IntegerField(choices=HISTORY_TYPES, db_index=True)
-    author = models.ForeignKey(User, null=True, blank=True, related_name='history_author')
-    user = models.ForeignKey(User, null=True, blank=True, related_name='history_user')
-    comment = models.ForeignKey(Comment, null=True, blank=True, related_name='history_comment')
+    author = models.ForeignKey(User, null=True, blank=True, related_name='history_author', db_index=True)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='history_user', db_index=True)
+    comment = models.ForeignKey(Comment, null=True, blank=True, related_name='history_comment', db_index=True)
     user_points = models.PositiveIntegerField(default=0, blank=True)
     #author_points = models.PositiveIntegerField(default=0, blank=True)
     ip = models.CharField(max_length=15, null=True, blank=True, db_index=True)
@@ -1355,10 +1355,10 @@ class History(SuperModel):
 
 class UserProfile(SuperModel):
     # required by the auth model
-    user = models.OneToOneField(User, related_name='user_profile')  # reverse returns single object, not queryset
-    role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True)
+    user = models.OneToOneField(User, related_name='user_profile', db_index=True)  # reverse returns single object, not queryset
+    role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True, db_index=True)
     image = ImageField(verbose_name='Изображение', upload_to='user_profile', blank=True, null=True)
-    receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True)
+    receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True, db_index=True)
     #first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
     #last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
@@ -1547,16 +1547,16 @@ MAIL_TYPES = (
 )
 
 class Mail(SuperModel):
-    mail_type = models.PositiveIntegerField(choices=MAIL_TYPES)
+    mail_type = models.PositiveIntegerField(choices=MAIL_TYPES, db_index=True)
     subject = models.TextField()
     body_html=models.TextField(default='', blank=True)
     body_text=models.TextField(default='', blank=True)
-    email = models.EmailField()
-    user = models.ForeignKey(User, blank=True, null=True)
-    ip = models.CharField(max_length=15, null=True, blank=True)
-    session_key = models.TextField(null=True, blank=True)
-    email_from = models.EmailField()
-    entity_id = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(db_index=True)
+    user = models.ForeignKey(User, blank=True, null=True, db_index=True)
+    ip = models.CharField(max_length=15, null=True, blank=True, db_index=True)
+    session_key = models.TextField(null=True, blank=True, db_index=True)
+    email_from = models.EmailField(db_index=True)
+    entity_id = models.CharField(max_length=20, blank=True, db_index=True)
 
 
 def request_with_empty_guest(request):
