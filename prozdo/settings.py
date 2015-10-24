@@ -47,14 +47,10 @@ INSTALLED_APPS = (
     'mptt',
 
     'allauth.socialaccount.providers.vk',
-    #'allauth.socialaccount.providers.twitter',
-    #'allauth.socialaccount.providers.odnoklassniki',
-    #'allauth.socialaccount.providers.openid',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
 
     'prozdo_main',
-    #'multi_image_upload',
      'sorl.thumbnail',
      'django.contrib.redirects',
     'compressor',
@@ -85,18 +81,18 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*':{} #{'ops': 'all'},
+    '*.*': {'ops': 'all'},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
 }
 
-
+COMPRESS_ENABLED = True
 
 MIDDLEWARE_CLASSES = (
-
+    'django.middleware.http.ConditionalGetMiddleware',
     'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    'django.middleware.gzip.GZipMiddleware',
+    #'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -131,13 +127,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
-
-
-
-
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -149,7 +140,6 @@ DATABASES = {
     }
 }
 """
-
 
 DATABASES = {
     'default': {
@@ -164,9 +154,7 @@ DATABASES = {
 
 
 }
-
-
-
+"""
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -174,9 +162,9 @@ LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Europe/Moscow'
 
-USE_I18N = True
+#USE_I18N = True
 
-USE_L10N = True
+#USE_L10N = True
 
 USE_TZ = True
 
@@ -195,7 +183,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 #SESSION_CACHE_ALIAS = "default"
-SESSION_SAVE_EVERY_REQUEST = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30
@@ -290,7 +278,7 @@ AUTHENTICATION_BACKENDS = (
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": "prozdo_main.backends.ProzdoRedisCacheBackend",
         "LOCATION": "redis://127.0.0.1:6379/2",
     }
 }
@@ -314,15 +302,14 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
-PROZDO_FULL_PAGE_CACHE_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
 
-DEBUG_TOOLBAR = False
+DEBUG_TOOLBAR = True
 
 
 if DEBUG_TOOLBAR:

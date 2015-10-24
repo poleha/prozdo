@@ -44,7 +44,7 @@ class ProzdoCacheBackendMixin:
         else:
             return None
 
-    def set(self, key, value, timeout=settings.PROZDO_FULL_PAGE_CACHE_DURATION, version=None):
+    def set(self, key, value, timeout=settings.PROZDO_CACHE_DURATION, version=None):
         if settings.PROZDO_CACHE_ENABLED:
             return super().set(key, value, timeout, version=None)
         else:
@@ -57,4 +57,8 @@ class ProzdoDBCacheBackend(ProzdoCacheBackendMixin, DatabaseCache):
 
 from django.core.cache.backends.memcached import MemcachedCache
 class ProzdoMemcachedCacheCacheBackend(ProzdoCacheBackendMixin, MemcachedCache):
+    pass
+
+from django_redis.cache import RedisCache
+class ProzdoRedisCacheBackend(ProzdoCacheBackendMixin, RedisCache):
     pass

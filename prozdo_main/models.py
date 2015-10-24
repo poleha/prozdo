@@ -302,6 +302,14 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     old_id = models.PositiveIntegerField(null=True, blank=True)
     objects = PostManager()
 
+    @cached_property
+    def last_modified(self):
+        try:
+            return History.objects.filter(post=self).latest('created').created
+        except:
+            return None
+
+
     @classmethod
     def get_post_type(cls):
         if cls == Drug:

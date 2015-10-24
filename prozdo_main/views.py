@@ -15,8 +15,8 @@ from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCan
 from . import models, forms
 from .helper import get_client_ip, to_int
 from django.contrib import messages
-
-
+from django.views.decorators.http import last_modified
+from django.utils.decorators import method_decorator
 
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
@@ -49,12 +49,21 @@ class ProzdoListView(generic.ListView):
         return context
 
 
+def get_post_last_modified(request, **kwargs):
+    if models.request_with_empty_guest(request):
+        post = PostDetail.get_post(kwargs)
+        return post.last_modified
+    else:
+        return None
 
 class PostDetail(ProzdoListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
 
+    @method_decorator(last_modified(get_post_last_modified))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         request = self.request
@@ -105,13 +114,18 @@ class PostDetail(ProzdoListView):
         return super().get(request, *args, **kwargs)
 
 
-    def set_obj(self):
-        if 'alias' in self.kwargs:
-            alias = self.kwargs['alias']
+    @staticmethod
+    def get_post(kwargs):
+        if 'alias' in kwargs:
+            alias = kwargs['alias']
             post = get_object_or_404(models.Post, alias=alias)
         else:
-            pk = self.kwargs['pk']
+            pk = kwargs['pk']
             post = get_object_or_404(models.Post, pk=pk)
+        return post
+
+    def set_obj(self):
+        post = self.get_post(self.kwargs)
         self.post = post
         self.obj = post.obj
 
