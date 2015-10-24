@@ -50,11 +50,9 @@ class ProzdoListView(generic.ListView):
 
 
 def get_post_last_modified(request, **kwargs):
-    if models.request_with_empty_guest(request):
         post = PostDetail.get_post(kwargs)
-        return post.last_modified
-    else:
-        return None
+        obj = post.obj
+        return obj.last_modified
 
 class PostDetail(ProzdoListView):
     context_object_name = 'comments'

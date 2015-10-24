@@ -63,36 +63,13 @@ INSTALLED_APPS = (
 )
 
 
-CACHEOPS_REDIS = {
-    'host': 'localhost', # redis-server is on same machine
-    'port': 6379,        # default redis port
-    'db': 1,             # SELECT non-default redis database
-                         # using separate redis db or redis instance
-                         # is highly recommended
-
-}
-
-
-
-CACHEOPS_DEFAULTS = {
-    'timeout': 60 * 60 * 24 * 7
-}
-CACHEOPS = {
-    #'auth.user': {'ops': 'get', 'timeout': 60*15},
-    #'auth.*': {'ops': ('fetch', 'get')},
-    #'auth.permission': {'ops': 'all'},#
-    '*.*': {'ops': 'all'},
-    #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
-    #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
-    #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
-}
 
 COMPRESS_ENABLED = True
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    #'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -127,6 +104,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
+
+"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
@@ -154,7 +133,6 @@ DATABASES = {
 
 
 }
-"""
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -308,8 +286,35 @@ PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 
+CACHE_MIDDLEWARE_SECONDS = PROZDO_CACHE_DURATION
 
-DEBUG_TOOLBAR = True
+CACHEOPS_REDIS = {
+    'host': 'localhost', # redis-server is on same machine
+    'port': 6379,        # default redis port
+    'db': 1,             # SELECT non-default redis database
+                         # using separate redis db or redis instance
+                         # is highly recommended
+
+}
+
+
+
+CACHEOPS_DEFAULTS = {
+    'timeout': PROZDO_CACHE_DURATION
+}
+CACHEOPS = {
+    #'auth.user': {'ops': 'get', 'timeout': 60*15},
+    #'auth.*': {'ops': ('fetch', 'get')},
+    #'auth.permission': {'ops': 'all'},#
+    '*.*': {'ops': 'all'},
+    #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
+    #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
+    #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
+}
+
+
+
+DEBUG_TOOLBAR = False
 
 
 if DEBUG_TOOLBAR:
