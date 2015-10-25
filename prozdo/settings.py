@@ -68,8 +68,8 @@ COMPRESS_ENABLED = True
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
-    'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    'django.middleware.gzip.GZipMiddleware',
+    #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
+    #'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,7 +80,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'prozdo_main.middleware.ProzdoFetchFromCacheMiddleware',    #cache
+    #'prozdo_main.middleware.ProzdoFetchFromCacheMiddleware',    #cache
 )
 
 ROOT_URLCONF = 'prozdo.urls'
@@ -103,7 +103,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
-
 
 """
 # Database
@@ -282,11 +281,10 @@ CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
-#PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 24 * 7
-PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
-HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
-
-CACHE_MIDDLEWARE_SECONDS = PROZDO_CACHE_DURATION
+PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
+#PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
+HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
+CACHE_MIDDLEWARE_SECONDS = 60 * 60
 
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine

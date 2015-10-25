@@ -40,13 +40,13 @@ from django.core.cache.backends.db import DatabaseCache
 class ProzdoCacheBackendMixin:
     def get(self, key, default=None, version=None):
         if settings.PROZDO_CACHE_ENABLED:
-            return super().get(key, default=None, version=None)
+            return super().get(key, default, version)
         else:
             return None
 
     def set(self, key, value, timeout=settings.PROZDO_CACHE_DURATION, version=None):
         if settings.PROZDO_CACHE_ENABLED:
-            return super().set(key, value, timeout, version=None)
+            return super().set(key, value, timeout, version)
         else:
             return
 

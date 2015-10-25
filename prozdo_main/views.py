@@ -17,6 +17,7 @@ from .helper import get_client_ip, to_int
 from django.contrib import messages
 from django.views.decorators.http import last_modified
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
@@ -60,6 +61,7 @@ class PostDetail(ProzdoListView):
     template_name = 'prozdo_main/post/post_detail.html'
 
     @method_decorator(last_modified(get_post_last_modified))
+    @method_decorator(cache_page(60 * 60))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

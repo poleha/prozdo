@@ -133,7 +133,7 @@ def cached_property(func):
                 res = func(self)
                 if res is None:
                     res = EMPTY_CACHE_PLACEHOLDER
-                cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+                cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
             if res == EMPTY_CACHE_PLACEHOLDER:
                 res = None
             return res
@@ -204,7 +204,7 @@ class CachedModelMixin(models.Model):
             res = getattr(self, attr_name)
             if res is None:
                 res = EMPTY_CACHE_PLACEHOLDER
-            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
+            cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
 
     #TODO make only if instance key attr is instance of models.Model
     def full_invalidate_cache(self):
