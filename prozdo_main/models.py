@@ -11,7 +11,6 @@ from django.core.urlresolvers import reverse
 from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
-from django.utils import timezone
 from allauth.account.models import EmailAddress, EmailConfirmation
 from sorl.thumbnail import ImageField, get_thumbnail
 import re
@@ -27,6 +26,7 @@ from cacheops import invalidate_obj, invalidate_model, invalidate_all
 from django.core.mail.message import EmailMultiAlternatives
 from django.utils import timezone
 from django.template.loader import render_to_string
+from .cache import CachedModelMixin, cached_property
 
 
 #<Constants***********************************************************
@@ -115,123 +115,7 @@ COMPONENT_TYPES = (
 #Constants>***********************************************************
 
 #<Posts******************************************************************
-#TODO move it to cache
-EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
-CACHED_VIEW_TEMLPATE_PREFIX = "_cached_view-{0}-{1}"
 
-
-CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
-
-class CachedProperty(property):
-    pass
-
-def cached_property(func):
-    @CachedProperty
-    def wrapper(self):
-        if settings.PROZDO_CACHE_ENABLED:
-            key = CACHED_ATTRIBUTE_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
-            res = cache.get(key)
-            if res is None:
-                res = func(self)
-                if res is None:
-                    res = EMPTY_CACHE_PLACEHOLDER
-                cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
-            if res == EMPTY_CACHE_PLACEHOLDER:
-                res = None
-            return res
-        else:
-            return func(self)
-    return wrapper
-
-CACHED_METHOD_SHORT_KEY_TEMPLATE = '_cached_method_{0}_{1}'
-CACHED_METHOD_KEY_TEMPLATE = CACHED_METHOD_SHORT_KEY_TEMPLATE + '_{2}_{3}'
-
-"""
-class cached_method:
-    def __init__(self, func):
-        self.func = func
-
-    #TODO make it module aware
-    def generate_cache_key(self, *args, **kwargs):
-        instance = args[0]
-        args = args[1:]
-        name = type(instance).__name__
-        pk = instance.pk
-        return CACHED_METHOD_KEY_TEMPLATE.format(name, pk, str(args), str(kwargs))
-
-    def __call__(self, *args, **kwargs):
-        if not settings.PROZDO_CACHE_ENABLED:
-            return self.func(*args, **kwargs)
-        key = self.generate_cache_key(*args, **kwargs)
-        res = cache.get(key)
-        if res is None:
-            res = self.func(*args, **kwargs)
-            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
-        return res
-
-    def __get__(self, instance, owner):
-        def wrapper(*args, **kwargs):
-            return self(instance, *args, **kwargs)
-        return wrapper
-"""
-
-class CachedModelMixin(models.Model):
-    class Meta:
-        abstract = True
-
-    cache_key_template = CACHED_ATTRIBUTE_KEY_TEMPLATE
-
-    def get_cache_key(self, attr_name):
-        return self.cache_key_template.format(type(self).__name__, attr_name, self.pk)
-
-    #def get_cached(self, attr_name):
-    #    if settings.PROZDO_CACHE_ENABLED:
-    #        key = self.get_cache_key(attr_name)
-    #        res = cache.get(key)
-    #        if res is None:
-    #            res = getattr(self, attr_name)
-    #            if res is None:
-    #                res = EMPTY_CACHE_PLACEHOLDER
-    #            cache.set(key, res, settings.PROZDO_CACHED_ATTRIBUTE_DURATION)
-    #        if res == EMPTY_CACHE_PLACEHOLDER:
-    #            res = None
-    #    else:
-    #        res = getattr(self, attr_name)
-    #    return res
-
-    def invalidate_cache(self, attr_name):
-        if settings.PROZDO_CACHE_ENABLED:
-            key = self.get_cache_key(attr_name)
-            cache.delete(key)
-            res = getattr(self, attr_name)
-            if res is None:
-                res = EMPTY_CACHE_PLACEHOLDER
-            cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
-
-    #TODO make only if instance key attr is instance of models.Model
-    def full_invalidate_cache(self):
-        if settings.PROZDO_CACHE_ENABLED:
-            #instance_keys = tuple((field.name for field in self._meta.fields))
-            prop_keys = []
-            for c in type(self).mro():
-                prop_keys += [k for k, v in c.__dict__.items() if isinstance(v, CachedProperty)]
-
-            for attr_name in set(prop_keys):
-                self.invalidate_cache(attr_name)
-
-    def clean_cache(self, attr_name):
-        if settings.PROZDO_CACHE_ENABLED:
-            key = self.get_cache_key(attr_name)
-            cache.delete(key)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if settings.PROZDO_CACHE_ENABLED:
-            self.full_invalidate_cache()
-
-    #TODO
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
 
 
 class SuperModel(CachedModelMixin):
@@ -303,6 +187,10 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
     objects = PostManager()
+
+    cached_views = (
+        ('PostDetail', 'get'),
+    )
 
     @cached_property
     def last_modified(self):
@@ -483,7 +371,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     @cached_property
     def average_mark(self):
         try:
-            mark = History.objects.filter(post=self).aggregate(Sum('mark'))['mark__sum']
+            mark = History.objects.filter(post=self, deleted=False).aggregate(Sum('mark'))['mark__sum']
             if mark is None:
                 mark = 0
         except:
@@ -497,7 +385,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     @cached_property
     def marks_count(self):
         try:
-            count = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('mark'))['mark__count']
+            count = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, deleted=False).aggregate(Count('mark'))['mark__count']
             if count is None:
                 count = 0
         except:
@@ -756,7 +644,7 @@ class Blog(Post):
     @cached_property
     def mark(self):
         try:
-            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED).aggregate(Count('pk'))['pk__count']
+            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, deleted=False).aggregate(Count('pk'))['pk__count']
             if mark is None:
                 mark = 0
         except:
@@ -767,12 +655,12 @@ class Blog(Post):
         user = request.user
         if user.is_authenticated():
             try:
-                mark = History.objects.filter(user=user, history_type=HISTORY_TYPE_POST_RATED, post=self).count()
+                mark = History.objects.filter(user=user, history_type=HISTORY_TYPE_POST_RATED, post=self, deleted=False).count()
             except:
                 mark = 0
         else:
             try:
-                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None).filter(session_key=request.session._get_or_create_session_key()).count()
+                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).filter(session_key=request.session._get_or_create_session_key()).count()
             except:
                 mark = 0
 
@@ -971,7 +859,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     @cached_property
     def comment_mark(self):
         try:
-            mark = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_RATED).aggregate(Count('pk'))['pk__count']
+            mark = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_RATED, deleted=False).aggregate(Count('pk'))['pk__count']
             if mark is None:
                 mark = 0
         except:
@@ -1005,7 +893,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     @cached_property
     def complain_count(self):
         try:
-            count = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_COMPLAINT).aggregate(Count('pk'))['pk__count']
+            count = History.objects.filter(comment=self, history_type=HISTORY_TYPE_COMMENT_COMPLAINT, deleted=False).aggregate(Count('pk'))['pk__count']
             if count is None:
                 count = 0
         except:
@@ -1058,7 +946,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     #******************
     def hist_exists_by_comment_and_user(self, history_type, user):
-        return History.objects.filter(history_type=history_type, comment=self, user=user).exists()
+        return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
 
     def hist_exists_by_request(self, history_type, request):
         user = request.user
@@ -1089,14 +977,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
-            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user).exists()
+            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
         else:
             if session_key:
-                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key).exists()
+                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key, deleted=False).exists()
             else:
                 hist_exists_by_key = False
             if ip:
-                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip).exists()
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip, deleted=False).exists()
             else:
                 hist_exists_by_ip = False
             hist_exists = hist_exists_by_key or hist_exists_by_ip
@@ -1167,6 +1055,7 @@ class History(SuperModel):
     session_key = models.TextField(blank=True, db_index=True)
     mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     old_id = models.PositiveIntegerField(null=True, blank=True)
+    deleted = models.BooleanField(verbose_name='Удалена', default=False, db_index=True)
 
 
     @staticmethod
@@ -1199,7 +1088,7 @@ class History(SuperModel):
             mark = comment.post_mark
 
         if history_type == HISTORY_TYPE_POST_CREATED:
-            hist_exists = History.objects.filter(history_type=history_type, post=post).exists()
+            hist_exists = History.objects.filter(history_type=history_type, post=post, deleted=False).exists()
             if not hist_exists:
                 h = History.objects.create(history_type=history_type, post=post, user=user,
                                        user_points=History.get_points(history_type), ip=ip, author=post_author, session_key=session_key)
@@ -1210,7 +1099,7 @@ class History(SuperModel):
             h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author, session_key=session_key)
             return h
         elif history_type == HISTORY_TYPE_COMMENT_CREATED:
-            hist_exists = History.objects.filter(history_type=history_type, comment=comment).exists()
+            hist_exists = History.objects.filter(history_type=history_type, comment=comment, deleted=False).exists()
             if not hist_exists:
 
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
@@ -1235,10 +1124,10 @@ class History(SuperModel):
                 return h
         elif history_type == HISTORY_TYPE_POST_RATED:
             if user and user.is_authenticated():
-                hist_exists = History.objects.filter(history_type=history_type, post=post, user=user).exists()
+                hist_exists = History.objects.filter(history_type=history_type, post=post, user=user, deleted=False).exists()
             else:
-                hist_exists_by_key = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None).exists()
-                hist_exists_by_ip = History.objects.filter(history_type=history_type, post=post, ip=ip, user=None).exists()
+                hist_exists_by_key = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None, deleted=False).exists()
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, post=post, ip=ip, user=None, deleted=False).exists()
                 hist_exists = hist_exists_by_key or hist_exists_by_ip
 
             if not hist_exists and ((not post.is_blog and mark and mark > 0) or post.is_blog):
@@ -1252,12 +1141,12 @@ class History(SuperModel):
         if not session_key:
             return False
         if not settings.PROZDO_CACHE_ENABLED:
-            return History.objects.filter(session_key=session_key).exists()
+            return History.objects.filter(session_key=session_key, deleted=False).exists()
         prefix = '_cached_history_exists_'
         key = prefix + session_key
         res = cache.get(key)
         if res is None:
-            res = History.objects.filter(session_key=session_key).exists()
+            res = History.objects.filter(session_key=session_key, deleted=False).exists()
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
         return res
 
@@ -1266,7 +1155,7 @@ class History(SuperModel):
             prefix = '_cached_history_exists_'
             key = prefix + self.session_key
             cache.delete(key)
-            res = History.objects.filter(session_key=self.session_key).exists()
+            res = History.objects.filter(session_key=self.session_key, deleted=False).exists()
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists(self):
@@ -1281,12 +1170,12 @@ class History(SuperModel):
         if not session_key:
             return False
         if not settings.PROZDO_CACHE_ENABLED:
-            return History.objects.filter(session_key=session_key, comment=comment, history_type=history_type).exists()
+            return History.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
         template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
         key = template.format(session_key, comment.pk, history_type)
         res = cache.get(key)
         if res is None:
-            res = History.objects.filter(session_key=session_key, comment=comment, history_type=history_type).exists()
+            res = History.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
         return res
 
@@ -1296,7 +1185,7 @@ class History(SuperModel):
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
                 cache.delete(key)
-                res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type).exists()
+                res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type, deleted=False).exists()
                 cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists_by_comment(self):
@@ -1323,7 +1212,7 @@ class History(SuperModel):
         if self.post:
             self.post.obj.full_invalidate_cache()
             invalidate_obj(self.post.obj)
-            cache.delete_pattern(CACHED_VIEW_TEMLPATE_PREFIX.format('PostDetail', 'get') + '*')
+
 
         if self.user:
             self.user.user_profile.full_invalidate_cache()
@@ -1356,7 +1245,7 @@ class History(SuperModel):
         if post:
             post.obj.full_invalidate_cache()
             invalidate_obj(post.obj)
-            cache.delete_pattern(CACHED_VIEW_TEMLPATE_PREFIX.format('PostDetail', 'get') + '*')
+
         if user:
             user.user_profile.full_invalidate_cache()
             invalidate_obj(user)
@@ -1395,12 +1284,12 @@ class UserProfile(SuperModel):
         return self._karm_history().order_by('-created')
 
     def _karm_history(self):
-        hists = History.objects.filter(author=self.user, history_type=HISTORY_TYPE_COMMENT_RATED)
+        hists = History.objects.filter(author=self.user, history_type=HISTORY_TYPE_COMMENT_RATED, deleted=False)
         return hists
 
 
     def _activity_history(self):
-        return History.objects.filter(user=self.user, user_points__gt=0)
+        return History.objects.filter(user=self.user, user_points__gt=0, deleted=False)
 
     @cached_property
     def activity_history(self):
@@ -1585,7 +1474,7 @@ def request_with_empty_guest(request):
     if not exists:
         return True
 
-    return True
+    return False
 
 
 

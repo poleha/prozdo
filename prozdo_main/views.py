@@ -13,12 +13,16 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import get_client_ip, to_int, get_class_that_defined_method
+from .helper import get_client_ip, to_int
 from django.contrib import messages
-from django.views.decorators.http import last_modified
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.core.cache import cache
+from django.utils.http import http_date
+from calendar import timegm
+from django.utils import timezone
+from .cache import cached_view
+
+
+def convert_date(date):
+    return http_date(timegm(date.utctimetuple()))
 
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
@@ -51,33 +55,13 @@ class ProzdoListView(generic.ListView):
         return context
 
 
-def get_post_last_modified(request, **kwargs):
-        post = PostDetail.get_post(kwargs)
-        obj = post.obj
-        return obj.last_modified
+#def get_post_last_modified(request, **kwargs):
+#        post = PostDetail.get_post(kwargs)
+#        obj = post.obj
+#        return obj.last_modified
 
 
 
-
-
-def cached_view(timeout=settings.PROZDO_CACHE_DURATION):
-    def decorator(func):
-        def wrapper(self, request, *args, **kwargs):
-            if models.request_with_empty_guest(request):
-                url = request.build_absolute_uri()
-                cls = get_class_that_defined_method(func)
-                prefix = models.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
-                key = "{0}-{1}".format(prefix, url)
-                res = cache.get(key)
-                if res is None:
-                    res = func(self, request, *args, **kwargs)
-                    res.render()
-                    cache.set(key, res, timeout)
-            else:
-                res = func(self, request, *args, **kwargs)
-            return res
-        return wrapper
-    return decorator
 
 
 class PostDetail(ProzdoListView):
@@ -86,7 +70,7 @@ class PostDetail(ProzdoListView):
     template_name = 'prozdo_main/post/post_detail.html'
 
 
-    @method_decorator(last_modified(get_post_last_modified))
+    #@method_decorator(last_modified(get_post_last_modified))
     #@method_decorator(cache_page(60))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -113,11 +97,16 @@ class PostDetail(ProzdoListView):
 
         return comments
 
-    @cached_view()
+    @cached_view(timeout=settings.PROZDO_CACHE_DURATION, test=models.request_with_empty_guest)
     def get(self, request, *args, **kwargs):
         self.set_obj()
         self.set_comment_page()
-        return super().get(request, *args, **kwargs)
+        res = super().get(request, *args, **kwargs)
+        last_modified = convert_date(self.obj.last_modified)
+        expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHE_DURATION)
+        res['Last-Modified'] = last_modified
+        res['Expires'] = convert_date(expires)
+        return res
 
 
     @staticmethod
@@ -176,9 +165,9 @@ class PostDetail(ProzdoListView):
         #visibility
         if context['mark']:
             if user.is_authenticated():
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session._get_or_create_session_key(), post=self.post).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session._get_or_create_session_key(), post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -310,6 +299,12 @@ class PostListFilterMixin(PostViewMixin, ProzdoListView):
 class PostList(PostListFilterMixin):
     template_name = 'prozdo_main/post/post_list.html'
 
+    @cached_view(timeout=60 * 60 * 12, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filter_form'] = self.get_filter_form()
@@ -352,9 +347,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment).nocache()
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment, deleted=False)
             else:
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key).nocache()
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key, deleted=False)
                 #if session_key:
                 #    h = h.filter(Q(session_key=session_key)|Q(ip=ip))
                 #else:
@@ -362,7 +357,8 @@ class HistoryAjaxSave(generic.View):
             data = {}
             if hs.exists():
                 for h in hs:
-                    h.delete()
+                    h.deleted = True
+                    h.save()
                 data['saved'] = True
             else:
                 data['saved'] = False
@@ -380,13 +376,14 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-uncomplain':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment, deleted=False)
             else:
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key)
+                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key, deleted=False)
             data = {}
             if hs.exists():
                 for h in hs:
-                    h.delete()
+                    h.deleted = True
+                    h.save()
                 data['saved'] = True
             else:
                 data['saved'] = False
@@ -410,9 +407,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-unmark':
             post = models.Post.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post)
+                hs = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post, deleted=False)
             else:
-                hs = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None)
+                hs = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None, deleted=False)
             data = {}
             if hs.exists():
                 for h in hs:
@@ -548,10 +545,6 @@ class CommentDoConfirmAjax(generic.TemplateView):
         return self.render_to_response(context)
 
 
-
-
-
-
 class CommentGetForAnswerToBlockAjax(generic.TemplateView):
     template_name =  'prozdo_main/comment/_comment_for_answer_block.html'
 
@@ -583,9 +576,9 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         pk = request.POST['pk']
         comment = models.Comment.objects.get(pk=pk)
 
-        user_pks = models.History.objects.filter(~Q(user=None), history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).values_list('user', flat=True)
+        user_pks = models.History.objects.filter(~Q(user=None), history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).values_list('user', flat=True)
         context['users'] = models.User.objects.filter(pk__in=user_pks)
-        context['guest_count'] = models.History.objects.filter(user=None, history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment).count()
+        context['guest_count'] = models.History.objects.filter(user=None, history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).count()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -594,6 +587,14 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
 
 class MainPageView(generic.TemplateView):
     template_name = 'prozdo_main/base/main_page.html'
+
+    @cached_view(timeout=60 * 60, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        res = super().dispatch(request, *args, **kwargs)
+        last_modified = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
+        res['Last-Modified'] = convert_date(last_modified)
+        res['Expires'] = convert_date(last_modified + timezone.timedelta(seconds=60 * 60))
+        return res
 
     def get_popular_drugs(self):
         drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:16]
@@ -709,6 +710,12 @@ class UserProfileView(generic.TemplateView):
 class UserDetailView(generic.TemplateView):
     template_name = 'prozdo_main/user/user_detail.html'
 
+    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         pk = self.kwargs['pk']
@@ -722,6 +729,10 @@ class UserCommentsView(ProzdoListView):
     template_name = 'prozdo_main/user/user_comments.html'
     context_object_name = 'comments'
     paginate_by = 50
+
+    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -743,6 +754,11 @@ class UserKarmaView(ProzdoListView):
     context_object_name = 'hists'
     paginate_by = 50
 
+    #TODO переделать на инвалидацию и добавить заголовки. Пока сойтет так
+    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
         pk = self.kwargs['pk']
         user = models.User.objects.get(pk=pk)
@@ -761,6 +777,11 @@ class UserActivityView(ProzdoListView):
     template_name = 'prozdo_main/user/user_activity.html'
     context_object_name = 'hists'
     paginate_by = 50
+
+    #TODO переделать на инвалидацию и добавить заголовки. Пока сойтет так
+    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         pk = self.kwargs['pk']

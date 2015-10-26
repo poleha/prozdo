@@ -69,7 +69,7 @@ COMPRESS_ENABLED = True
 MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    'django.middleware.gzip.GZipMiddleware',
+    #'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -102,10 +102,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
-
+"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -116,6 +115,7 @@ DATABASES = {
         }
     }
 }
+
 """
 
 DATABASES = {
@@ -131,6 +131,7 @@ DATABASES = {
 
 
 }
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -279,7 +280,9 @@ PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
-CACHE_MIDDLEWARE_SECONDS = 60 * 60
+#CACHE_MIDDLEWARE_SECONDS = 60 * 60
+
+
 
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine
@@ -340,8 +343,6 @@ if DEBUG_TOOLBAR:
     DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': lambda request: True,
 }
-
-
 
 
 if PROZDO_CACHE_ENABLED and not DEBUG:
