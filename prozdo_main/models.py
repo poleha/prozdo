@@ -1577,11 +1577,14 @@ def request_with_empty_guest(request):
         return False
 
     session_key = request.session._get_or_create_session_key()
+    if session_key is None:
+        return True
+
     exists = History.exists(session_key)
     if not exists:
         return True
 
-    return False
+    return True
 
 
 

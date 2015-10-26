@@ -63,7 +63,7 @@ def get_post_last_modified(request, **kwargs):
 def cached_view(timeout=settings.PROZDO_CACHE_DURATION):
     def decorator(func):
         def wrapper(self, request, *args, **kwargs):
-            if True:#models.request_with_empty_guest(request):
+            if models.request_with_empty_guest(request):
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
                 prefix = models.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
