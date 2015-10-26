@@ -1572,6 +1572,7 @@ class Mail(SuperModel):
 
 
 def request_with_empty_guest(request):
+    return True
     import logging
     logging.info('kulik')
     user = request.user
