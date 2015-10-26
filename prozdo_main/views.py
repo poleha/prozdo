@@ -87,7 +87,7 @@ class PostDetail(ProzdoListView):
 
 
     @method_decorator(last_modified(get_post_last_modified))
-    @method_decorator(cache_page(60))
+    #@method_decorator(cache_page(60))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -113,7 +113,7 @@ class PostDetail(ProzdoListView):
 
         return comments
 
-    #@cached_view()
+    @cached_view()
     def get(self, request, *args, **kwargs):
         self.set_obj()
         self.set_comment_page()

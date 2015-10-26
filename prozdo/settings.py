@@ -360,7 +360,7 @@ else:
                     'django.template.loaders.app_directories.Loader',
         ]
 
-
+"""
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -380,3 +380,5 @@ LOGGING = {
         'handlers': ['console', 'logfile']
     },
 }
+
+"""
