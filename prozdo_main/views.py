@@ -63,7 +63,7 @@ def get_post_last_modified(request, **kwargs):
 def cached_view(timeout=settings.PROZDO_CACHE_DURATION):
     def decorator(func):
         def wrapper(self, request, *args, **kwargs):
-            if models.request_with_empty_guest(request):
+            if True:#models.request_with_empty_guest(request):
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
                 prefix = models.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
@@ -85,7 +85,9 @@ class PostDetail(ProzdoListView):
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
 
+
     @method_decorator(last_modified(get_post_last_modified))
+    #method_decorator(cache_page(20))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
