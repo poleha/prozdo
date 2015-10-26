@@ -69,6 +69,9 @@ def cached_view(timeout=settings.PROZDO_CACHE_DURATION):
                 prefix = models.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
                 key = "{0}-{1}".format(prefix, url)
                 res = cache.get(key)
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(res)
                 if res is None:
                     res = func(self, request, *args, **kwargs)
                     res.render()

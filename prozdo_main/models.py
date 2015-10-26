@@ -1572,15 +1572,11 @@ class Mail(SuperModel):
 
 
 def request_with_empty_guest(request):
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.error('kulik')
     user = request.user
     if user.is_authenticated():
         return False
 
     session_key = request.session._get_or_create_session_key()
-    logger.error(session_key)
 
     if not session_key:
         return True
