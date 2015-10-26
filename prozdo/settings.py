@@ -69,7 +69,7 @@ COMPRESS_ENABLED = True
 MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    #'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -96,7 +96,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                #'discount.context_processors.debug',
             ],
         },
     },
@@ -104,9 +103,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
-"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -166,10 +165,6 @@ SESSION_SAVE_EVERY_REQUEST = True
 POST_COMMENTS_PAGE_SIZE = 30
 POST_LIST_PAGE_SIZE = 48
 
-#DRUG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-#BLOG_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-#COSMETICS_THUMB_SETTINGS = {'thumb110': (110, 400), 'thumb220': (220, 800)}
-#USER_PROFILE_THUMB_SETTINGS = {'thumb100': (100, 100)}
 
 
 BAD_WORDS = (
@@ -319,7 +314,6 @@ if DEBUG_TOOLBAR:
 
     DEBUG = True
 
-    TEMPLATE_DEBUG = False
 
     INSTALLED_APPS += ('debug_toolbar',)
 

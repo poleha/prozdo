@@ -117,6 +117,8 @@ COMPONENT_TYPES = (
 #<Posts******************************************************************
 #TODO move it to cache
 EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
+CACHED_VIEW_TEMLPATE_PREFIX = "_cached_view-{0}-{1}"
+
 
 CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
 
@@ -1321,6 +1323,7 @@ class History(SuperModel):
         if self.post:
             self.post.obj.full_invalidate_cache()
             invalidate_obj(self.post.obj)
+            cache.delete_pattern(CACHED_VIEW_TEMLPATE_PREFIX.format('PostDetail', 'get') + '*')
 
         if self.user:
             self.user.user_profile.full_invalidate_cache()
@@ -1353,6 +1356,7 @@ class History(SuperModel):
         if post:
             post.obj.full_invalidate_cache()
             invalidate_obj(post.obj)
+            cache.delete_pattern(CACHED_VIEW_TEMLPATE_PREFIX.format('PostDetail', 'get') + '*')
         if user:
             user.user_profile.full_invalidate_cache()
             invalidate_obj(user)

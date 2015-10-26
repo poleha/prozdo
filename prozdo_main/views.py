@@ -13,11 +13,12 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import get_client_ip, to_int
+from .helper import get_client_ip, to_int, get_class_that_defined_method
 from django.contrib import messages
 from django.views.decorators.http import last_modified
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
@@ -55,13 +56,36 @@ def get_post_last_modified(request, **kwargs):
         obj = post.obj
         return obj.last_modified
 
+
+
+
+
+def cached_view(timeout=settings.PROZDO_CACHE_DURATION):
+    def decorator(func):
+        def wrapper(self, request, *args, **kwargs):
+            if models.request_with_empty_guest(request):
+                url = request.build_absolute_uri()
+                cls = get_class_that_defined_method(func)
+                prefix = models.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
+                key = "{0}-{1}".format(prefix, url)
+                res = cache.get(key)
+                if res is None:
+                    res = func(self, request, *args, **kwargs)
+                    res.render()
+                    cache.set(key, res, timeout)
+            else:
+                res = func(self, request, *args, **kwargs)
+            return res
+        return wrapper
+    return decorator
+
+
 class PostDetail(ProzdoListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
 
     @method_decorator(last_modified(get_post_last_modified))
-    @method_decorator(cache_page(60 * 60))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -85,29 +109,9 @@ class PostDetail(ProzdoListView):
         else:
             comments = comments.order_by('created')
 
-        #if show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-        #    comments = self.post.first_level_available_comments_created_dec
-        #elif show_type == forms.COMMENTS_SHOW_TYPE_TREE and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
-        #    comments = self.post.first_level_available_comments_created_inc
-        #elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_DEC:
-        #    comments = self.post.available_comments_created_dec
-        #elif show_type == forms.COMMENTS_SHOW_TYPE_PLAIN and order_by_created == forms.COMMENTS_ORDER_BY_CREATED_INC:
-        #    comments = self.post.available_comments_created_inc
-
         return comments
 
-    #def get_template_names(self):
-        #if self.obj.post_type == models.POST_TYPE_DRUG:
-        #    return 'prozdo_main/post/drug_detail.html'
-        #elif self.obj.post_type == models.POST_TYPE_COMPONENT:
-        #    return 'prozdo_main/post/component_detail.html'
-        #elif self.obj.post_type == models.POST_TYPE_BLOG:
-        #    return 'prozdo_main/post/blog_detail.html'
-        #elif self.obj.post_type == models.POST_TYPE_FORUM:
-        #    return 'prozdo_main/post/forum_detail.html'
-        #elif self.obj.post_type == models.POST_TYPE_COSMETICS:
-        #    return 'prozdo_main/post/cosmetics_detail.html'
-
+    @cached_view()
     def get(self, request, *args, **kwargs):
         self.set_obj()
         self.set_comment_page()

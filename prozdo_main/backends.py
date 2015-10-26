@@ -44,11 +44,11 @@ class ProzdoCacheBackendMixin:
         else:
             return None
 
-    def set(self, key, value, timeout=settings.PROZDO_CACHE_DURATION, version=None):
+    def set(self, key, value, timeout=None, version=None):
         if settings.PROZDO_CACHE_ENABLED:
             return super().set(key, value, timeout, version)
         else:
-            return
+            return None
 
 
 
