@@ -1577,7 +1577,9 @@ def request_with_empty_guest(request):
         return False
 
     session_key = request.session._get_or_create_session_key()
-    print(session_key)
+    import logging
+    logging.warning(session_key)
+
     if session_key is None:
         return True
 
