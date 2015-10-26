@@ -105,7 +105,7 @@ WSGI_APPLICATION = 'prozdo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -131,7 +131,6 @@ DATABASES = {
 
 
 }
-"""
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -363,3 +362,22 @@ else:
 
 
 
+OGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+        'logfile': {
+            'level':'DEBUG',
+            'class':'logging.FileHandler',
+            'filename': BASE_DIR + "/../logfile",
+        },
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console', 'logfile']
+    },
+}
