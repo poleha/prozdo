@@ -533,7 +533,7 @@ class Drug(Post):
     contra_indications = RichTextField(verbose_name='Противопоказания', blank=True)
     side_effects = RichTextField(verbose_name='Побочные эффекты', blank=True)
     compound = RichTextField(verbose_name='Состав', blank=True)
-    image = ImageField(verbose_name='Изображение', upload_to='drug', blank=True, null=True)
+    image = ImageField(verbose_name='Изображение', upload_to='drug', blank=True, null=True, max_length=300)
 
     dosage_forms = models.ManyToManyField(DrugDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(DrugUsageArea, verbose_name='Область применения')
@@ -564,7 +564,7 @@ class Drug(Post):
 
 class Cosmetics(Post):
     body = RichTextField(verbose_name='Содержимое', blank=True)
-    image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True)
+    image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True, max_length=300)
 
     brand = models.ForeignKey(Brand, verbose_name='Бренд', db_index=True)
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True, db_index=True)
@@ -601,7 +601,7 @@ class Blog(Post):
         ordering = ('-created', )
     short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = RichTextUploadingField(verbose_name='Содержимое', blank=True)
-    image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True)
+    image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True, max_length=300)
     category = TreeManyToManyField(Category, verbose_name='Категория', db_index=True)
     objects = PostManager()
 
