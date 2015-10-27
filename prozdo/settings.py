@@ -361,25 +361,22 @@ else:
                     'django.template.loaders.app_directories.Loader',
         ]
 
-"""
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'class': 'logging.StreamHandler',
         },
         'logfile': {
-            'level':'DEBUG',
+            'level':'WARNING',
             'class':'logging.FileHandler',
             'filename': BASE_DIR + "/../logfile",
         },
     },
     'root': {
-        'level': 'INFO',
+        'level': 'WARNING',
         'handlers': ['console', 'logfile']
     },
 }
-
-"""
