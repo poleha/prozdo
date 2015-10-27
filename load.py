@@ -22,10 +22,6 @@ from django.utils.html import strip_tags
 from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
 
-try:
-    last_hist_pk = models.History.objects.latest('created').pk
-except:
-    last_hist_pk = None
 
 tz = get_default_timezone()
 def date_from_timestamp(ts):
@@ -413,8 +409,7 @@ if load_posts:
             if relation_row['type'] == 12:
                 category = models.Category.objects.get(old_id=related_post_row['id'])
                 blog.category.add(category)
-        #posts[post_row['id']] = blog
-
+    models.History.objects.all().delete()
 
 if create_other_models:
     print('create_other_models')
@@ -482,6 +477,7 @@ if create_redirects:
         old_path='/raskryityiy_tsvetok_vashego_vyisshego_«ya',
         new_path='/raskrytyi_tsvetok_vashego_vysshego_ia',
     )
+    models.History.objects.all().delete()
 
 
 if fix_aliases:
@@ -508,6 +504,7 @@ if fix_aliases:
         b.save()
     except:
         pass
+    models.History.objects.all().delete()
 
 
 
@@ -676,7 +673,7 @@ if load_images:
             user_profile.save()
             #print(user_profile)
 
-
+    models.History.objects.all().delete()
 
 
 
@@ -686,6 +683,7 @@ if fix_news_images:
     for blog in models.Blog.objects.filter(body__contains='images/news'):
         blog.body = blog.body.replace('images/news', 'static/prozdo_main/images/news')
         blog.save()
+    models.History.objects.all().delete()
 
 
 
@@ -750,19 +748,17 @@ if load_comments:
             old_id=comment_row['id'],
         )
         #comments[comment_row['id']] = comment
-
+    models.History.objects.all().delete()
 
 
 #*********************History
 if load_history:
     print('load_history')
-    if last_hist_pk:
-        models.History.objects.filter(pk__gt=last_hist_pk).delete()
-
+    models.History.objects.all().delete()
     c.execute('SELECT * FROM history h '
                              'LEFT JOIN post p on h.post_id = p.id '
                              'LEFT JOIN comment c ON h.comment_id = c.id '
-                             'WHERE p.type <> 11 AND h.type <> 4 AND h.type <> 5 AND h.type <> 7 AND h.type <> 8 AND'
+                             'WHERE p.type <> 11 AND h.type <> 4 AND h.type <> 7 AND h.type <> 8 AND'
                              ' h.type <> 11 ORDER BY h.create_time')
 
     history_rows = c.fetchall()

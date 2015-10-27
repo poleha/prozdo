@@ -40,41 +40,32 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'mptt',
-
     'allauth.socialaccount.providers.vk',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-
     'prozdo_main',
-     'sorl.thumbnail',
-     'django.contrib.redirects',
+    'sorl.thumbnail',
+    'django.contrib.redirects',
     'compressor',
     'reversion',
     'ckeditor',
     'ckeditor_uploader',
     'cacheops',
-
-
 )
-
 
 
 COMPRESS_ENABLED = True
 
 MIDDLEWARE_CLASSES = (
 
-
     'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-
-
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    #'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -105,9 +96,10 @@ TEMPLATES = [
     },
 ]
 
-"""
+
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
+"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
@@ -369,6 +361,7 @@ else:
                     'django.template.loaders.app_directories.Loader',
         ]
 
+"""
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -388,3 +381,4 @@ LOGGING = {
         'handlers': ['console', 'logfile']
     },
 }
+"""
