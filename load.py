@@ -21,7 +21,6 @@ from django.db.models import Q
 from django.utils.html import strip_tags
 from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
-import pytz
 
 try:
     last_hist_pk = models.History.objects.latest('created').pk
@@ -73,6 +72,7 @@ if delete_all:
     SocialApp.objects.all().delete()
 
 
+print('connecting to database')
 conn = pymysql.connect(host='prozdo.ru',
                              user='rfire',
                              password='ZaX369Exn',
@@ -512,116 +512,6 @@ if fix_aliases:
 
 
 
-#comments = {}
-if load_comments:
-    print('load_comments')
-    c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time')
-    comment_rows = c.fetchall()
-    for comment_row in comment_rows:
-        if comment_row['parent_id']:
-            try:
-                parent = models.Comment.objects.get(old_id=comment_row['parent_id']) #comments[comment_row['parent_id']]
-            except:
-                parent = None
-                print('Parent comment not found for {0} - {1}'.format(comment_row['id'], comment_row['parent_id']))
-        else:
-            parent = None
-
-
-        if comment_row['author_id']:
-            params = (comment_row['author_id'], )
-            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
-            user_row = c.fetchone()
-            user = models.User.objects.get(username=user_row['username'])
-        else:
-            user = None
-
-        if comment_row['editor_id']:
-            params = (comment_row['editor_id'], )
-            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
-            user_row = c.fetchone()
-            updater = models.User.objects.get(username=user_row['username'])
-        else:
-            updater = None
-
-        try:
-            post = models.Post.objects.get(old_id=comment_row['post_id'])#posts[comment_row['post_id']]
-        except:
-            print('Post not found for {0} - {1}'.format(comment_row['id'], comment_row['post_id']))
-            continue
-        if user and (user.is_admin or user.is_author or user.is_doctor):
-            body = comment_row['content']
-        else:
-            body = strip_tags(comment_row['content'])
-
-        comment, created = models.Comment.objects.get_or_create(
-            post=post,
-            username=comment_row['author'],
-            email=comment_row['email'] if comment_row['email'] else '',
-            post_mark=comment_row['mark'] if comment_row['mark'] else None,
-            body=body,
-            ip=comment_row['ip'],
-            consult_required=comment_row['consult'] if comment_row['consult'] else False,
-            created=date_from_timestamp(comment_row['create_time']),
-            updated=date_from_timestamp(comment_row['update_time']),
-            status=models.COMMENT_STATUS_PUBLISHED if comment_row['status'] == 2 else models.COMMENT_STATUS_PENDING_APPROVAL,
-            user=user,
-            updater=updater,
-            key=comment_row['activkey'],
-            confirmed=comment_row['approved'] if comment_row['approved'] else False,
-            parent=parent,
-            old_id=comment_row['id'],
-        )
-        #comments[comment_row['id']] = comment
-
-
-
-#*********************History
-if load_history:
-    print('load_history')
-    if last_hist_pk:
-        models.History.objects.filter(pk__gt=last_hist_pk).delete()
-
-    c.execute('SELECT * FROM history h '
-                             'LEFT JOIN post p on h.post_id = p.id '
-                             'LEFT JOIN comment c ON h.comment_id = c.id '
-                             'WHERE p.type <> 11 AND h.type <> 4 AND h.type <> 5 AND h.type <> 7 AND h.type <> 8 AND'
-                             ' h.type <> 11 ORDER BY h.create_time')
-
-    history_rows = c.fetchall()
-    hist_type_dict = {
-        1: 3,
-        2: 1,
-        3: 6,
-        4: None,
-        5: 6,
-        6: 5,
-        7: None,
-        8: None,
-        9: 2,
-        10: 7,
-        11: None,
-    }
-
-
-
-    for history_row in history_rows:
-        try:
-            h, created = models.History.objects.get_or_create(
-            post=models.Post.objects.get(old_id=history_row['post_id']),
-            history_type = hist_type_dict[int(history_row['type'])],
-            author=models.User.objects.get(user_profile__old_id=history_row['auser_id']) if history_row['auser_id'] else None,
-            user=models.User.objects.get(user_profile__old_id=history_row['user_id']) if history_row['user_id'] else None,
-            comment=models.Comment.objects.get(old_id=history_row['comment_id']) if history_row['comment_id'] else None,
-            user_points=history_row['user_points'],
-            created=date_from_timestamp(history_row['create_time']),
-            ip=history_row['ip'],
-            mark=history_row['points'],
-            old_id=history_row['id'],
-            )
-        except:
-            print(dict(history_row))
-
 if load_images:
     print('load_images')
     #from multi_image_upload.models import save_thumbs, generate_filenames
@@ -796,3 +686,115 @@ if fix_news_images:
     for blog in models.Blog.objects.filter(body__contains='images/news'):
         blog.body = blog.body.replace('images/news', 'static/prozdo_main/images/news')
         blog.save()
+
+
+
+#comments = {}
+if load_comments:
+    print('load_comments')
+    c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time')
+    comment_rows = c.fetchall()
+    for comment_row in comment_rows:
+        if comment_row['parent_id']:
+            try:
+                parent = models.Comment.objects.get(old_id=comment_row['parent_id']) #comments[comment_row['parent_id']]
+            except:
+                parent = None
+                print('Parent comment not found for {0} - {1}'.format(comment_row['id'], comment_row['parent_id']))
+        else:
+            parent = None
+
+
+        if comment_row['author_id']:
+            params = (comment_row['author_id'], )
+            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
+            user_row = c.fetchone()
+            user = models.User.objects.get(username=user_row['username'])
+        else:
+            user = None
+
+        if comment_row['editor_id']:
+            params = (comment_row['editor_id'], )
+            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
+            user_row = c.fetchone()
+            updater = models.User.objects.get(username=user_row['username'])
+        else:
+            updater = None
+
+        try:
+            post = models.Post.objects.get(old_id=comment_row['post_id'])#posts[comment_row['post_id']]
+        except:
+            print('Post not found for {0} - {1}'.format(comment_row['id'], comment_row['post_id']))
+            continue
+        if user and (user.is_admin or user.is_author or user.is_doctor):
+            body = comment_row['content']
+        else:
+            body = strip_tags(comment_row['content'])
+
+        comment, created = models.Comment.objects.get_or_create(
+            post=post,
+            username=comment_row['author'],
+            email=comment_row['email'] if comment_row['email'] else '',
+            post_mark=comment_row['mark'] if comment_row['mark'] else None,
+            body=body,
+            ip=comment_row['ip'],
+            consult_required=comment_row['consult'] if comment_row['consult'] else False,
+            created=date_from_timestamp(comment_row['create_time']),
+            updated=date_from_timestamp(comment_row['update_time']),
+            status=models.COMMENT_STATUS_PUBLISHED if comment_row['status'] == 2 else models.COMMENT_STATUS_PENDING_APPROVAL,
+            user=user,
+            updater=updater,
+            key=comment_row['activkey'],
+            confirmed=comment_row['approved'] if comment_row['approved'] else False,
+            parent=parent,
+            old_id=comment_row['id'],
+        )
+        #comments[comment_row['id']] = comment
+
+
+
+#*********************History
+if load_history:
+    print('load_history')
+    if last_hist_pk:
+        models.History.objects.filter(pk__gt=last_hist_pk).delete()
+
+    c.execute('SELECT * FROM history h '
+                             'LEFT JOIN post p on h.post_id = p.id '
+                             'LEFT JOIN comment c ON h.comment_id = c.id '
+                             'WHERE p.type <> 11 AND h.type <> 4 AND h.type <> 5 AND h.type <> 7 AND h.type <> 8 AND'
+                             ' h.type <> 11 ORDER BY h.create_time')
+
+    history_rows = c.fetchall()
+    hist_type_dict = {
+        1: 3,
+        2: 1,
+        3: 6,
+        4: None,
+        5: 6,
+        6: 5,
+        7: None,
+        8: None,
+        9: 2,
+        10: 7,
+        11: None,
+    }
+
+
+
+    for history_row in history_rows:
+        try:
+            h, created = models.History.objects.get_or_create(
+            post=models.Post.objects.get(old_id=history_row['post_id']),
+            history_type = hist_type_dict[int(history_row['type'])],
+            author=models.User.objects.get(user_profile__old_id=history_row['auser_id']) if history_row['auser_id'] else None,
+            user=models.User.objects.get(user_profile__old_id=history_row['user_id']) if history_row['user_id'] else None,
+            comment=models.Comment.objects.get(old_id=history_row['comment_id']) if history_row['comment_id'] else None,
+            user_points=history_row['user_points'],
+            created=date_from_timestamp(history_row['create_time']),
+            ip=history_row['ip'],
+            mark=history_row['points'],
+            old_id=history_row['id'],
+            )
+        except:
+            print(dict(history_row))
