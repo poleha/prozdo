@@ -166,7 +166,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 POST_COMMENTS_PAGE_SIZE = 30
 POST_LIST_PAGE_SIZE = 48
 
-
+APPEND_SLASH = True
 
 BAD_WORDS = (
           '<',
@@ -302,7 +302,7 @@ CACHEOPS = {
     #'auth.user': {'ops': 'get', 'timeout': 60*15},
     #'auth.*': {'ops': ('fetch', 'get')},
     #'auth.permission': {'ops': 'all'},#
-    '*.*': {'ops': 'all'},
+    '*.*': {},#{'ops': 'all'},
     #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
     #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},

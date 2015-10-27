@@ -10,7 +10,7 @@ if __name__ == "__main__":
     execute_from_command_line(sys.argv)
 
 from prozdo_main import models
-import sqlite3
+import pymysql
 from allauth.account.models import EmailAddress, EmailConfirmation
 import datetime
 from django.conf import settings
@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.utils.html import strip_tags
 from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
+import pytz
 
 try:
     last_hist_pk = models.History.objects.latest('created').pk
@@ -33,19 +34,18 @@ def date_from_timestamp(ts):
         return None
     else:
         return datetime.datetime.fromtimestamp(ts, tz)
-#2011-02-06 07:59:50
 
 
 def date_from_string(date):
-    year = date[:4]
-    month = date[5:7]
-    day = date[8:10]
-    hour = date[11:13]
-    minute = date[14:16]
-    second = date[17:19]
+    #year = date[:4]
+    #month = date[5:7]
+    #day = date[8:10]
+    #hour = date[11:13]
+    #minute = date[14:16]
+    #second = date[17:19]
     #print(date, year, month, day, hour, minute, second)
-    res = datetime.datetime(year=int(year), month=int(month), day=int(day), hour=int(hour), minute=int(minute), second=int(second), tzinfo=tz)
-    return res
+    #res = datetime.datetime(year=int(year), month=int(month), day=int(day), hour=int(hour), minute=int(minute), second=int(second), tzinfo=tz)
+    return date.replace(tzinfo=tz)
 
 
 delete_all = True
@@ -62,8 +62,8 @@ fix_news_images = True
 
 if delete_all:
     print('delete_all')
-    models.Post.objects.all().delete()
     models.User.objects.all().exclude(username='kulik').delete()
+    models.Post.objects.all().delete()
     EmailAddress.objects.all().delete()
     EmailConfirmation.objects.all().delete()
     models.Comment.objects.all().delete()
@@ -73,15 +73,21 @@ if delete_all:
     SocialApp.objects.all().delete()
 
 
-conn = sqlite3.connect('prozdo.sqlite')
-conn.row_factory = sqlite3.Row
+conn = pymysql.connect(host='prozdo.ru',
+                             user='rfire',
+                             password='ZaX369Exn',
+                             db='prozdo',
+                             charset='utf8',
+                             cursorclass=pymysql.cursors.DictCursor)
+#conn.row_factory = sqlite3.Row
 c = conn.cursor()
 
 #users = {}
 
 if load_users:
     print('load_users')
-    user_rows = c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id ').fetchall()
+    c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id ')
+    user_rows = c.fetchall()
 
     for user_row in user_rows:
         user, created = models.User.objects.get_or_create(
@@ -128,10 +134,12 @@ if load_users:
 
 if load_posts:
     print('load_posts')
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type > 3 AND p.type < 8').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type > 3 AND p.type < 8')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         params = (post_row['id'], )
-        alias_row = c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = ?', params).fetchone()
+        c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = %s', params)
+        alias_row = c.fetchone()
         try:
             alias = alias_row['alias']
         except:
@@ -159,7 +167,8 @@ if load_posts:
         component.old_id = post_row['id']
         #posts[post_row['id']] = component
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 8').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 8')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         drug_dosage_form, created = models.DrugDosageForm.objects.get_or_create(
             title=post_row['title'],
@@ -171,7 +180,8 @@ if load_posts:
         drug_dosage_form.old_id = post_row['id']
         #posts[post_row['id']] = drug_dosage_form
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 9').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 9')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         drug_usage_area, created = models.DrugUsageArea.objects.get_or_create(
             title=post_row['title'],
@@ -183,7 +193,8 @@ if load_posts:
         drug_usage_area.old_id = post_row['id']
         #posts[post_row['id']] = drug_usage_area
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 12').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 12')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         if post_row['parent_id']:
             parent_category = models.Category.objects.get(old_id=post_row['parent_id']) #posts[post_row['parent_id']]
@@ -200,7 +211,8 @@ if load_posts:
         category.old_id = post_row['id']
         #posts[post_row['id']] = category
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 14').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 14')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         cosmetics_dosage_form, created = models.CosmeticsDosageForm.objects.get_or_create(
             title=post_row['title'],
@@ -212,7 +224,8 @@ if load_posts:
         cosmetics_dosage_form.old_id = post_row['id']
         #posts[post_row['id']] = cosmetics_dosage_form
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 15').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 15')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         cosmetics_usage_area, created = models.CosmeticsUsageArea.objects.get_or_create(
             title=post_row['title'],
@@ -224,7 +237,8 @@ if load_posts:
         cosmetics_usage_area.old_id = post_row['id']
         #posts[post_row['id']] = cosmetics_usage_area
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 16').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 16')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         line, created = models.CosmeticsLine.objects.get_or_create(
             title=post_row['title'],
@@ -236,7 +250,8 @@ if load_posts:
         line.old_id = post_row['id']
         #posts[post_row['id']] = line
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 17').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 17')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         brand, created = models.Brand.objects.get_or_create(
         title=post_row['title'],
@@ -248,10 +263,12 @@ if load_posts:
         brand.old_id = post_row['id']
         #posts[post_row['id']] = brand
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 1').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 1')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         params = (post_row['id'], )
-        alias_row = c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = ?', params).fetchone()
+        c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = %s', params)
+        alias_row = c.fetchone()
         alias = alias_row['alias']
         drug, created = models.Drug.objects.get_or_create(
             title=post_row['title'],
@@ -270,11 +287,12 @@ if load_posts:
             old_id=post_row['id'],
         )
         params = (post_row['id'], )
-        relation_rows = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1=?', params).fetchall()
+        c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1 = %s', params)
+        relation_rows = c.fetchall()
         for relation_row in relation_rows:
             params = (relation_row['id'], )
-            related_post_row = c.execute('SELECT * FROM post p WHERE p.id = ?', params).fetchone()
-
+            c.execute('SELECT * FROM post p WHERE p.id = %s', params)
+            related_post_row = c.fetchone()
             if relation_row['type'] in [4, 5, 6, 7]:
                 component = models.Component.objects.get(old_id=related_post_row['id'])
                 drug.components.add(component)
@@ -290,16 +308,20 @@ if load_posts:
 
         #posts[post_row['id']] = drug
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 18').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 18')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         params = (post_row['id'], )
-        alias_row = c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = ?', params).fetchone()
+        c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = %s', params)
+        alias_row = c.fetchone()
         alias = alias_row['alias']
         params = (post_row['id'], )
-        brand_row = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE p1.type=17 AND r.id1=?', params).fetchone()
+        c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE p1.type=17 AND r.id1 = %s', params)
+        brand_row = c.fetchone()
         brand = models.Brand.objects.get(title=brand_row['title'])
         try:
-            line_row = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE p1.type=16 AND r.id1=?', params).fetchone()
+            c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE p1.type=16 AND r.id1 = %s', params)
+            line_row = c.fetchone()
             line = models.CosmeticsLine.objects.get(title=line_row['title'])
         except:
             line = None
@@ -330,10 +352,12 @@ if load_posts:
             )
 
         params = (post_row['id'], )
-        relation_rows = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1=?', params).fetchall()
+        c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1 = %s', params)
+        relation_rows = c.fetchall()
         for relation_row in relation_rows:
             params = (relation_row['id'], )
-            related_post_row = c.execute('SELECT * FROM post p WHERE p.id = ?', params).fetchone()
+            c.execute('SELECT * FROM post p WHERE p.id = %s', params)
+            related_post_row = c.fetchone()
             #related = models.Post.objects.get(old_id=related_post_row['id'])#posts[related_post_row['id']]
             if relation_row['type'] == 14:
                 cosmetics_dosage_form = models.CosmeticsDosageForm.objects.get(old_id=related_post_row['id'])
@@ -348,10 +372,12 @@ if load_posts:
         #posts[post_row['id']] = cosmetics
 
 
-    post_rows = c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 2').fetchall()
+    c.execute('SELECT * FROM post p LEFT JOIN product_fields pf ON p.id = pf.post_id WHERE p.type = 2')
+    post_rows = c.fetchall()
     for post_row in post_rows:
         params = (post_row['id'], )
-        alias_row = c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = ?', params).fetchone()
+        c.execute('SELECT * FROM alias a WHERE a.route="post/view" AND a.entity_id = %s', params)
+        alias_row = c.fetchone()
         alias = alias_row['alias']
 
         title = post_row['title']
@@ -377,10 +403,12 @@ if load_posts:
             old_id=post_row['id'],
         )
         params = (post_row['id'], )
-        relation_rows = c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1=?', params).fetchall()
+        c.execute('SELECT p1.id, p1.title, p1.type FROM relation r LEFT JOIN post p ON r.id1 = p.id LEFT JOIN post p1 ON r.id2=p1.id WHERE r.id1 = %s', params)
+        relation_rows = c.fetchall()
         for relation_row in relation_rows:
             params = (relation_row['id'], )
-            related_post_row = c.execute('SELECT * FROM post p WHERE p.id = ?', params).fetchone()
+            related_post_row = c.execute('SELECT * FROM post p WHERE p.id = %s', params)
+            related_post_row = c.fetchone()
             #related = models.Post.objects.get(old_id=related_post_row['id']) #posts[related_post_row['id']]
             if relation_row['type'] == 12:
                 category = models.Category.objects.get(old_id=related_post_row['id'])
@@ -487,7 +515,8 @@ if fix_aliases:
 #comments = {}
 if load_comments:
     print('load_comments')
-    comment_rows = c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time').fetchall()
+    c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time')
+    comment_rows = c.fetchall()
     for comment_row in comment_rows:
         if comment_row['parent_id']:
             try:
@@ -501,14 +530,16 @@ if load_comments:
 
         if comment_row['author_id']:
             params = (comment_row['author_id'], )
-            user_row = c.execute('SELECT u.username FROM users u WHERE u.id=?', params).fetchone()
+            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
+            user_row = c.fetchone()
             user = models.User.objects.get(username=user_row['username'])
         else:
             user = None
 
         if comment_row['editor_id']:
             params = (comment_row['editor_id'], )
-            user_row = c.execute('SELECT u.username FROM users u WHERE u.id=?', params).fetchone()
+            c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
+            user_row = c.fetchone()
             updater = models.User.objects.get(username=user_row['username'])
         else:
             updater = None
@@ -551,12 +582,13 @@ if load_history:
     if last_hist_pk:
         models.History.objects.filter(pk__gt=last_hist_pk).delete()
 
-    history_rows = c.execute('SELECT * FROM history h '
+    c.execute('SELECT * FROM history h '
                              'LEFT JOIN post p on h.post_id = p.id '
                              'LEFT JOIN comment c ON h.comment_id = c.id '
                              'WHERE p.type <> 11 AND h.type <> 4 AND h.type <> 5 AND h.type <> 7 AND h.type <> 8 AND'
-                             ' h.type <> 11 ORDER BY h.create_time').fetchall()
+                             ' h.type <> 11 ORDER BY h.create_time')
 
+    history_rows = c.fetchall()
     hist_type_dict = {
         1: 3,
         2: 1,
@@ -606,7 +638,9 @@ if load_images:
 
         if image is None:
             params = (drug.old_id, )
-            image_row = c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id=?', params).fetchone()
+
+            c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id = %s', params)
+            image_row = c.fetchone()
             image_name = image_row['document']
             if not image_name:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', drug)
@@ -643,7 +677,8 @@ if load_images:
 
         if image is None:
             params = (blog.old_id, )
-            image_row = c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id=?', params).fetchone()
+            c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id = %s', params)
+            image_row = c.fetchone()
             image_name = image_row['document']
             if not image_name:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', blog)
@@ -680,7 +715,8 @@ if load_images:
 
         if image is None:
             params = (cosmetics.old_id, )
-            image_row = c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id=?', params).fetchone()
+            c.execute('SELECT i.document FROM post p LEFT JOIN image i ON p.image_id = i.id WHERE p.id = %s', params)
+            image_row = c.fetchone()
             image_name = image_row['document']
             if not image_name:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', cosmetics)
@@ -721,7 +757,9 @@ if load_images:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!user old_id not found', user_profile)
                 continue
             params = (user_profile.old_id, )
-            image_row = c.execute('SELECT i.document FROM users u LEFT JOIN image i ON u.image_id = i.id WHERE u.id=?', params).fetchone()
+
+            c.execute('SELECT i.document FROM users u LEFT JOIN image i ON u.image_id = i.id WHERE u.id = %s', params)
+            image_row = c.fetchone()
             image_name = image_row['document']
             if not image_name:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', user_profile)
