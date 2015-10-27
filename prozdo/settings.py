@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
     'cacheops',
+    'django_mobile'
 )
 
 
@@ -63,6 +64,7 @@ COMPRESS_ENABLED = True
 MIDDLEWARE_CLASSES = (
 
     'django.middleware.http.ConditionalGetMiddleware',
+    'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
     'django.middleware.gzip.GZipMiddleware',
@@ -99,7 +101,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 
-"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
@@ -128,7 +129,7 @@ DATABASES = {
 
 
 }
-
+"""
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -275,7 +276,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30

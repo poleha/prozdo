@@ -5,7 +5,7 @@ from .helper import get_class_that_defined_method
 #from .models import History
 
 EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
-CACHED_VIEW_TEMLPATE_PREFIX = "_cached_view-{0}-{1}"
+CACHED_VIEW_TEMLPATE_PREFIX = "_cached_view-{0}-{1}-{2}"
 
 CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
 
@@ -83,7 +83,8 @@ def cached_view(timeout=settings.PROZDO_CACHE_DURATION, test=lambda request: Tru
             if settings.PROZDO_CACHE_ENABLED and test(request):
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
-                prefix = CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)
+                flavour = getattr(request, 'flavour', '')
+                prefix = CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__, flavour)
                 key = "{0}-{1}".format(prefix, url)
                 res = cache.get(key)
                 if res is None:
