@@ -67,11 +67,15 @@ INSTALLED_APPS = (
 COMPRESS_ENABLED = True
 
 MIDDLEWARE_CLASSES = (
+
+
     'django.middleware.http.ConditionalGetMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+
+
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
     #'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -101,8 +105,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'prozdo.wsgi.application'
 """
+WSGI_APPLICATION = 'prozdo.wsgi.application'
+
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
@@ -115,8 +120,8 @@ DATABASES = {
         }
     }
 }
-
 """
+
 
 DATABASES = {
     'default': {
@@ -159,8 +164,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-#SESSION_CACHE_ALIAS = "default"
+#SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+SESSION_CACHE_ALIAS = "default"
 SESSION_SAVE_EVERY_REQUEST = True
+#SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 
 #**************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30

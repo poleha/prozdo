@@ -80,7 +80,7 @@ class CachedModelMixin(Model):
 def cached_view(timeout=settings.PROZDO_CACHE_DURATION, test=lambda request: True):
     def decorator(func):
         def wrapper(self, request, *args, **kwargs):
-            if test(request):
+            if settings.PROZDO_CACHE_ENABLED and test(request):
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
                 prefix = CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__)

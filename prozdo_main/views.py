@@ -102,10 +102,12 @@ class PostDetail(ProzdoListView):
         self.set_obj()
         self.set_comment_page()
         res = super().get(request, *args, **kwargs)
-        last_modified = convert_date(self.obj.last_modified)
-        expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHE_DURATION)
-        res['Last-Modified'] = last_modified
-        res['Expires'] = convert_date(expires)
+        last_modified = self.obj.last_modified
+        if last_modified:
+            last_modified = convert_date(last_modified)
+            expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHE_DURATION)
+            res['Last-Modified'] = last_modified
+            res['Expires'] = convert_date(expires)
         return res
 
 
@@ -167,7 +169,7 @@ class PostDetail(ProzdoListView):
             if user.is_authenticated():
                 hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session._get_or_create_session_key(), post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.session_key, post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -190,7 +192,7 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
-            comment_form.instance.session_key = request.session._get_or_create_session_key()
+            comment_form.instance.session_key = request.session.session_key
             if user.is_authenticated() and not comment_form.instance.user:
                 comment_form.instance.user = user
             comment_form.instance.status = comment_form.instance.get_status()
@@ -327,13 +329,13 @@ class HistoryAjaxSave(generic.View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        if not request.session.get('has_session'):
-            request.session['has_session'] = True
+        request.session['saved_history'] = True
         pk = request.POST['pk']
         action = request.POST['action']
         ip = get_client_ip(request)
         user = request.user
-        session_key = request.session._get_or_create_session_key()
+        session_key = request.session.session_key
+
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
@@ -366,7 +368,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session._get_or_create_session_key())
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
             data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
@@ -393,7 +395,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session._get_or_create_session_key())
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session.session_key)
             data = {}
             if h:
                 data['saved'] = True
@@ -426,7 +428,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'blog-mark':
             post = models.Post.objects.get(pk=pk)
             blog = post.obj
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session._get_or_create_session_key())
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session.session_key)
             data = {}
             if h:
                 data['saved'] = True
