@@ -411,7 +411,8 @@ class HistoryAjaxSave(generic.View):
             data = {}
             if hs.exists():
                 for h in hs:
-                    h.delete()
+                    h.deleted = True
+                    h.save()
                 data['saved'] = True
             else:
                 data['saved'] = False

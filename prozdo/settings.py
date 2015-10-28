@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
@@ -77,8 +77,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
+    'htmlmin.middleware.HtmlMinifyMiddleware',
+    'htmlmin.middleware.MarkRequestMiddleware',
     #'prozdo_main.middleware.ProzdoFetchFromCacheMiddleware',    #cache
 )
+
+
+HTML_MINIFY = True
 
 ROOT_URLCONF = 'prozdo.urls'
 
@@ -89,7 +94,7 @@ TEMPLATES = [
         #'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
+                'prozdo_main.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -104,7 +109,6 @@ WSGI_APPLICATION = 'prozdo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -132,7 +136,6 @@ DATABASES = {
 
 }
 """
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 

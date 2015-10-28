@@ -5,7 +5,8 @@ from .helper import get_class_that_defined_method
 #from .models import History
 
 EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
-CACHED_VIEW_TEMLPATE_PREFIX = "_cached_view-{0}-{1}-{2}"
+CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX = "_cached_view-{0}-{1}"
+CACHED_VIEW_TEMLPATE_PREFIX = CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX + "-{2}"
 
 CACHED_ATTRIBUTE_KEY_TEMPLATE = '_cached_{0}-{1}-{2}'
 
@@ -64,7 +65,7 @@ class CachedModelMixin(Model):
                 self.invalidate_cache(attr_name)
 
             for cls_name, func_name in self.cached_views:
-                cache.delete_pattern(CACHED_VIEW_TEMLPATE_PREFIX.format(cls_name, func_name) + '*')
+                cache.delete_pattern(CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
 
     def clean_cache(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:

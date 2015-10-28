@@ -649,7 +649,6 @@ if load_images:
             image_row = c.fetchone()
             image_name = image_row['document']
             if not image_name:
-                print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', user_profile)
                 continue
 
             ext = image_name.split('.')[-1]
@@ -661,7 +660,7 @@ if load_images:
             try:
                 f = open(file, 'rb')
             except:
-                #print(file)
+                print('!!!!!!!!!!!!!!!!!!!!!!!!!image not found', user_profile)
                 continue
             storage.save(new_name, f)
             #name = os.path.split(name_jpg)[-1]

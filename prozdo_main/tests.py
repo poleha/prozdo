@@ -276,12 +276,12 @@ class HistoryTests(BaseTest):
     def test_comment_create_without_mark_for_drug(self):
         drug = self.drug
         user = self.user
-        start_hist_count = models.History.objects.all().count()
+        start_hist_count = models.History.objects.filter(deleted=False).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=user)
         form = page.forms['comment-form']
         form['body'] = 'Привет, это вот мой коммент'
         page = form.submit()
-        result_hist_count = models.History.objects.all().count()
+        result_hist_count = models.History.objects.filter(deleted=False).count()
         comment = models.Comment.objects.latest('created')
 
         self.assertEqual(start_hist_count + 1, result_hist_count)
@@ -299,7 +299,7 @@ class HistoryTests(BaseTest):
     def test_comment_create_and_save_and_post_mark_for_drug(self):
         drug = self.drug
         user = self.user
-        start_hist_count = models.History.objects.all().count()
+        start_hist_count = models.History.objects.filter(deleted=False).count()
 
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=user)
@@ -308,7 +308,7 @@ class HistoryTests(BaseTest):
         form['post_mark'] = 4
         page = form.submit()
 
-        result_hist_count = models.History.objects.all().count()
+        result_hist_count = models.History.objects.filter(deleted=False).count()
 
         self.assertEqual(start_hist_count + 1, result_hist_count)
 
@@ -349,9 +349,9 @@ class HistoryAjaxSaveTests(BaseTest):
                     'action': action,
                     'pk': comment.pk,
                 }
-                start_hist_count = models.History.objects.all().count()
+                start_hist_count = models.History.objects.filter(deleted=False).count()
                 page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user2)
-                result_hist_count = models.History.objects.all().count()
+                result_hist_count = models.History.objects.filter(deleted=False).count()
                 self.assertEqual(start_hist_count, result_hist_count)
 
     def test_user_and_guest_comment_mark_and_comment_unmark_and_comment_complain_and_comment_uncomplain(self):
@@ -388,7 +388,7 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = self.comment
         user = self.user
         for action, cancel, history_type in self.comment_actions:
-            start_hist_count = models.History.objects.all().count()
+            start_hist_count = models.History.objects.filter(deleted=False).count()
 
             params= {
                 'action': action,
@@ -399,7 +399,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(h_mark.post, drug.post_ptr)
             self.assertEqual(h_mark.comment, comment)
             self.assertEqual(h_mark.history_type, history_type)
-            result_hist_count = models.History.objects.all().count()
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
             params= {
@@ -408,7 +408,7 @@ class HistoryAjaxSaveTests(BaseTest):
             }
             self.renew_app()
             page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user2)
-            result_hist_count = models.History.objects.all().count()
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
     def test_guest_cant_unmark_and_uncomplain_not_his_comment(self):
@@ -463,7 +463,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(h.comment, None)
             self.assertEqual(h.mark, 5)
             self.assertEqual(h.history_type, models.HISTORY_TYPE_POST_RATED)
-            result_hist_count = models.History.objects.all().count()
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
             params= {

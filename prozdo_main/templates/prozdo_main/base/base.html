@@ -66,7 +66,33 @@
 <div class="col-lg-2 col-md-3 hidden-sm hidden-xs" id="sidebar-left">
 
 {% block sidebar_left %}
-<div class="comments-portlet">
+{% if not debug and flavour == 'full' %}
+<!-- Яндекс.Директ -->
+<script type="text/javascript">
+yandex_partner_id = 75763;
+yandex_site_bg_color = 'FFFFFF';
+yandex_stat_id = 2;
+yandex_ad_format = 'direct';
+yandex_font_size = 1;
+yandex_direct_type = 'vertical';
+yandex_direct_border_type = 'ad';
+yandex_direct_limit = 4;
+yandex_direct_title_font_size = 3;
+yandex_direct_border_radius = true;
+yandex_direct_links_underline = false;
+yandex_direct_header_bg_color = '66CC00';
+yandex_direct_border_color = '66CC00';
+yandex_direct_title_color = '0000CC';
+yandex_direct_url_color = '006600';
+yandex_direct_text_color = '000000';
+yandex_direct_hover_color = '0066FF';
+yandex_direct_sitelinks_color = '0000CC';
+yandex_direct_favicon = true;
+yandex_no_sitelinks = false;
+document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
+</script>
+{% endif %}
+    <div class="comments-portlet">
     <h3>Лучшие отзывы</h3>
 {% best_comments %}
   </div>
@@ -160,8 +186,21 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 
 <div class="col-lg-2 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
 {% block sidebar_right %}
-
     {% user_menu %}
+
+    {% if not debug and flavour == 'full' %}
+<div class='google-block' id="google-block-right">
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- Графический 300*250 -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:300px;height:250px"
+                         data-ad-client="ca-pub-0854751854460145"
+                         data-ad-slot="8903708571"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+    {% endif %}
 
     <div class="comments-portlet">
     <h3>Новые отзывы</h3>
