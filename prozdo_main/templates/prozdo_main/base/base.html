@@ -1,6 +1,6 @@
 {% load staticfiles %}
 {% load prozdo_main_tags %}
-{% load compress %}
+
 <!DOCTYPE html>
 <html lang="ru">
 {% block head %}
@@ -79,6 +79,64 @@
 {% breadcrumbs %}
 {% endblock breadcrumbs %}
 
+{% block top-content %}
+{% if not debug %}
+{% if flavour == 'full' %}
+<!-- Яндекс.Директ -->
+<script type="text/javascript">
+yandex_partner_id = 75763;
+yandex_site_bg_color = 'FFFFFF';
+yandex_stat_id = 1;
+yandex_ad_format = 'direct';
+yandex_font_size = 1;
+yandex_direct_type = 'horizontal';
+yandex_direct_border_type = 'ad';
+yandex_direct_limit = 3;
+yandex_direct_title_font_size = 2;
+yandex_direct_border_radius = true;
+yandex_direct_links_underline = false;
+yandex_direct_header_bg_color = '66CC00';
+yandex_direct_border_color = '66CC00';
+yandex_direct_title_color = '0000CC';
+yandex_direct_url_color = '006600';
+yandex_direct_text_color = '000000';
+yandex_direct_hover_color = '0066FF';
+yandex_direct_sitelinks_color = '0000CC';
+yandex_direct_favicon = true;
+yandex_no_sitelinks = false;
+document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
+</script>
+{% else %}
+<!-- Яндекс.Директ -->
+<script type="text/javascript">
+yandex_partner_id = 75763;
+yandex_site_bg_color = 'FFFFFF';
+yandex_stat_id = 5;
+yandex_ad_format = 'direct';
+yandex_font_size = 0.9;
+yandex_direct_type = 'vertical';
+yandex_direct_border_type = 'ad';
+yandex_direct_limit = 2;
+yandex_direct_title_font_size = 3;
+yandex_direct_border_radius = true;
+yandex_direct_links_underline = true;
+yandex_direct_header_bg_color = '66CC00';
+yandex_direct_border_color = '66CC00';
+yandex_direct_title_color = '0000CC';
+yandex_direct_url_color = '006600';
+yandex_direct_text_color = '000000';
+yandex_direct_hover_color = '0066FF';
+yandex_direct_sitelinks_color = '0000CC';
+yandex_direct_favicon = true;
+yandex_no_sitelinks = false;
+document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
+</script>
+{% endif %}
+{% endif %}
+
+
+{% endblock %}
+
     {% block messages %}
  {% if messages %}
     <div id="messages">
@@ -118,6 +176,31 @@
 
     <div class="row">
         {% block footer %}
+ {% if not debug %}
+ {% if flavour == 'full' %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Нижний блок -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-0854751854460145"
+     data-ad-slot="6309822396"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+ {% else %}
+             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <!-- bottom_responsive -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-0854751854460145"
+                 data-ad-slot="2197630431"
+                 data-ad-format="auto"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+ {% endif %}
+ {% endif %}
+
 <div class="clearfix">
     <div id="footer-info">
     Вся информация на сайте предоставляется исключительно в справочных целях. Напоминаем, что самолечение недопустимо и в случае заболевания рекомендуем обратиться к врачу.
@@ -131,24 +214,9 @@
 {% endblock footer %}
 
 {% block bottom_scripts %}
-{% compress js %}
-<script>
-$(function () {
-$('#mobile-menu-button').click(function(){
-var button = $('#mobile-menu-button');
- if (button.hasClass('active')) {
-$('#top-menu').addClass('hidden-xs');
-$('#mobile-menu-button').removeClass('active');
-}
-   else {
- $('#top-menu').removeClass('hidden-xs');
-$('#mobile-menu-button').addClass('active');
- }
- });
 
-});
-</script>
-{% endcompress %}
+{% include 'prozdo_main/base/_bottom_scripts.html' %}
+
 {% endblock bottom_scripts %}
 </div>
 </div>

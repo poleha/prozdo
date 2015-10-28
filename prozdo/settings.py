@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
@@ -93,6 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_mobile.context_processors.flavour',
             ],
         },
     },
@@ -146,7 +147,7 @@ USE_TZ = True
 SITE_ID = '1'
 SITE_URL = 'http://prozdo.ru'
 DEFAULT_FROM_EMAIL = 'Prozdo.ru <info@prozdo.ru>'
-
+INTERNAL_IPS = ['127.0.0.1', '46.36.218.158']
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
@@ -276,7 +277,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_ENABLED = False
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
@@ -337,7 +338,7 @@ if DEBUG_TOOLBAR:
         'debug_toolbar.panels.redirects.RedirectsPanel',
     ]
 
-    #INTERNAL_IPS = ['127.0.0.1']
+
 
     MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
 
@@ -349,6 +350,7 @@ if DEBUG_TOOLBAR:
 if PROZDO_CACHE_ENABLED and not DEBUG:
 
     TEMPLATES[0]['OPTIONS']['loaders'] = [
+            #'django_mobile.loader.Loader',
             ('django.template.loaders.cached.Loader',
                   [
                     'django.template.loaders.filesystem.Loader',
@@ -358,6 +360,7 @@ if PROZDO_CACHE_ENABLED and not DEBUG:
         ]
 else:
        TEMPLATES[0]['OPTIONS']['loaders'] = [
+                    #'django_mobile.loader.Loader',
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
         ]

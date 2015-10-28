@@ -1,0 +1,57 @@
+{% load compress %}
+{% compress js %}
+<script>
+$(function () {
+$('#mobile-menu-button').click(function(){
+var button = $('#mobile-menu-button');
+ if (button.hasClass('active')) {
+$('#top-menu').addClass('hidden-xs');
+$('#mobile-menu-button').removeClass('active');
+}
+   else {
+ $('#top-menu').removeClass('hidden-xs');
+$('#mobile-menu-button').addClass('active');
+ }
+ });
+
+});
+</script>
+{% endcompress %}
+
+{% if not debug %}
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+(function (d, w, c) {
+    (w[c] = w[c] || []).push(function() {
+        try {
+            w.yaCounter1178877 = new Ya.Metrika({id:1178877,
+                    webvisor:true,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true});
+        } catch(e) { }
+    });
+
+    var n = d.getElementsByTagName("script")[0],
+        s = d.createElement("script"),
+        f = function () { n.parentNode.insertBefore(s, n); };
+    s.type = "text/javascript";
+    s.async = true;
+    s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
+
+    if (w.opera == "[object Opera]") {
+        d.addEventListener("DOMContentLoaded", f, false);
+    } else { f(); }
+})(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="//mc.yandex.ru/watch/1178877" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<!-- begin of Top100 code -->
+
+<script id="top100Counter" type="text/javascript" src="http://counter.rambler.ru/top100.jcn?3117963"></script>
+<noscript>
+<img src="http://counter.rambler.ru/top100.cnt?3117963" alt="" width="1" height="1" border="0" />
+
+</noscript>
+<!-- end of Top100 code -->
+{% endif %}
