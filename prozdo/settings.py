@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
@@ -266,7 +266,6 @@ THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 THUMBNAIL_REDIS_DB = 3
 
 
-#COMPRESS_ENABLED = True
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -279,7 +278,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 #PROZDO_CACHED_ATTRIBUTE_DURATION = 60 * 60 * 24 * 7 * 30
@@ -303,13 +302,9 @@ CACHEOPS_DEFAULTS = {
     'timeout': PROZDO_CACHE_DURATION
 }
 CACHEOPS = {
-    #'auth.user': {'ops': 'get', 'timeout': 60*15},
-    #'auth.*': {'ops': ('fetch', 'get')},
-    #'auth.permission': {'ops': 'all'},#
-    '*.*': {},#{'ops': 'all'},
-    #'prozdo_main.post': {'ops': 'all', 'timeout': 60*15},
-    #'prozdo_main.comment': {'ops': 'all', 'timeout': 60*15},
-    #'prozdo_main.history': {'ops': 'all', 'timeout': 60*15},
+    'auth.user': {'ops': 'all'},
+    'prozdo_main.*': {'ops': 'all'},
+    '*.*': {},
 }
 
 
