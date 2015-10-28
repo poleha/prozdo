@@ -302,8 +302,8 @@
 
 
 {% block bottom_scripts %}
-    {% compress js %}
         {{ block.super }}
+    {% compress js %}
         <script>
             $(function () {
                 $(document).on('click', '.comment-mark-button', function (e) {

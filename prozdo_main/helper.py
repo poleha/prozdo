@@ -211,3 +211,11 @@ def get_class_that_defined_method(meth):
                        meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
     return None # not required since None would have been implicitly returned anyway
 
+
+
+def get_session_key(session):
+    key = session.get('prozdo_key', None)
+    if key is None:
+        key = generate_key(128)
+        session['prozdo_key'] = key
+    return key

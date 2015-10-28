@@ -13,7 +13,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import get_client_ip, to_int
+from .helper import get_client_ip, to_int, get_session_key
 from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
@@ -59,9 +59,6 @@ class ProzdoListView(generic.ListView):
 #        post = PostDetail.get_post(kwargs)
 #        obj = post.obj
 #        return obj.last_modified
-
-
-
 
 
 class PostDetail(ProzdoListView):
@@ -169,7 +166,7 @@ class PostDetail(ProzdoListView):
             if user.is_authenticated():
                 hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.session_key, post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=get_session_key(request.session), post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -192,7 +189,7 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
-            comment_form.instance.session_key = request.session.session_key
+            comment_form.instance.session_key = get_session_key(request.session)
             if user.is_authenticated() and not comment_form.instance.user:
                 comment_form.instance.user = user
             comment_form.instance.status = comment_form.instance.get_status()
@@ -329,12 +326,11 @@ class HistoryAjaxSave(generic.View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        request.session['saved_history'] = True
         pk = request.POST['pk']
         action = request.POST['action']
         ip = get_client_ip(request)
         user = request.user
-        session_key = request.session.session_key
+        session_key = get_session_key(request.session)
 
 
         if action == 'comment-mark':
@@ -368,7 +364,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=get_session_key(request.session))
             data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
@@ -395,7 +391,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=get_session_key(request.session))
             data = {}
             if h:
                 data['saved'] = True
@@ -428,7 +424,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'blog-mark':
             post = models.Post.objects.get(pk=pk)
             blog = post.obj
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=request.session.session_key)
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=get_session_key(request.session))
             data = {}
             if h:
                 data['saved'] = True
@@ -593,9 +589,13 @@ class MainPageView(generic.TemplateView):
     @cached_view(timeout=60 * 60, test=models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         res = super().dispatch(request, *args, **kwargs)
-        last_modified = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
-        res['Last-Modified'] = convert_date(last_modified)
-        res['Expires'] = convert_date(last_modified + timezone.timedelta(seconds=60 * 60))
+        try:
+            last_modified = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
+            res['Last-Modified'] = convert_date(last_modified)
+            res['Expires'] = convert_date(last_modified + timezone.timedelta(seconds=60 * 60))
+        except:
+            pass
+
         return res
 
     def get_popular_drugs(self):
@@ -613,8 +613,10 @@ class MainPageView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_drugs'] = self.get_popular_drugs()
-        context['recent_blogs'] = self.get_recent_blogs()[1:4]
-        context['main_recent_blog'] = self.get_recent_blogs()[0]
+        recent_blogs = self.get_recent_blogs()
+        if recent_blogs.exists():
+            context['recent_blogs'] = recent_blogs[1:4]
+            context['main_recent_blog'] = recent_blogs[0]
         context['recent_consults'] = self.get_recent_consults()
         return context
 
@@ -806,7 +808,7 @@ def restrict_by_role_mixin(role):
             if not user.is_authenticated():
                 return HttpResponseRedirect(reverse_lazy('login'))
             elif not user.user_profile.role == role:
-                return HttpResponseRedirect('main-page')
+                return HttpResponseRedirect(reverse_lazy('main-page'))
             return super().dispatch(request, *args, **kwargs)
     return RoleOnlyMixin
 
@@ -883,7 +885,7 @@ class CommentDoctorListView(ProzdoListView):
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         if not (user.is_doctor or user.is_admin):
-            return HttpResponseRedirect('login')
+            return HttpResponseRedirect(reverse_lazy('login'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

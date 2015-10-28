@@ -138,7 +138,8 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 {% endblock %}
 
     {% block messages %}
- {% if messages %}
+ {% comment %}
+        {% if messages %}
     <div id="messages">
       <ul>
 	{% for message in messages %}
@@ -147,6 +148,8 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
       </ul>
     </div>
     {% endif %}
+  {% endcomment %}
+
 {% endblock %}
 
 

@@ -31,8 +31,9 @@
 {% endblock content %}
 
 {% block bottom_scripts %}
-    {% compress js %}
+
 {{ block.super }}
+{% compress js %}
 <script src='{% static "prozdo_main/js/history.js/scripts/bundled/html4+html5/jquery.history.js" %}'></script>
 <script>
 $(function() {

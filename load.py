@@ -702,8 +702,7 @@ if load_comments:
         else:
             parent = None
 
-
-        if comment_row['author_id']:
+        if comment_row['author_id'] and not comment_row['guest']:
             params = (comment_row['author_id'], )
             c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
             user_row = c.fetchone()
@@ -711,7 +710,7 @@ if load_comments:
         else:
             user = None
 
-        if comment_row['editor_id']:
+        if comment_row['editor_id']and not comment_row['guest']:
             params = (comment_row['editor_id'], )
             c.execute('SELECT u.username FROM users u WHERE u.id = %s', params)
             user_row = c.fetchone()

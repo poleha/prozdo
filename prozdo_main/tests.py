@@ -3,7 +3,8 @@ from . import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
-
+#from django.test.client import Client
+#c = Client()
 
 class BaseTest(WebTest):
     def setUp(self):
@@ -257,15 +258,15 @@ class CommentAntispanTests(BaseTest):
         form = page.forms['comment-form']
         body = 'zzzzzzzz1111'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
-        username = settings.BAD_WORDS[0]
+        #username = settings.BAD_WORDS[0]
         form['email'] = email
-        form['username'] = username
+        #form['username'] = username
         form['body'] = body
         page = form.submit()
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.body, body)
-        self.assertEqual(comment.username, username)
+        #self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
 
@@ -360,7 +361,7 @@ class HistoryAjaxSaveTests(BaseTest):
 
         for user in users:
             for action, cancel, history_type in self.comment_actions:
-                start_hist_count = models.History.objects.all().count()
+                start_hist_count = models.History.objects.filter(deleted=False).count()
 
                 params= {
                     'action': action,
@@ -371,7 +372,7 @@ class HistoryAjaxSaveTests(BaseTest):
                 self.assertEqual(h_mark.post, drug.post_ptr)
                 self.assertEqual(h_mark.comment, comment)
                 self.assertEqual(h_mark.history_type, history_type)
-                result_hist_count = models.History.objects.all().count()
+                result_hist_count = models.History.objects.filter(deleted=False).count()
                 self.assertEqual(start_hist_count + 1, result_hist_count)
 
                 params= {
@@ -379,7 +380,7 @@ class HistoryAjaxSaveTests(BaseTest):
                     'pk': comment.pk,
                 }
                 page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
-                result_hist_count = models.History.objects.all().count()
+                result_hist_count = models.History.objects.filter(deleted=False).count()
                 self.assertEqual(start_hist_count, result_hist_count)
 
     def test_user_cant_unmark_and_uncomplain_not_his_comment(self):
@@ -417,7 +418,7 @@ class HistoryAjaxSaveTests(BaseTest):
         comment.save()
         user = self.user
         for action, cancel, history_type in self.comment_actions:
-            start_hist_count = models.History.objects.all().count()
+            start_hist_count = models.History.objects.filter(deleted=False).count()
 
             params= {
                 'action': action,
@@ -428,7 +429,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(h_mark.post, drug.post_ptr)
             self.assertEqual(h_mark.comment, comment)
             self.assertEqual(h_mark.history_type, history_type)
-            result_hist_count = models.History.objects.all().count()
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
             params= {
@@ -436,8 +437,8 @@ class HistoryAjaxSaveTests(BaseTest):
                 'pk': comment.pk,
             }
             self.renew_app()
-            page = self.app.post(reverse('history-ajax-save'), params=params, user=None)
-            result_hist_count = models.History.objects.all().count()
+            page = self.app.post(reverse('history-ajax-save'), params=params)
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
 
@@ -449,7 +450,7 @@ class HistoryAjaxSaveTests(BaseTest):
 
         for user in users:
             self.renew_app()
-            start_hist_count = models.History.objects.all().count()
+            start_hist_count = models.History.objects.filter(deleted=False).count()
 
             params= {
                 'action': 'post-mark',
@@ -470,7 +471,7 @@ class HistoryAjaxSaveTests(BaseTest):
                 'pk': drug.pk,
             }
             page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
-            result_hist_count = models.History.objects.all().count()
+            result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count, result_hist_count)
 
 

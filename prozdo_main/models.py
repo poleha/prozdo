@@ -197,7 +197,12 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         try:
             return History.objects.filter(post=self).latest('created').created
         except:
-            return max(self.updated, self.created)
+            if self.updated:
+                return self.updated
+            elif self.created:
+                return self.created
+            else:
+                return None
 
 
     @classmethod
@@ -695,7 +700,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     body = models.TextField(verbose_name='Сообщение')
     user = models.ForeignKey(User, null=True, blank=True, related_name='comments', db_index=True)
     ip = models.CharField(max_length=300, db_index=True)
-    session_key = models.TextField(blank=True, db_index=True)
+    session_key = models.TextField(blank=True, null=True, db_index=True)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус', db_index=True)
@@ -870,7 +875,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     @cached_property
     def _cached_get_absolute_url(self):
         if self.status == COMMENT_STATUS_PUBLISHED:
-            return '{0}/comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
+            return '{0}comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
         else:
             return self.post.get_absolute_url()
 
@@ -1052,7 +1057,7 @@ class History(SuperModel):
     user_points = models.PositiveIntegerField(default=0, blank=True)
     #author_points = models.PositiveIntegerField(default=0, blank=True)
     ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
-    session_key = models.TextField(blank=True, db_index=True)
+    session_key = models.TextField(blank=True, null=True, db_index=True)
     mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     old_id = models.PositiveIntegerField(null=True, blank=True)
     deleted = models.BooleanField(verbose_name='Удалена', default=False, db_index=True)
@@ -1070,9 +1075,6 @@ class History(SuperModel):
 
     @staticmethod
     def save_history(history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
-        if session_key is None:
-            return None
-
         if hasattr(post, 'user'):
             post_author = post.user
         else:
@@ -1080,6 +1082,9 @@ class History(SuperModel):
 
         if user and not user.is_authenticated():
             user = None
+
+        if user is None and session_key is None:
+            return None
 
         if isinstance(mark, str):
             mark = int(mark)
@@ -1429,6 +1434,10 @@ User.thumb50 = property(lambda self: self.user_profile.thumb50)
 
 
 AnonymousUser.is_regular = True
+AnonymousUser.is_doctor = False
+AnonymousUser.is_admin = False
+AnonymousUser.is_author = False
+
 AnonymousUser.image = None
 AnonymousUser.email_confirmed = False
 AnonymousUser.karm = 0
