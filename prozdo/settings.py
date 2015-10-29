@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
 
@@ -109,6 +109,7 @@ WSGI_APPLICATION = 'prozdo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -135,7 +136,7 @@ DATABASES = {
 
 
 }
-"""
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -281,7 +282,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = True
+PROZDO_CACHE_ENABLED = False
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
@@ -304,8 +305,8 @@ CACHEOPS_DEFAULTS = {
     'timeout': PROZDO_CACHE_DURATION
 }
 CACHEOPS = {
-    'auth.user': {'ops': 'all'},
-    'prozdo_main.*': {'ops': 'all'},
+    #'auth.user': {'ops': 'all'},
+    #'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
 

@@ -21,7 +21,12 @@ from django.db.models import Q
 from django.utils.html import strip_tags
 from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
+from django.core.cache import cache
+from cacheops import invalidate_all
 
+
+invalidate_all()
+cache.clear()
 
 tz = get_default_timezone()
 def date_from_timestamp(ts):
@@ -69,7 +74,7 @@ if delete_all:
 
 
 print('connecting to database')
-conn = pymysql.connect(host='prozdo.ru',
+conn = pymysql.connect(host='88.198.35.9',
                              user='rfire',
                              password='ZaX369Exn',
                              db='prozdo',
