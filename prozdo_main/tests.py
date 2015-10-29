@@ -3,11 +3,15 @@ from . import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
+from django.core.cache import cache
+from cacheops import invalidate_all
 #from django.test.client import Client
 #c = Client()
 
 class BaseTest(WebTest):
     def setUp(self):
+        invalidate_all()
+        cache.clear()
         self.user = models.User.objects.create(username='asdgsdfhhfgdjfh', password='1234567', email='sdfgsdfg@sdfsdg.ru')
 
         self.email_adress = EmailAddress.objects.create(
@@ -248,7 +252,6 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
 
-
     def test_comment_antispan_comment_with_errors_published_for_doctor(self):
         drug = self.drug
         u = self.user
@@ -269,7 +272,6 @@ class CommentAntispanTests(BaseTest):
         #self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
-
 
 
 class HistoryTests(BaseTest):
@@ -550,7 +552,6 @@ class PostPagesTest(BaseTest):
             self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
 
 
-
 class CommentConfirmationTests(BaseTest):
     def test_comment_confirm_message_is_sent_for_published_guest_and_comment_can_be_activated(self):
         mail_count_start = models.Mail.objects.all().count()
@@ -733,6 +734,39 @@ class CommentConfirmationTests(BaseTest):
         comment = comment.saved_version
         mail_count_2 = models.Mail.objects.all().count()
         self.assertEqual(mail_count_1, mail_count_2)
+
+    def test_comment_with_email_in_auto_approve_emails_is_published_and_mail_is_not_sent_and_confirmed(self):
+        mail_count_0 = models.Mail.objects.all().count()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
+        form = page.forms['comment-form']
+        email = settings.AUTO_APPROVE_EMAILS[0]
+        form['body'] = settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = settings.BAD_WORDS[1]
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        mail_count_1 = models.Mail.objects.all().count()
+        self.assertEqual(mail_count_0, mail_count_1)
+        comment = models.Comment.objects.latest('created')
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.confirmed, True)
+
+    def test_comment_with_email_in_auto_dont_approve_emails_is_published_and_mail_is_not_sent_and_not_confirmed(self):
+        mail_count_0 = models.Mail.objects.all().count()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
+        form = page.forms['comment-form']
+        email = settings.AUTO_DONT_APPROVE_EMAILS[0]
+        form['body'] = settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = settings.BAD_WORDS[1]
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        mail_count_1 = models.Mail.objects.all().count()
+        self.assertEqual(mail_count_0, mail_count_1)
+        comment = models.Comment.objects.latest('created')
+        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.confirmed, False)
+
 
 
 

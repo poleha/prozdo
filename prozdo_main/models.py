@@ -809,6 +809,9 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
 
     def send_confirmation_mail(self, user=None, request=None):
+        to = self.email
+        if to in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
+            return
         if not user and request:
             user = request.user
         if request:
@@ -825,7 +828,6 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
                 text = render_to_string(confirm_comment_text_template_name, {'comment': self, 'site_url': settings.SITE_URL})
                 subject = 'Вы оставили отзыв на {}'.format('Prozdo.ru')
                 from_email = settings.DEFAULT_FROM_EMAIL
-                to = self.email
                 try:
                     msg = EmailMultiAlternatives(subject, text, from_email, [to])
                     msg.attach_alternative(html, "text/html")
@@ -890,7 +892,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if self.user and self.user.user_profile.can_publish_comment():
             return COMMENT_STATUS_PUBLISHED
         else:
-            if helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username):
+            if (helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username)) or self.email in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
                 return COMMENT_STATUS_PUBLISHED
             else:
                 return COMMENT_STATUS_PENDING_APPROVAL
@@ -914,6 +916,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     def save(self, *args, **kwargs):
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
+                self.confirmed = True
+            elif self.email in settings.AUTO_APPROVE_EMAILS:
                 self.confirmed = True
 
         if not self.key:
