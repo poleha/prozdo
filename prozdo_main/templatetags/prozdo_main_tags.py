@@ -127,7 +127,7 @@ def top_menu(context):
     menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'), cls='active' if view_name=='blog-list' else ''))
     menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'), cls='active' if view_name=='component-list' else ''))
 
-    return {'menu_items': menu_items}
+    return {'menu_items': menu_items, 'debug': settings.DEBUG }
 
 
 @register.inclusion_tag('prozdo_main/widgets/_bottom_menu.html', takes_context=True)

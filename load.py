@@ -23,7 +23,7 @@ from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
 from django.core.cache import cache
 from cacheops import invalidate_all
-
+from django.db.models.aggregates import Max
 
 invalidate_all()
 cache.clear()
@@ -48,16 +48,16 @@ def date_from_string(date):
     return date.replace(tzinfo=tz)
 
 
-delete_all = True
+delete_all = False
 load_users = True
-load_posts = True
+load_posts = False
 load_comments = True
-load_history = True
-load_images = True
-create_redirects = True
-fix_aliases = True
-create_other_models = True
-fix_news_images = True
+load_history = False
+load_images = False
+create_redirects = False
+fix_aliases = False
+create_other_models = False
+fix_news_images = False
 
 
 if delete_all:
@@ -87,7 +87,16 @@ c = conn.cursor()
 
 if load_users:
     print('load_users')
-    c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id ')
+
+    try:
+        max_pk = models.UserProfile.objects.all().aggregate(Max('old_id'))['old_id__max']
+    except:
+        max_pk = 0
+
+    params = (max_pk, )
+
+
+    c.execute('SELECT * FROM users u LEFT JOIN profiles p ON u.id = p.user_id WHERE u.id > %s', params)
     user_rows = c.fetchall()
 
     for user_row in user_rows:
@@ -129,7 +138,8 @@ if load_users:
             if not EmailConfirmation.objects.filter(email_address=email_adress).exists():
                 email_confirmation = EmailConfirmation.create(email_adress)
         #users[user_row] = user
-
+        if max_pk > 0:
+            print(user)
 
 #posts = {}
 
@@ -693,8 +703,15 @@ if fix_news_images:
 
 #comments = {}
 if load_comments:
+
     print('load_comments')
-    c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 ORDER BY c.create_time')
+    try:
+        max_pk = models.Comment.objects.all().aggregate(Max('old_id'))['old_id__max']
+    except:
+        max_pk = 0
+
+    params = (max_pk, )
+    c.execute('SELECT * FROM comment c JOIN post p on c.post_id = p.id WHERE p.type <> 11 AND c.id > %s ORDER BY c.create_time', params)
     comment_rows = c.fetchall()
     for comment_row in comment_rows:
         if comment_row['parent_id']:
@@ -750,8 +767,12 @@ if load_comments:
             parent=parent,
             old_id=comment_row['id'],
         )
+        if max_pk > 0:
+            print(comment)
         #comments[comment_row['id']] = comment
-    models.History.objects.all().delete()
+    if max_pk == 0:
+        pass
+        #models.History.objects.all().delete()
 
 
 #*********************History
@@ -797,3 +818,8 @@ if load_history:
             )
         except:
             print(dict(history_row))
+
+
+invalidate_all()
+cache.clear()
+print(models.History.objects.all().count())

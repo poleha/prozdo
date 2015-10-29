@@ -7,7 +7,7 @@ class PostSitemap(Sitemap):
     priority = 1.0
 
     def lastmod(self, obj):
-        return obj.edited
+        return obj.last_modified
 
 
 class DrugSitemap(PostSitemap):

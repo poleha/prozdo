@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['qblik.ru', '127.0.0.1', 'prozdo.ru']
+ALLOWED_HOSTS = ['127.0.0.1', 'prozdo.ru']
 
 
 
@@ -67,7 +67,7 @@ MIDDLEWARE_CLASSES = (
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    'django.middleware.gzip.GZipMiddleware',
+    #'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -83,7 +83,8 @@ MIDDLEWARE_CLASSES = (
 )
 
 
-HTML_MINIFY = True
+#HTML_MINIFY = True
+#EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
 ROOT_URLCONF = 'prozdo.urls'
 
@@ -106,10 +107,9 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
-
+"""
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -153,7 +153,7 @@ USE_TZ = True
 SITE_ID = '1'
 SITE_URL = 'http://prozdo.ru'
 DEFAULT_FROM_EMAIL = 'Prozdo.ru <info@prozdo.ru>'
-INTERNAL_IPS = ['127.0.0.1', '46.36.218.158']
+INTERNAL_IPS = ['127.0.0.1']
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
@@ -282,7 +282,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = False
+PROZDO_CACHE_ENABLED = True
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
@@ -305,8 +305,8 @@ CACHEOPS_DEFAULTS = {
     'timeout': PROZDO_CACHE_DURATION
 }
 CACHEOPS = {
-    #'auth.user': {'ops': 'all'},
-    #'prozdo_main.*': {'ops': 'all'},
+    'auth.user': {'ops': 'all'},
+    'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
 
@@ -389,3 +389,5 @@ LOGGING = {
 
 AUTO_APPROVE_EMAILS = ['approve@approve.me']
 AUTO_DONT_APPROVE_EMAILS = ['dont-approve@dont-approve.me']
+
+ADMINS = (('Alex Poleha', 'info@prozdo.ru'),)
