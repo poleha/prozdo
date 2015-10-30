@@ -11,4 +11,4 @@ def show_ad(request):
     ip = get_client_ip(request)
     deb = settings.DEBUG or ip in settings.INTERNAL_IPS
     user = request.user
-    return user.is_regular and not deb
+    return {'show_ad': user.is_regular and not deb }
