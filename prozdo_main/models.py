@@ -767,7 +767,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     def send_answer_to_comment_message(self):
         user = self.parent.user
-        if user.user_profile.receive_messages and not self.user == self.parent.user:
+        if user.user_profile.receive_messages and not self.user == self.parent.user and self.status == COMMENT_STATUS_PUBLISHED and \
+                not Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT, entity_id=self.pk).exists():
             email_to = user.email
 
             email_sent = Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
@@ -923,6 +924,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             return helper.generate_key(128)
 
     def save(self, *args, **kwargs):
+        saved_version = self.saved_version
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
                 self.confirmed = True
@@ -939,7 +941,13 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
 
-        if self.status == COMMENT_STATUS_PUBLISHED and self.parent and self.parent.confirmed and self.parent.user:
+
+        try:
+            old_status = saved_version.status
+        except:
+            old_status = None
+
+        if self.status == COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
             self.send_answer_to_comment_message()
 
 
