@@ -26,7 +26,8 @@
             </div>
             <div class="col-md-6 post-right-block">
 
-                    <div id="post-mark-block>">
+                {% if user.is_regular %}
+                <div id="post-mark-block>">
                         <div id="current-post-mark-block" class="{{ show_your_mark_block_cls }}">
                             <label>Ваша оценка: </label><span id="current-post-mark"> {{ mark }}</span>
                         <input type="button" value="Отменить оценку" id="cancel-mark-button" class="btn btn-warning {{ show_your_mark_block_cls }}">
@@ -45,7 +46,7 @@
                         </div>
 
                     </div>
-
+{% endif %}
 
                     <div>
                         <label>Средняя оценка: </label><span id="post-average-mark">{{ obj.average_mark }}</span>(количество
@@ -72,7 +73,7 @@
         <div class="row">
 
             <div class="col-xs-12">
-            {% if obj.is_blog %}
+            {% if obj.is_blog and user.is_regular %}
   <div id="blog-full-mark-block">
              <div class="blog-mark-block">
         <span class="blog-current-mark">Материал сочли полезным: <span class="blog-current-mark-span">{{ obj.mark }}</span></span>
