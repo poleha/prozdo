@@ -27,7 +27,7 @@ SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 ALLOWED_HOSTS = ['127.0.0.1', 'prozdo.ru']
 
-
+#DATETIME_FORMAT = 'd.m.Y H:i' not required since we use l10n
 
 
 try:
@@ -39,8 +39,10 @@ if HOSTNAME in ['ubuntu']:
     DEBUG = True
     COMPRESS_ENABLED = False
     HTML_MINIFY = False
+    PROZDO_CACHE_ENABLED = False
 else:
     DEBUG = False
+    PROZDO_CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     EXCLUDE_FROM_MINIFYING = ('^admin/',)
@@ -162,7 +164,7 @@ TIME_ZONE = 'Europe/Moscow'
 
 #USE_I18N = True
 
-#USE_L10N = True
+USE_L10N = True
 
 USE_TZ = True
 
@@ -298,7 +300,7 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-PROZDO_CACHE_ENABLED = True
+
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
