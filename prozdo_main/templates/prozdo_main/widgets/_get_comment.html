@@ -128,7 +128,7 @@
 {% else %}
   <div>
         <label>Ответы на отзыв:</label>
-         {% for child in comment.available_children %}
+         {% for child in comment.available_first_level_children %}
          {% include 'prozdo_main/comment/_tiny_comment.html' with comment=child %}
          {% endfor %}
         </div>

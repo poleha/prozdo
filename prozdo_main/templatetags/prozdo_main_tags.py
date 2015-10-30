@@ -280,7 +280,7 @@ def metatags(context):
         metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства, состав препаратов"
         metatags_dict['description'] = "Состав препаратов."
 
-    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment']:
+    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment', 'post-detail-pk-comment']:
         obj = context['obj']
         if isinstance(obj, models.Drug):
             metatags_dict['title'] = '{0} - отзывы | Про здоровье'.format(obj.title)
@@ -299,7 +299,7 @@ def metatags(context):
             metatags_dict['keywords'] = "{0}, состав препаратов".format(obj.title)
             metatags_dict['description'] = "Описание компонента препаратов: {0}.".format(obj.title)
 
-        if 'page' in request.GET:
+        if 'page' in request.GET or url_name == 'post-detail-pk-comment':
             metatags_dict['canonical'] = obj.get_absolute_url()
 
 

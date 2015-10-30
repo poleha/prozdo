@@ -857,6 +857,15 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     def available_children_count(self):
         return self.available_children.count()
 
+    @cached_property
+    def available_first_level_children(self):
+        return self.children.filter(status=COMMENT_STATUS_PUBLISHED)
+
+
+    #@cached_property
+    #def available_first_level_children_count(self):
+    #    return self.available_first_level_children.count()
+
 
     @property
     def short_body(self):
