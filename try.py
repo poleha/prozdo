@@ -121,9 +121,11 @@ for post_row in post_rows:
 #from django.core.urlresolvers import reverse
 
 #url = reverse('unsubscribe', kwargs={'email': 'kondratova-sveta@mail.ru', 'key': 'ifyzb7a7vuggalemou7shvzigdwmvgo4atbuezxc7w76bpjgu2fvm4dhbfmuml9d'})
+"""
 from django.utils.html import strip_tags
 for comment in models.Comment.objects.filter(body__contains='<'):
     if not comment.user or comment.user.is_regular:
             new_body = strip_tags(comment.body)
             if not comment.body == new_body:
                 print(comment.body)
+"""
