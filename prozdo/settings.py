@@ -86,7 +86,7 @@ MIDDLEWARE_CLASSES = (
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
-    #'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
