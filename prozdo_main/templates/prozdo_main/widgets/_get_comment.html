@@ -114,7 +114,8 @@
         <div class="comment-bottom-buttons">
         <input type="button" class="answer-to-comment btn btn-success" id="answer-to-comment-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value="Ответить">
 
-        {% if can_mark %}
+        {% if user.is_regular %}
+            {% if can_mark %}
          <input class="comment-unmark-button btn btn-cancel hidden" type="button" id="comment-unmark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать оценку'>
          <input class="comment-mark-button btn btn-success" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отзыв полезен'>
         {% elif can_unmark %}
@@ -129,6 +130,21 @@
         <input class="comment-uncomplain-button btn btn-cancel" type="button" id="comment-uncomplain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Отозвать жалобу'>
         <input class="comment-complain-button btn btn-danger hidden" type="button" id="comment-complain-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пожаловаться на отзыв'>
         {% endif %}
+
+        {% endif %}
+
+        {% if not user.is_regular %}
+
+        {% if comment.delete_mark %}
+         <input class="comment-undelete-button btn btn-cancel" type="button" id="comment-undelete-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Снять метку удаления'>
+         <input class="comment-delete-button btn btn-danger hidden" type="button" id="comment-mark-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пометить на удаление'>
+        {% else %}
+        <input class="comment-undelete-button btn btn-cancel hidden" type="button" id="comment-undelete-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Снять метку удаления'>
+        <input class="comment-delete-button btn btn-danger" type="button" id="comment-delete-button-level-{{ comment.get_tree_level }}-pk-{{ comment.pk }}" value='Пометить на удаление'>
+        {% endif %}
+
+        {% endif %}
+
 </div>
  {% if comment.has_avaliable_children and not show_as_child %}
  <div class="comment-all-children-block">

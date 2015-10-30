@@ -402,6 +402,29 @@
                 });
 
 
+                $(document).on('click', '.comment-delete-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = null;
+                    var toHide = $(this).closest('.single-comment').find('.comment-delete-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-undelete-button');
+                    var data = {'pk': pk, 'action': 'comment-delete'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
+
+                });
+
+                $(document).on('click', '.comment-undelete-button', function (e) {
+                    var level = $(this).closest('.single-comment').find('.comment-level').val();
+                    var pk = $(this).closest('.single-comment').find('.comment-pk').val();
+                    var targetSpan = null;
+                    var toHide = $(this).closest('.single-comment').find('.comment-undelete-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-delete-button');
+                    var data = {'pk': pk, 'action': 'comment-undelete'};
+                    commentAjaxAction(data, targetSpan, toHide, toShow);
+
+                });
+
+
                 function commentAjaxAction(actionData, targetSpan, toHide, toShow) {
                     toHide.attr('disabled', 'disabled');
                     $.ajax({
@@ -411,8 +434,9 @@
                         success: function (data) {
                             toHide.removeAttr('disabled');
                             if (data.saved) {
-                                targetSpan.html(data.mark);
-
+                                if (targetSpan != null) {
+                                    targetSpan.html(data.mark);
+                                }
                                 toHide.addClass('hidden');
                                 toShow.removeClass('hidden');
 

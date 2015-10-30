@@ -708,6 +708,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     key = models.CharField(max_length=128, blank=True)
     confirmed = models.BooleanField(default=False, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
+    delete_mark = models.BooleanField(verbose_name='Пометка удаления', default=False, db_index=True)
 
     objects = CommentManager()
 
@@ -763,7 +764,6 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         except:
             current_page = 1
         return current_page
-
 
     def send_answer_to_comment_message(self):
         user = self.parent.user
@@ -887,7 +887,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     @cached_property
     def _cached_get_absolute_url(self):
         if self.status == COMMENT_STATUS_PUBLISHED:
-            return '{0}comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
+            #return '{0}comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
+            return reverse('post-detail-pk-comment', kwargs={'pk': self.post.pk, 'comment_pk': self.pk}) + '#c' + str(self.pk)
         else:
             return self.post.get_absolute_url()
 

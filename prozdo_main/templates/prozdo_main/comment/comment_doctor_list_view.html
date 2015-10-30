@@ -8,7 +8,7 @@
     <div class="table-responsive">
     <table class="table table-bordered">
     <thead>
-    <tr><th>Сообщение</th><th>Время создания</th><th>Время публикации</th><th>Нужна консультация</th><th>Консультация оказана</th><th>Материал</th><th>Пользователь</th><th>Жалобы</th></tr>
+    <tr><th>Сообщение</th><th>Время создания</th><th>Время публикации</th><th>Нужна консультация</th><th>Консультация оказана</th><th>Материал</th><th>Пользователь</th><th>Жалобы</th><th>Метка удаления</th></tr>
     </thead>
 <tbody>
         {% for comment in comments %}
@@ -50,7 +50,9 @@
      {{ comment.complain_count }}
     </td>
 
-
+<td class="col-md-1">
+     {{ comment.delete_mark|bool_as_text }}
+    </td>
     </tr>
     {% endfor %}
 </tbody>

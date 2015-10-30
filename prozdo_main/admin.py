@@ -105,6 +105,6 @@ comment_mass_unpublish.short_description = "Снять с публикации �
 
 @admin.register(models.Comment)
 class CommentAdmin(reversion.VersionAdmin):
-    list_filter = ('status', 'consult_required', 'confirmed' )
+    list_filter = ('status', 'consult_required', 'confirmed', 'delete_mark' )
     search_fields = ('body', )
     actions = [comment_mass_publish, comment_mass_unpublish]

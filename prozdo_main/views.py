@@ -421,6 +421,27 @@ class HistoryAjaxSave(generic.View):
             data['mark'] = 0
             return JsonResponse(data)
 
+
+        elif action == 'comment-delete':
+            if not user.is_regular:
+                comment = models.Comment.objects.get(pk=pk)
+                if not comment.delete_mark:
+                    comment.delete_mark = True
+                    comment.save()
+                    return JsonResponse({'saved': True})
+            return JsonResponse({'saved': False})
+
+        elif action == 'comment-undelete':
+            if not user.is_regular:
+                comment = models.Comment.objects.get(pk=pk)
+                if comment.delete_mark:
+                    comment.delete_mark = False
+                    comment.save()
+                    return JsonResponse({'saved': True})
+            return JsonResponse({'saved': False})
+
+
+
         """
         elif action == 'blog-mark':
             post = models.Post.objects.get(pk=pk)
@@ -802,13 +823,13 @@ class UserActivityView(ProzdoListView):
         return context
 
 
-def restrict_by_role_mixin(role):
+def restrict_by_role_mixin(*roles):
     class RoleOnlyMixin():
         def dispatch(self, request, *args, **kwargs):
             user = request.user
             if not user.is_authenticated():
                 return HttpResponseRedirect(reverse_lazy('login'))
-            elif not user.user_profile.role == role:
+            elif not user.user_profile.role in roles:
                 return HttpResponseRedirect(reverse_lazy('main-page'))
             return super().dispatch(request, *args, **kwargs)
     return RoleOnlyMixin
@@ -969,4 +990,21 @@ class UnsubscribeView(generic.View):
             messages.add_message(request, messages.INFO, 'Вы больше не будете получать сообщения с сайта Prozdo.ru')
             return HttpResponseRedirect(reverse_lazy('main-page'))
 
+"""
+class AjaxDeleteComment(restrict_by_role_mixin(models.USER_ROLE_DOCTOR, models.USER_ROLE_AUTHOR, models.USER_ROLE_ADMIN), generic.View):
+    def post(self, request, *args, **kwargs):
+        comment_id = request.POST['pk']
+        action = request.POST['action']
+        comment = models.Comment.objects.get(pk=comment_id)
+        if action == 'delete':
+            if not comment.delete_mark:
+                comment.delete_mark = True
+                comment.save()
+                return JsonResponse({'saved': True})
+        elif action == 'undelete':
+            if comment.delete_mark:
+                comment.delete_mark = False
+                comment.save()
+                return JsonResponse({'saved': True})
 
+"""

@@ -477,6 +477,76 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(start_hist_count, result_hist_count)
 
 
+    def test_doctor_can_mark_and_unmark_comment_for_delete(self):
+        start_hist_count = models.History.objects.filter(deleted=False).count()
+        comment = self.comment
+        user = self.user
+        up = user.user_profile
+        up.role = models.USER_ROLE_DOCTOR
+        up.save()
+        params= {
+                'action': 'comment-delete',
+                'pk': comment.pk,
+            }
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+        h = models.History.objects.latest('created')
+        self.assertEqual(h.post, comment.post)
+        self.assertEqual(h.comment, comment)
+        self.assertEqual(h.mark, None)
+        self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_SAVED)
+        result_hist_count = models.History.objects.filter(deleted=False).count()
+        self.assertEqual(start_hist_count + 1, result_hist_count)
+        comment = comment.saved_version
+        self.assertEqual(comment.delete_mark, True)
+
+        params= {
+            'action': 'comment-undelete',
+            'pk': comment.pk,
+        }
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+        result_hist_count = models.History.objects.filter(deleted=False).count()
+        self.assertEqual(start_hist_count + 2, result_hist_count)
+        comment = comment.saved_version
+        self.assertEqual(comment.delete_mark, False)
+
+
+    def test_guest_and_regular_user_cant_mark_for_delete(self):
+
+
+        comment = self.comment
+        user = self.user2
+
+        for user in (user, None):
+            self.renew_app()
+            params= {
+                    'action': 'comment-delete',
+                    'pk': comment.pk,
+                }
+            comment.delete_mark = False
+            comment.save()
+            start_hist_count = models.History.objects.filter(deleted=False).count()
+            page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+            h = models.History.objects.latest('created')
+            self.assertEqual(h.post, comment.post)
+            self.assertEqual(h.comment, comment)
+            self.assertEqual(h.mark, None)
+            self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_SAVED)
+            result_hist_count = models.History.objects.filter(deleted=False).count()
+            self.assertEqual(start_hist_count, result_hist_count)
+            comment = comment.saved_version
+            self.assertEqual(comment.delete_mark, False)
+            comment.delete_mark = True
+            comment.save()
+            start_hist_count = models.History.objects.filter(deleted=False).count()
+            params= {
+                'action': 'comment-undelete',
+                'pk': comment.pk,
+            }
+            page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+            result_hist_count = models.History.objects.filter(deleted=False).count()
+            self.assertEqual(start_hist_count, result_hist_count)
+
+
 class PostPagesTest(BaseTest):
     def setUp(self):
         super().setUp()
@@ -934,3 +1004,36 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
         mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
+
+class CommentInterfaceTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
+        form = page.forms['comment-form']
+        form['body'] = 'Привет, это вот мой коммент'
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        self.comment = models.Comment.objects.latest('created')
+        self.comment_actions = (
+            ('comment-mark', 'comment-unmark', models.HISTORY_TYPE_COMMENT_RATED),
+            ('comment-complain', 'comment-uncomplain', models.HISTORY_TYPE_COMMENT_COMPLAINT)
+        )
+
+    def test_guest_and_regular_user_cannot_see_delete_button(self):
+        u = self.user
+        c = self.comment
+        for u in (u, None):
+            self.renew_app()
+            page = self.app.get(c.get_absolute_url(), user=u)
+            self.assertNotIn('Пометить на удаление', page)
+
+    def test_doctor_author_guest_can_see_delete_button(self):
+        u = self.user
+        c = self.comment
+        for role in (models.USER_ROLE_AUTHOR, models.USER_ROLE_DOCTOR, models.USER_ROLE_ADMIN):
+            self.renew_app()
+            up = u.user_profile
+            up.role = role
+            up.save()
+            page = self.app.get(c.get_absolute_url(), user=u)
+            self.assertIn('Пометить на удаление', page)
