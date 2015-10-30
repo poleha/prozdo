@@ -37,9 +37,11 @@
     <a class="permalink" href="{{ comment.get_absolute_url }}">Постоянная ссылка на отзыв</a>
 
 {% if comment.user == user %}
-
+<a class="update-url" href="{{ comment.update_url }}">Редактировать</a>
+{% elif user.email_confirmed and comment.email == user.email %}
 <a class="update-url" href="{{ comment.update_url }}">Редактировать</a>
 {% endif %}
+
 
 </div>
     <div class="content">
@@ -81,7 +83,7 @@
             {% if comment.user.is_regular %}
             {{ comment.body|linebreaks }}
             {% else %}
-            {{ comment.body|safe }}
+            {{ comment.body|safe|linebreaks }}
             {% endif %}
         </div>
 

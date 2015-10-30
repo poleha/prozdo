@@ -732,7 +732,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     @property
     def update_url(self):
-            return reverse('comment-update', kwargs={'pk': self.pk})
+        return reverse('comment-update', kwargs={'pk': self.pk})
 
 
     @cached_property
@@ -934,13 +934,11 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if not self.key:
             self.key = self.generate_key()
 
-        if not self.user or not(self.user.is_admin or self.user.is_doctor or self.user.is_author):
+        if not self.user or self.user.is_regular:
             self.body = strip_tags(self.body)
-
 
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
-
 
         try:
             old_status = saved_version.status
