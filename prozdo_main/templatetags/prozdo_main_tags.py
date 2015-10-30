@@ -108,7 +108,7 @@ def recent_comments():
 def best_comments():
     res = {}
     date = timezone.now() - timedelta(days=settings.BEST_COMMENTS_DAYS)
-    comments = models.Comment.objects.filter(history_comment__history_type=models.HISTORY_TYPE_COMMENT_RATED, history_comment__created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
+    comments = models.Comment.objects.filter(history_comment__history_type=models.HISTORY_TYPE_COMMENT_RATED, created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
 
     res['comments'] = comments
     res['portlet_type'] = 'best_comments'
