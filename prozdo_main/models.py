@@ -896,7 +896,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return self._cached_get_absolute_url
 
     def get_confirm_url(self):
-        return settings.SITE_URL + reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
+        return reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
 
 
     def get_status(self):
