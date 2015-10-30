@@ -5,6 +5,7 @@ from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
 from django.core.cache import cache
 from cacheops import invalidate_all
+from django.core.exceptions import ValidationError
 #from django.test.client import Client
 #c = Client()
 
@@ -113,6 +114,7 @@ class CommentAntispanTests(BaseTest):
             bad_username = username + bad_word
             form['email'] = email
             form['username'] = bad_username
+            body += 'а'
             form['body'] = body
             page = form.submit()
             self.assertEqual(page.status_code, 302)
@@ -242,6 +244,7 @@ class CommentAntispanTests(BaseTest):
         username = settings.BAD_WORDS[0]
         form['email'] = email
         form['username'] = username
+        body += 'а'
         form['body'] = body
         self.assertEqual(u.karm, 10)
         page = form.submit()
@@ -838,8 +841,6 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(comment.confirmed, False)
 
 
-
-
 class PublishedModelMixinTests(BaseTest):
     def test_comment_takes_publish_time_on_publish_only(self):
         comment = models.Comment.objects.create(
@@ -995,6 +996,7 @@ class CommentMessagesTest(BaseTest):
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u1)
         form = page.forms['comment-form']
         body = 'Привет, это хороший коммент'
+        body += 'а'
         form['body'] = body
         form['parent'] = comment.pk
         page = form.submit()
@@ -1037,3 +1039,25 @@ class CommentInterfaceTests(BaseTest):
             up.save()
             page = self.app.get(c.get_absolute_url(), user=u)
             self.assertIn('Пометить на удаление', page)
+
+
+class GeneralCommentTests(BaseTest):
+    def test_guest_cannot_send_repeated_comment(self):
+        mails_count0 = models.Mail.objects.all().count()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
+        form = page.forms['comment-form']
+        body = 'Привет, это вот мой коммент'
+        form['body'] = body
+        page = form.submit()
+        mails_count1 = models.Mail.objects.all().count()
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(mails_count0 + 1, mails_count1)
+
+        with self.assertRaises(ValidationError):
+            page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
+            form = page.forms['comment-form']
+            form['body'] = body
+            page = form.submit()
+        mails_count2 = models.Mail.objects.all().count()
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(mails_count1, mails_count2)

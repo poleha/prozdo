@@ -924,7 +924,18 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         else:
             return helper.generate_key(128)
 
+
     def save(self, *args, **kwargs):
+        if not self.pk:
+            try:
+                comment = type(self).objects.filter(body=self.body, session_key=self.session_key, user=self.user, post=self.post).latest('created')
+            except:
+                comment = None
+            if comment:
+                delta = timezone.now() - comment.created
+                if delta.seconds < 180:
+                    raise ValidationError('Повторный отзыв')
+
         saved_version = self.saved_version
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
