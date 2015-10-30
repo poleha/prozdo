@@ -1,5 +1,5 @@
 {% load cache %}
-{% cache 86400 comments_portlet portlet_type %}
+{% cache cache_duration comments_portlet portlet_type %}
 {% for comment in comments %}
 <div class="portlet-item">
     <p>

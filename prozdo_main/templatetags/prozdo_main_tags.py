@@ -101,6 +101,7 @@ def recent_comments():
     comments = models.Comment.objects.get_available().order_by('-created')[:10]
     res['comments'] = comments
     res['portlet_type'] = 'recent_comments'
+    res['cache_duration'] = 60 * 60 * 2
     return res
 
 
@@ -112,6 +113,7 @@ def best_comments():
 
     res['comments'] = comments
     res['portlet_type'] = 'best_comments'
+    res['cache_duration'] = 60 * 60 * 24
     return res
 
 
