@@ -66,7 +66,11 @@
 <div class="col-lg-2 col-md-3 hidden-sm hidden-xs" id="sidebar-left">
 
 {% block sidebar_left %}
-{% if not debug and flavour == 'full' %}
+    <div class="comments-portlet">
+    <h3>Лучшие отзывы</h3>
+{% best_comments %}
+  </div>
+ {% if not debug and flavour == 'full' %}
 <!-- Яндекс.Директ -->
 <script type="text/javascript">
 yandex_partner_id = 75763;
@@ -92,10 +96,7 @@ yandex_no_sitelinks = false;
 document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
 </script>
 {% endif %}
-    <div class="comments-portlet">
-    <h3>Лучшие отзывы</h3>
-{% best_comments %}
-  </div>
+
 {% endblock sidebar_left %}
 </div>
 
