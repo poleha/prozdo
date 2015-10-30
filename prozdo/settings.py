@@ -37,8 +37,13 @@ except:
 
 if HOSTNAME in ['ubuntu']:
     DEBUG = True
+    COMPRESS_ENABLED = False
+    HTML_MINIFY = False
 else:
     DEBUG = False
+    COMPRESS_ENABLED = True
+    HTML_MINIFY = True
+    EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
 
 # Application definition
@@ -71,7 +76,7 @@ INSTALLED_APPS = (
 )
 
 
-COMPRESS_ENABLED = True
+
 
 MIDDLEWARE_CLASSES = (
 
@@ -95,8 +100,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 
-#HTML_MINIFY = True
-#EXCLUDE_FROM_MINIFYING = ('^admin/',)
+
 
 ROOT_URLCONF = 'prozdo.urls'
 
