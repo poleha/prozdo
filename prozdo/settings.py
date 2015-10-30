@@ -114,6 +114,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'prozdo_main.context_processors.debug',
+                'prozdo_main.context_processors.show_ad',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',

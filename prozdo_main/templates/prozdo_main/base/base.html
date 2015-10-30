@@ -70,7 +70,7 @@
     <h3>Лучшие отзывы</h3>
 {% best_comments %}
   </div>
- {% if not debug and flavour == 'full' %}
+ {% if ahow_ad and flavour == 'full' %}
 <!-- Яндекс.Директ -->
 <script type="text/javascript">
 yandex_partner_id = 75763;
@@ -107,7 +107,7 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 {% endblock breadcrumbs %}
 
 {% block top-content %}
-{% if not debug %}
+{% if show_ad %}
 {% if flavour == 'full' %}
 <!-- Яндекс.Директ -->
 <script type="text/javascript">
@@ -189,7 +189,7 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 {% block sidebar_right %}
     {% user_menu %}
 
-    {% if not debug and flavour == 'full' %}
+    {% if show_ad and flavour == 'full' %}
 <div class='google-block' id="google-block-right">
                     <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
                     <!-- Графический 300*250 -->
@@ -219,7 +219,7 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 
     <div class="row">
         {% block footer %}
- {% if not debug %}
+ {% if show_ad %}
  {% if flavour == 'full' %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Нижний блок -->
