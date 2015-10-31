@@ -40,8 +40,10 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = False
     HTML_MINIFY = False
     PROZDO_CACHE_ENABLED = False
+    DEBUG_TOOLBAR = True
 else:
     DEBUG = False
+    DEBUG_TOOLBAR = False
     PROZDO_CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
@@ -330,15 +332,11 @@ CACHEOPS = {
 }
 
 
-
-DEBUG_TOOLBAR = False
-
-
 if DEBUG_TOOLBAR:
 
-    DEBUG = True
-
-
+    MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
+    MIDDLEWARE_CLASSES.remove('django.middleware.gzip.GZipMiddleware')
+    MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
     INSTALLED_APPS += ('debug_toolbar',)
 
     DEBUG_TOOLBAR_PATCH_SETTINGS = True
