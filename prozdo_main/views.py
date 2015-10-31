@@ -19,7 +19,7 @@ from django.utils.http import http_date
 from calendar import timegm
 from django.utils import timezone
 from .cache import cached_view
-
+from django.core.exceptions import ObjectDoesNotExist
 
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
@@ -125,8 +125,11 @@ class PostDetail(ProzdoListView):
 
     def set_comment_page(self):
         if self.kwargs['action'] == 'comment':
-            comment = models.Comment.objects.get(pk=self.kwargs['comment_pk'])
-            self.kwargs[self.page_kwarg] = comment.page
+            try:
+                comment = models.Comment.objects.get(pk=self.kwargs['comment_pk'])
+                self.kwargs[self.page_kwarg] = comment.page
+            except ObjectDoesNotExist:
+                pass
 
     def get_context_data(self, comment_form=None, **kwargs):
         context = super().get_context_data(**kwargs)
