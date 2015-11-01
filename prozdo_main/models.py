@@ -960,16 +960,34 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if self.status == COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
             self.send_answer_to_comment_message()
 
+        post = self.post
+        user = self.user
+        ancestors = list(self.get_ancestors())
+        descendants = list(self.get_descendants())
+        if post:
+            invalidate_obj(post.obj)
+            post.obj.full_invalidate_cache()
+        if user:
+            invalidate_obj(user.user_profile)
+            user.user_profile.full_invalidate_cache()
+        for ancestor in ancestors:
+            ancestor.full_invalidate_cache()
+            invalidate_obj(ancestor)
+        for descendant in descendants:
+            descendant.full_invalidate_cache()
+            invalidate_obj(descendant)
 
     def delete(self, *args, **kwargs):
         post = self.post
         user = self.user
-        ancestors = self.get_ancestors()
-        descendants = self.get_descendants()
+        ancestors = list(self.get_ancestors())
+        descendants = list(self.get_descendants())
         super().delete(*args, **kwargs)
         if post:
+            invalidate_obj(post.obj)
             post.obj.full_invalidate_cache()
         if user:
+            invalidate_obj(user.user_profile)
             user.user_profile.full_invalidate_cache()
         for ancestor in ancestors:
             ancestor.full_invalidate_cache()

@@ -1066,3 +1066,52 @@ class GeneralCommentTests(BaseTest):
         mails_count2 = models.Mail.objects.all().count()
         self.assertEqual(page.status_code, 200)
         self.assertEqual(mails_count1, mails_count2)
+
+
+class CacheTests(BaseTest):
+    def test_deleted_comment_isnt_visible_as_parent_and_child_on_post_detail(self):
+        page = self.app.get(self.drug.get_absolute_url())
+
+        parent = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='алоуоац4ай34аглвырпилвыапилоывапиавапыв',
+                status=models.COMMENT_STATUS_PUBLISHED,
+            )
+
+        comment = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='ваыпоуд4прышгукпргвынпргывапвыап',
+                status=models.COMMENT_STATUS_PUBLISHED,
+                parent=parent,
+            )
+
+        child = models.Comment.objects.create(
+                post=self.drug,
+                username='gdfsgsdfgsdfg',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='авпрволыдапывдалпрывдлапрлывадпргушкпршва',
+                status=models.COMMENT_STATUS_PUBLISHED,
+                parent=comment,
+            )
+
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(parent.body, page)
+        self.assertIn(comment.body, page)
+        self.assertIn(child.body, page)
+
+        parent_body = parent.body
+        comment_body = comment.body
+        child_body = child.body
+
+        comment.delete()
+
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertIn(parent_body, page)
+        self.assertNotIn(comment_body, page)
+        self.assertNotIn(child_body, page)
+
