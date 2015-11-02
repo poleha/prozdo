@@ -44,7 +44,8 @@ class HistoryAdmin(reversion.VersionAdmin):
 
 @admin.register(models.UserProfile)
 class UserProfileAdmin(AdminImageMixin, reversion.VersionAdmin):
-    pass
+    list_filter = ('role', )
+    search_fields = ('user__username', )
 
 
 @admin.register(models.Brand)
