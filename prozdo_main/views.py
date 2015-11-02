@@ -69,6 +69,7 @@ class PostDetail(ProzdoListView):
 
     #@method_decorator(last_modified(get_post_last_modified))
     #@method_decorator(cache_page(60))
+    @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

@@ -1,3 +1,5 @@
+{% load compress %}
+{% compress js %}
 <script>
 $(function () {
 $('#mobile-menu-button').click(function(){
@@ -14,6 +16,7 @@ $('#mobile-menu-button').addClass('active');
 
 });
 </script>
+{% endcompress %}
 
 {% if not debug %}
 <!-- Yandex.Metrika counter -->
