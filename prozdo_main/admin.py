@@ -109,3 +109,15 @@ class CommentAdmin(reversion.VersionAdmin):
     list_filter = ('status', 'consult_required', 'confirmed', 'delete_mark' )
     search_fields = ('body', )
     actions = [comment_mass_publish, comment_mass_unpublish]
+    readonly_fields = ('post_str', 'parent_str')
+    exclude = ('post', 'parent')
+
+    def parent_str(self, instance):
+        return instance.parent.__str__()
+
+    parent_str.short_description = 'Parent'
+
+    def post_str(self, instance):
+        return instance.post.__str__()
+
+    post_str.short_description = 'Post'
