@@ -190,23 +190,34 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
     {% user_menu %}
 
     {% if show_ad and flavour == 'full' %}
-<div class='google-block' id="google-block-right">
-                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-                    <!-- Графический 300*250 -->
-                    <ins class="adsbygoogle"
-                         style="display:inline-block;width:300px;height:250px"
-                         data-ad-client="ca-pub-0854751854460145"
-                         data-ad-slot="8903708571"></ins>
-                    <script>
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- sidebar_right_responsive -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-0854751854460145"
+     data-ad-slot="8717850831"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
     {% endif %}
 
     <div class="comments-portlet">
     <h3>Новые отзывы</h3>
     {% recent_comments %}
 </div>
+ {% if show_ad and flavour == 'full' %}
+ <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- sidebar_right_bottom_responsive -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-0854751854460145"
+     data-ad-slot="1194584037"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+ {% endif %}
 {% endblock sidebar_right %}
 </div>
 </div>
