@@ -1502,7 +1502,7 @@ MAIL_TYPE_EMAIL_CONFIRMATION = 5
 MAIL_TYPES = (
     (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
     (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
-    (MAIL_TYPE_COMMENT_CONFIRM, 'Сброс пароля'),
+    (MAIL_TYPE_PASSWORD_RESET, 'Сброс пароля'),
     (MAIL_TYPE_ANSWER_TO_COMMENT, 'Ответ на отзыв'),
     (MAIL_TYPE_EMAIL_CONFIRMATION, 'Подтверждение электронного адреса'),
 )
