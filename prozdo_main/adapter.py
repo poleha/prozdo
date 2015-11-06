@@ -81,4 +81,3 @@ class ProzdoAccountAdapter(DefaultAccountAdapter):
                                 email=msg.to,
                                 email_from=msg.from_email,
                             )
-            return True
