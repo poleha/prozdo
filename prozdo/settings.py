@@ -284,23 +284,23 @@ AUTHENTICATION_BACKENDS = (
 #}
 
 
-#CACHES = {
-#    "default": {
-#        'BACKEND': 'redis_cache.RedisCache',
-#        "LOCATION": "redis://127.0.0.1:6379/1",
-#        "OPTIONS": {
-#            'DB': 2,
-#        }
-#    }
-#}
-
-
 CACHES = {
     "default": {
-        "BACKEND": "prozdo_main.backends.ProzdoRedisCacheBackend",
-        "LOCATION": "redis://127.0.0.1:6379/2",
+        'BACKEND': 'redis_cache.RedisCache',
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            'DB': 2,
+        }
     }
 }
+
+
+#CACHES = {
+#    "default": {
+#        "BACKEND": "prozdo_main.backends.ProzdoRedisCacheBackend",
+#        "LOCATION": "redis://127.0.0.1:6379/2",
+#    }
+#}
 
 THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
