@@ -40,7 +40,7 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     PROZDO_CACHE_ENABLED = True
-    DEBUG_TOOLBAR = False
+    DEBUG_TOOLBAR = True
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
@@ -290,6 +290,7 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             'DB': 2,
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
         }
     }
 }

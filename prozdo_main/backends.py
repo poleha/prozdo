@@ -59,6 +59,6 @@ from django.core.cache.backends.memcached import MemcachedCache
 class ProzdoMemcachedCacheCacheBackend(ProzdoCacheBackendMixin, MemcachedCache):
     pass
 
-from django_redis.cache import RedisCache
+from redis_cache.cache import RedisCache
 class ProzdoRedisCacheBackend(ProzdoCacheBackendMixin, RedisCache):
     pass
