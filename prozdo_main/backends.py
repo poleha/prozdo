@@ -38,15 +38,15 @@ from django.core.cache.backends.db import DatabaseCache
 
 
 class ProzdoCacheBackendMixin:
-    def get(self, key, default=None, version=None):
+    def get(self, *args, **kwargs):
         if settings.PROZDO_CACHE_ENABLED:
-            return super().get(key, default, version)
+            return super().get(*args, **kwargs)
         else:
             return None
 
-    def set(self, key, value, timeout=None, version=None):
+    def set(self, *args, **kwargs):
         if settings.PROZDO_CACHE_ENABLED:
-            return super().set(key, value, timeout, version)
+            return super().set(*args, **kwargs)
         else:
             return None
 

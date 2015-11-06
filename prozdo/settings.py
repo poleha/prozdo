@@ -40,7 +40,7 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     PROZDO_CACHE_ENABLED = True
-    DEBUG_TOOLBAR = True
+    DEBUG_TOOLBAR = False
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
@@ -286,7 +286,7 @@ AUTHENTICATION_BACKENDS = (
 
 CACHES = {
     "default": {
-        'BACKEND': 'redis_cache.RedisCache',
+        'BACKEND': 'prozdo_main.backends.ProzdoRedisCacheBackend',
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             'DB': 2,
