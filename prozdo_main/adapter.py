@@ -68,7 +68,6 @@ class ProzdoAccountAdapter(DefaultAccountAdapter):
         msg = self.render_mail(template_prefix, email, context)
         res = msg.send()
         if res:
-            print(msg)
             if template_prefix == 'account/email/email_confirmation_signup':
                 mail_type = MAIL_TYPE_USER_REGISTRATION
             elif template_prefix == 'account/email/email_confirmation':
