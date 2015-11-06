@@ -1,5 +1,6 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from .models import User
+from allauth.account.adapter import DefaultAccountAdapter
+from .models import User, Mail, MAIL_TYPE_USER_REGISTRATION, MAIL_TYPE_EMAIL_CONFIRMATION, MAIL_TYPE_PASSWORD_RESET
 from django.core.exceptions import ValidationError
 from .forms import validate_contains_russian, validate_first_is_letter, validate_username
 from django.conf import settings
@@ -62,3 +63,23 @@ class ProzdoSocialAccountAdapter(DefaultSocialAccountAdapter):
             return False
 
 
+class ProzdoAccountAdapter(DefaultAccountAdapter):
+    def send_mail(self, template_prefix, email, context):
+        msg = self.render_mail(template_prefix, email, context)
+        res = msg.send()
+        if res:
+            print(msg)
+            if template_prefix == 'account/email/email_confirmation_signup':
+                mail_type = MAIL_TYPE_USER_REGISTRATION
+            elif template_prefix == 'account/email/email_confirmation':
+                mail_type = MAIL_TYPE_EMAIL_CONFIRMATION
+            elif template_prefix == 'account/email/password_reset_key':
+                mail_type = MAIL_TYPE_PASSWORD_RESET
+            Mail.objects.create(
+                                mail_type=mail_type,
+                                subject=msg.subject,
+                                body_html=msg.body,
+                                email=msg.to,
+                                email_from=msg.from_email,
+                            )
+            return True

@@ -1497,12 +1497,14 @@ MAIL_TYPE_COMMENT_CONFIRM = 1
 MAIL_TYPE_USER_REGISTRATION = 2
 MAIL_TYPE_PASSWORD_RESET = 3
 MAIL_TYPE_ANSWER_TO_COMMENT = 4
+MAIL_TYPE_EMAIL_CONFIRMATION = 5
 
 MAIL_TYPES = (
     (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
     (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
     (MAIL_TYPE_COMMENT_CONFIRM, 'Сброс пароля'),
     (MAIL_TYPE_ANSWER_TO_COMMENT, 'Ответ на отзыв'),
+    (MAIL_TYPE_EMAIL_CONFIRMATION, 'Подтверждение электронного адреса'),
 )
 
 class Mail(SuperModel):

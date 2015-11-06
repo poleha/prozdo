@@ -265,6 +265,7 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_USERNAME_REQUIRED = True
 SOCIALACCOUNT_ADAPTER  = "prozdo_main.adapter.ProzdoSocialAccountAdapter"
+ACCOUNT_ADAPTER = "prozdo_main.adapter.ProzdoAccountAdapter"
 
 
 AUTHENTICATION_BACKENDS = (

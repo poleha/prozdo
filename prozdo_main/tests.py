@@ -1117,3 +1117,43 @@ class CacheTests(BaseTest):
         self.assertNotIn(comment_body, page)
         self.assertNotIn(child_body, page)
 
+
+
+class AccountMailTests(BaseTest):
+    def test_confirmation_mail_is_sent_on_registration_and_mail_model_is_created(self):
+        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_USER_REGISTRATION).count()
+        page = self.app.get(reverse('signup'))
+        form = page.forms['signup-form']
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = 'dfsgdfgsdfgsdfg'
+        password = 'dfgjksdfgkj3244'
+        form['email'] = email
+        form['username'] = username
+        form['password1'] = password
+        form['password2'] = password
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_USER_REGISTRATION).count()
+        self.assertEqual(mail_count_start + 1, mail_count_end)
+
+    def test_password_reset_mail_is_sent_and_mail_model_is_created(self):
+        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_PASSWORD_RESET).count()
+        page = self.app.get(reverse('password-reset'))
+        form = page.forms['password-reset-form']
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        form['email'] = self.user.email
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_PASSWORD_RESET).count()
+        self.assertEqual(mail_count_start + 1, mail_count_end)
+
+    def test_mail_confirm_mail_is_sent_and_mail_model_is_created(self):
+        user = self.user2
+        self.assertEqual(user.email_confirmed, False)
+        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
+        page = self.app.get(reverse('account_email'), user=user)
+        form = page.forms['email-list-form']
+        page = form.submit(name='action_send')
+        self.assertEqual(page.status_code, 302)
+        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
+        self.assertEqual(mail_count_start + 1, mail_count_end)

@@ -2,7 +2,12 @@
 
 
 {% block content %}
-Вы авторизованы как {{ user }}
+<div>Вы авторизованы как {{ user }}</div>
+<div>Ваш электронный адрес: {{ user.email }}
+    {% if not user.email_confirmed %}
+    <a href="{% url 'account_email' %}">Подтвердить электронный адрес</a>
+    {% endif %}
+</div>
     <div class="form">
     <form method="post" enctype="multipart/form-data">
 {% csrf_token %}
@@ -15,5 +20,7 @@
 <a class="btn btn-menu" href="{% url 'password-change' %}">Сменить пароль</a>
 <a class="btn btn-menu" href="{% url 'socialaccount_connections' %}">Управление учетными записями соцсетей</a>
 <a class="btn btn-menu" href="{% url 'user-detail' user.pk %}">Информация о пользователе</a>
+
+
 
 {% endblock content %}

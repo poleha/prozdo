@@ -5,7 +5,7 @@ from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
+from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, ConfirmEmailView, EmailView
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
@@ -693,7 +693,16 @@ class ProzdoLoginErrorView(LoginErrorView):
 class ProzdoConnectionsView(ConnectionsView):
     template_name = 'prozdo_main/user/social/connections.html'
 
+class ProzdoEmailView(EmailView):
+    template_name = 'prozdo_main/user/email.html'
 
+
+class ProzdoConfirmEmailView(ConfirmEmailView):
+    def get_template_names(self):
+        if self.request.method == 'POST':
+            return ["prozdo_main/user/email_confirmed.html"]
+        else:
+            return ["prozdo_main/user/email_confirm.html"]
 
 #*********************************Account>
 
