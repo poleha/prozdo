@@ -40,10 +40,11 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     PROZDO_CACHE_ENABLED = True
-    DEBUG_TOOLBAR = False
+    DEBUG_TOOLBAR = True
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
+    'account.emailaddress': {'ops': 'all'},
     'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
@@ -59,6 +60,7 @@ else:
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
+    'account.emailaddress': {'ops': 'all'},
     'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
