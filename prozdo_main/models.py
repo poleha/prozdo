@@ -1517,6 +1517,14 @@ class Mail(SuperModel):
     email_from = models.EmailField(db_index=True)
     entity_id = models.CharField(max_length=20, blank=True, db_index=True)
 
+    @property
+    def mail_type_text(self):
+        for mail_type, text in MAIL_TYPES:
+            if mail_type == self.mail_type:
+                return text
+
+    def __str__(self):
+        return '{0} | {1} | {2} | {3}'.format(self.mail_type_text, self.email, self.user, self.created)
 
 def request_with_empty_guest(request):
     user = request.user

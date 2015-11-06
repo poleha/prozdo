@@ -89,7 +89,7 @@ class BlogAdmin(AdminImageMixin, PostAdmin):
 
 @admin.register(models.Mail)
 class MailAdmin(reversion.VersionAdmin):
-    pass
+    list_filter = ('mail_type', )
 
 
 
