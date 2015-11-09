@@ -24,6 +24,27 @@ from django.core.exceptions import ObjectDoesNotExist
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
 
+
+def restrict_by_role_mixin(*roles):
+    class RoleOnlyMixin():
+        def dispatch(self, request, *args, **kwargs):
+            user = request.user
+            if not user.is_authenticated():
+                return HttpResponseRedirect(reverse_lazy('login'))
+            elif not user.user_profile.role in roles:
+                return HttpResponseRedirect(reverse_lazy('main-page'))
+            return super().dispatch(request, *args, **kwargs)
+    return RoleOnlyMixin
+
+def login_required(dispatch):
+    def wrapper(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated():
+            return HttpResponseRedirect(reverse_lazy('login'))
+        else:
+            return dispatch(self, request, *args, **kwargs)
+    return wrapper
+
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
     def get_context_data(self, **kwargs):
@@ -693,6 +714,10 @@ class ProzdoLoginErrorView(LoginErrorView):
 class ProzdoConnectionsView(ConnectionsView):
     template_name = 'prozdo_main/user/social/connections.html'
 
+    @login_required
+    def dispatch(self, request, *args, **kwargs):
+        super().dispatch(request, *args, **kwargs)
+
 class ProzdoEmailView(EmailView):
     template_name = 'prozdo_main/user/email.html'
 
@@ -709,10 +734,8 @@ class ProzdoConfirmEmailView(ConfirmEmailView):
 class UserProfileView(generic.TemplateView):
     template_name = 'prozdo_main/user/user_profile.html'
 
+    @login_required
     def dispatch(self, request, *args, **kwargs):
-        user = request.user
-        if not user.is_authenticated():
-            return HttpResponseRedirect(reverse_lazy('login'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, user_profile_form=None, user_form=None, **kwargs):
@@ -835,17 +858,6 @@ class UserActivityView(ProzdoListView):
         context['current_user'] = user
         return context
 
-
-def restrict_by_role_mixin(*roles):
-    class RoleOnlyMixin():
-        def dispatch(self, request, *args, **kwargs):
-            user = request.user
-            if not user.is_authenticated():
-                return HttpResponseRedirect(reverse_lazy('login'))
-            elif not user.user_profile.role in roles:
-                return HttpResponseRedirect(reverse_lazy('main-page'))
-            return super().dispatch(request, *args, **kwargs)
-    return RoleOnlyMixin
 
 
 

@@ -625,8 +625,8 @@ class PostPagesTest(BaseTest):
             self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
 
     def test_post_detail_pk_comment_view_works_fine_when_comment_not_found(self):
-        self.assertEqual(models.Comment.objects.filter(pk=12345).exists(), False)
-        page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': self.drug.pk, 'comment_pk': 12345}))
+        self.assertEqual(models.Comment.objects.filter(pk=111111111111111111111111).exists(), False)
+        page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': self.drug.pk, 'comment_pk': 111111111111111111111111}))
         self.assertEqual(page.status_code, 200)
 
 
