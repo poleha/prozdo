@@ -72,7 +72,8 @@
         <div class="row">
 
             <div class="col-xs-12">
-            {% if obj.is_blog and user.is_regular %}
+            {% if obj.is_blog %}
+            {% if user.is_regular %}
   <div id="blog-full-mark-block">
              <div class="blog-mark-block">
         <span class="blog-current-mark">Материал сочли полезным: <span class="blog-current-mark-span">{{ obj.mark }}</span></span>
@@ -89,7 +90,7 @@
         {% endif %}
                 
       </div>
-                
+      {% endif %}
             <a id="blog-image" href="{{ obj.get_absolute_url }}">
                         <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
                     </a>
