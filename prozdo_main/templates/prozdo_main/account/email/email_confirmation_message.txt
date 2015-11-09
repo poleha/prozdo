@@ -1,8 +1,8 @@
-{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Hello from {{ site_name }}!
+{% load account %}{% with site_name=current_site.name site_domain=current_site.domain  %}
+Приветствуем Вас с {{ site_name }}!
 
-You're receiving this e-mail because user {{ user_display }} at {{ site_domain }} has given yours as an e-mail address to connect their account.
-
-To confirm this is correct, go to {{ activate_url }}
-{% endblocktrans %}{% endautoescape %}
-{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Thank you from {{ site_name }}!
-{{ site_domain }}{% endblocktrans %}
+Вы получили это письмо, поскольку пользователь {% user_display user %} на {{ site_domain }} указал Ваш адрес электронной почты.
+Чтобы подтвердить, что это Ваш адрес, пожалуйста, пройдите по этой ссылке {{ activate_url }}
+{% endwith %}
+{% with site_name=current_site.name site_domain=current_site.domain %}Thank you from {{ site_name }}!
+{{ site_domain }}{% endwith %}

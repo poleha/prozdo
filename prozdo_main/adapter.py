@@ -74,10 +74,21 @@ class ProzdoAccountAdapter(DefaultAccountAdapter):
                 mail_type = MAIL_TYPE_EMAIL_CONFIRMATION
             elif template_prefix == 'account/email/password_reset_key':
                 mail_type = MAIL_TYPE_PASSWORD_RESET
+            else:
+                return
+
+            if len(msg.alternatives) > 0:
+                html = msg.alternatives[0]
+
+            else:
+                html = ''
+            txt = msg.body
+
             Mail.objects.create(
                                 mail_type=mail_type,
                                 subject=msg.subject,
-                                body_html=msg.body,
+                                body_html=html,
+                                body_text=txt,
                                 email=msg.to,
                                 email_from=msg.from_email,
                             )

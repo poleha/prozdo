@@ -40,7 +40,7 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     PROZDO_CACHE_ENABLED = True
-    DEBUG_TOOLBAR = True
+    DEBUG_TOOLBAR = False
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
@@ -182,7 +182,7 @@ LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Europe/Moscow'
 
-#USE_I18N = True
+USE_I18N = True
 
 USE_L10N = True
 
