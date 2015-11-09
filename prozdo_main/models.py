@@ -389,13 +389,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
 
     @cached_property
     def marks_count(self):
-        try:
-            count = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, deleted=False).aggregate(Count('mark'))['mark__count']
-            if count is None:
-                count = 0
-        except:
-            count = 0
-        return count
+        return History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, deleted=False).count()
 
     @cached_property
     def published_comments_count(self):
@@ -1320,7 +1314,7 @@ class UserProfile(SuperModel):
 
 
     def can_publish_comment(self):
-        if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= 10:
+        if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM:
             return True
         else:
             return False

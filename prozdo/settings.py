@@ -39,7 +39,7 @@ if HOSTNAME in ['ubuntu']:
     DEBUG = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
-    PROZDO_CACHE_ENABLED = True
+    PROZDO_CACHE_ENABLED = False
     DEBUG_TOOLBAR = False
 
     CACHEOPS = {
@@ -423,3 +423,5 @@ AUTO_APPROVE_EMAILS = ['approve@approve.me']
 AUTO_DONT_APPROVE_EMAILS = ['dont-approve@dont-approve.me']
 
 ADMINS = (('Alex Poleha', 'info@prozdo.ru'),)
+
+PUBLISH_COMMENT_WITHOUT_APPROVE_KARM = 20

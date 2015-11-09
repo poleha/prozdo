@@ -60,6 +60,12 @@ class BaseTest(WebTest):
 
         )
 
+        self.blog = models.Blog.objects.create(
+            title='title_blog',
+            body='body_blog',
+
+        )
+
 
 class CommentAntispanTests(BaseTest):
     def test_comment_antispan_normal_comment_published_for_guest(self):
@@ -236,7 +242,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
         comment.status = models.COMMENT_STATUS_PUBLISHED
         comment.save()
-        for k in range(10):
+        for k in range(settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM):
             models.History.save_history(post=comment.post, comment=comment, history_type=models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
@@ -246,7 +252,7 @@ class CommentAntispanTests(BaseTest):
         form['username'] = username
         body += 'а'
         form['body'] = body
-        self.assertEqual(u.karm, 10)
+        self.assertEqual(u.karm, settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM)
         page = form.submit()
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
@@ -1157,3 +1163,85 @@ class AccountMailTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
+
+class PostTests(BaseTest):
+    def test_marks_count_and_average_mark_works_as_expected_for_drug_detail(self):
+        drug = self.drug
+        params= {
+                'action': 'post-mark',
+                'mark': 5,
+                'pk': drug.pk,
+            }
+        page = self.app.post(reverse('history-ajax-save'), params=params)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
+        self.assertIn('<span id="current-post-mark">5</span>', page)
+        self.assertIn('<span id="post-marks-count">1)</span>', page)
+        self.assertEqual(drug.marks_count, 1)
+        self.assertEqual(drug.average_mark, 5)
+        self.assertEqual(drug.post_ptr.marks_count, 1)
+        self.assertEqual(drug.post_ptr.average_mark, 5)
+
+        self.renew_app()
+        params = {
+                'action': 'post-mark',
+                'mark': 4,
+                'pk': drug.pk,
+            }
+
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
+        self.assertIn('<span id="post-average-mark">4,5</span>', page)
+        self.assertIn('<span id="post-marks-count">2)</span>', page)
+        self.assertEqual(drug.marks_count, 2)
+        self.assertEqual(drug.average_mark, 4.5)
+        self.assertEqual(drug.post_ptr.marks_count, 2)
+        self.assertEqual(drug.post_ptr.average_mark, 4.5)
+
+        params= {
+                'action': 'post-unmark',
+                'pk': drug.pk,
+            }
+
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
+        self.assertIn('<span id="post-average-mark">5,0</span>', page)
+        self.assertIn('<span id="post-marks-count">1)</span>', page)
+        self.assertEqual(drug.marks_count, 1)
+        self.assertEqual(drug.average_mark, 5)
+        self.assertEqual(drug.post_ptr.marks_count, 1)
+        self.assertEqual(drug.post_ptr.average_mark, 5)
+
+    def test_marks_count_works_as_expected_for_blog_detail(self):
+        blog = self.blog
+        params= {
+                'action': 'post-mark',
+                'pk': blog.pk,
+            }
+        page = self.app.post(reverse('history-ajax-save'), params=params)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
+        self.assertIn('<span class="blog-current-mark-span">1</span>', page)
+        self.assertEqual(blog.marks_count, 1)
+        self.assertEqual(blog.post_ptr.marks_count, 1)
+
+        self.renew_app()
+        params = {
+                'action': 'post-mark',
+                'pk': blog.pk,
+            }
+
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
+        self.assertIn('<span class="blog-current-mark-span">2</span>', page)
+        self.assertEqual(blog.marks_count, 2)
+        self.assertEqual(blog.post_ptr.marks_count, 2)
+
+        params= {
+                'action': 'post-unmark',
+                'pk': blog.pk,
+            }
+
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
+        self.assertIn('<span class="blog-current-mark-span">1</span>', page)
+        self.assertEqual(blog.marks_count, 1)
+        self.assertEqual(blog.post_ptr.marks_count, 1)

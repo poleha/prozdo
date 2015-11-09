@@ -24,7 +24,6 @@ from django.core.exceptions import ObjectDoesNotExist
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
 
-
 def restrict_by_role_mixin(*roles):
     class RoleOnlyMixin():
         def dispatch(self, request, *args, **kwargs):
@@ -75,21 +74,11 @@ class ProzdoListView(generic.ListView):
 
         return context
 
-
-#def get_post_last_modified(request, **kwargs):
-#        post = PostDetail.get_post(kwargs)
-#        obj = post.obj
-#        return obj.last_modified
-
-
 class PostDetail(ProzdoListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
 
-
-    #@method_decorator(last_modified(get_post_last_modified))
-    #@method_decorator(cache_page(60))
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -128,7 +117,6 @@ class PostDetail(ProzdoListView):
             res['Last-Modified'] = last_modified
             res['Expires'] = convert_date(expires)
         return res
-
 
     @staticmethod
     def get_post(kwargs):
@@ -1014,22 +1002,3 @@ class UnsubscribeView(generic.View):
             user_profile.save()
             messages.add_message(request, messages.INFO, 'Вы больше не будете получать сообщения с сайта Prozdo.ru')
             return HttpResponseRedirect(reverse_lazy('main-page'))
-
-"""
-class AjaxDeleteComment(restrict_by_role_mixin(models.USER_ROLE_DOCTOR, models.USER_ROLE_AUTHOR, models.USER_ROLE_ADMIN), generic.View):
-    def post(self, request, *args, **kwargs):
-        comment_id = request.POST['pk']
-        action = request.POST['action']
-        comment = models.Comment.objects.get(pk=comment_id)
-        if action == 'delete':
-            if not comment.delete_mark:
-                comment.delete_mark = True
-                comment.save()
-                return JsonResponse({'saved': True})
-        elif action == 'undelete':
-            if comment.delete_mark:
-                comment.delete_mark = False
-                comment.save()
-                return JsonResponse({'saved': True})
-
-"""
