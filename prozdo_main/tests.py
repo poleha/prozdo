@@ -6,6 +6,7 @@ from allauth.account.models import EmailAddress, EmailConfirmation
 from django.core.cache import cache
 from cacheops import invalidate_all
 from django.core.exceptions import ValidationError
+from haystack.management.commands import rebuild_index, update_index
 #from django.test.client import Client
 #c = Client()
 
@@ -65,6 +66,10 @@ class BaseTest(WebTest):
             body='body_blog',
 
         )
+
+    def tearDown(self):
+        invalidate_all()
+        cache.clear()
 
 
 class CommentAntispanTests(BaseTest):
@@ -1245,3 +1250,86 @@ class PostTests(BaseTest):
         self.assertIn('<span class="blog-current-mark-span">1</span>', page)
         self.assertEqual(blog.marks_count, 1)
         self.assertEqual(blog.post_ptr.marks_count, 1)
+
+
+class SearchTests(BaseTest):
+    def test_published_drug_is_found_by_title_body_indications(self):
+        rebuild_index.Command().handle(interactive=False)
+
+        drug = self.drug
+        drug.status = models.POST_STATUS_PUBLISHED
+        drug.title = 'аыпывапыврапврарвапрапр'
+        drug.body = 'варвапрварварварвапрвапрв'
+        drug.indications = 'аволдтрывалтплыовапг54нцпшдцатп'
+        drug.save()
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = drug.title
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertIn('Ничего не найдено', page)
+        self.assertNotIn(drug.get_absolute_url(), page)
+
+        update_index.Command().handle()
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = drug.title
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn('Ничего не найдено', page)
+        self.assertIn(drug.get_absolute_url(), page)
+
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = drug.body
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn('Ничего не найдено', page)
+        self.assertIn(drug.get_absolute_url(), page)
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = drug.indications
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn('Ничего не найдено', page)
+        self.assertIn(drug.get_absolute_url(), page)
+
+    def test_published_comment_is_found_by_body_username(self):
+        rebuild_index.Command().handle(interactive=False)
+
+        comment = models.Comment.objects.create(
+                post=self.drug,
+                username='аывпывапварварвар',
+                email='fdsfsd@sdgdfgdfg.ru',
+                body='варвварправрвар',
+                status=models.COMMENT_STATUS_PUBLISHED,
+            )
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = comment.body
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertIn('Ничего не найдено', page)
+
+        update_index.Command().handle()
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = comment.body
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn('Ничего не найдено', page)
+        self.assertIn(comment.get_absolute_url(), page)
+
+        page = self.app.get(reverse('main-page'))
+        form = page.forms['search-form']
+        form['q'] = comment.username
+        page = form.submit()
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(comment.get_absolute_url(), page)
+

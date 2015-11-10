@@ -267,4 +267,16 @@ class CommentDoctorListFilterForm(forms.Form):
 
 
 
+from haystack.forms import SearchForm
 
+
+class ProzdoSearchForm(SearchForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['q'].widget.attrs['placeholder'] = 'Поиск по сайту'
+
+    def search(self):
+        # First, store the SearchQuerySet received from other processing.
+        sqs = super().search()
+
+        return sqs

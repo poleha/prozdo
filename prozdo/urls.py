@@ -27,10 +27,12 @@ urlpatterns = [
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
+    #url(r'^search/', include('haystack.urls')),
     url(r'^', include('prozdo_main.urls')),
     #url(r'^', include('prozdo_main.urls')),
     url(r'^sitemap\.xml$', cache_page(60 * 60 * 12)(sitemap), {'sitemaps': sitemaps},
-    name='django.contrib.sitemaps.views.sitemap')
+    name='django.contrib.sitemaps.views.sitemap'),
+
 
 ]
 
@@ -45,3 +47,4 @@ if settings.DEBUG:
 if settings.DEBUG_TOOLBAR:
     import debug_toolbar
     urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls))]
+

@@ -7,7 +7,8 @@ from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from allauth.account.forms import LoginForm
+#from allauth.account.forms import LoginForm
+from prozdo_main.forms import ProzdoSearchForm
 
 register = template.Library()
 
@@ -128,8 +129,9 @@ def top_menu(context):
     menu_items.append(MenuItem(title='Аптечная косметика', url=reverse_lazy('cosmetics-list'), cls='active' if view_name=='cosmetics-list' else ''))
     menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'), cls='active' if view_name=='blog-list' else ''))
     menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'), cls='active' if view_name=='component-list' else ''))
+    search_form = ProzdoSearchForm(request.GET)
 
-    return {'menu_items': menu_items, 'debug': settings.DEBUG }
+    return {'menu_items': menu_items, 'search_form': search_form }
 
 
 @register.inclusion_tag('prozdo_main/widgets/_bottom_menu.html', takes_context=True)
@@ -286,7 +288,7 @@ def metatags(context):
         obj = context['obj']
         if isinstance(obj, models.Drug):
             metatags_dict['title'] = '{0} - отзывы | Про здоровье'.format(obj.title)
-            metatags_dict['keywords'] = "{0} - отзывы, лекарственные препараты, лекарства, отзывы".format(obj.title)
+            metatags_dict['keywords'] = "{0} - отзывы, лекарственные препараты, лекарства, отзывы, {1}".format(obj.title, obj.title)
             metatags_dict['description'] = "Отзывы о препарате {0}.".format(obj.title)
         elif isinstance(obj, models.Blog):
             metatags_dict['title'] = '{0} | Про здоровье'.format(obj.title)
@@ -350,6 +352,9 @@ def user_menu(context):
         menu_items.append(MenuItem(title='Создать косметику', url=reverse('cosmetics-create'), cls=''))
         menu_items.append(MenuItem(title='Создать компонент', url=reverse('component-create'), cls=''))
     return {'menu_items': menu_items}
+
+
+
 
 
 

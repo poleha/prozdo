@@ -89,6 +89,8 @@ urlpatterns = [
 
     url(r'^rss/rss/$', LatestBlogEntriesFeed(), name='rss'),
 
+    url(r'^search/', views.ProzdoSearchView.as_view(), name='search'),
+
 ]
 
 urlpatterns.append(url(r'^(?P<alias>[a-z0-9_\-]{1,})/comment/(?P<comment_pk>\d+)/$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-alias-comment'))

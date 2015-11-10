@@ -1002,3 +1002,24 @@ class UnsubscribeView(generic.View):
             user_profile.save()
             messages.add_message(request, messages.INFO, 'Вы больше не будете получать сообщения с сайта Prozdo.ru')
             return HttpResponseRedirect(reverse_lazy('main-page'))
+
+
+
+from haystack.generic_views import SearchView
+from haystack.query import SearchQuerySet
+
+
+class ProzdoSearchView(SearchView):
+    queryset = SearchQuerySet().all()
+    form_class = forms.ProzdoSearchForm
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # further filter queryset based on some set of criteria
+        queryset = queryset.order_by('weight')
+        return queryset
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        # do something
+        return context

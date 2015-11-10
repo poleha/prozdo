@@ -1,0 +1,25 @@
+{% extends 'prozdo_main/base/base.html' %}
+
+{% block content %}
+        {% if query %}
+            <h3>Результаты поиска</h3>
+
+            {% for result in page_obj.object_list %}
+                <p>
+                    <a href="{{ result.object.get_absolute_url }}">{{ result.object }}</a>
+                </p>
+            {% empty %}
+                <p>Ничего не найдено.</p>
+            {% endfor %}
+
+            {% if page_obj.has_previous or page_obj.has_next %}
+                <ul class="pagination">
+                    <li>{% if page_obj.has_previous %}<a href="?q={{ query }}&amp;page={{ page_obj.previous_page_number }}">Предыдущая страница</a>{% endif %}</li>
+                    <li>{% if page_obj.has_next %}<a href="?q={{ query }}&amp;page={{ page_obj.next_page_number }}">Следующая страница</a>{% endif %}</li>
+                </ul>
+            {% endif %}
+        {% else %}
+            {# Show some example queries to run, maybe query syntax, something else? #}
+        {% endif %}
+    </form>
+{% endblock %}

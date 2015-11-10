@@ -93,7 +93,8 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
     'cacheops',
-    'django_mobile'
+    'django_mobile',
+    'haystack',
 )
 
 
@@ -425,3 +426,12 @@ AUTO_DONT_APPROVE_EMAILS = ['dont-approve@dont-approve.me']
 ADMINS = (('Alex Poleha', 'info@prozdo.ru'),)
 
 PUBLISH_COMMENT_WITHOUT_APPROVE_KARM = 20
+
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}
