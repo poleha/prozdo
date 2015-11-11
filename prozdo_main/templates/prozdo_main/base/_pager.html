@@ -2,8 +2,10 @@
 {% if paginator %}
 <div class="pager">
 
-        <ul class="pagination">
+
         <div>Страница {{ page_obj.number }} из {{ paginator.num_pages }}</div>
+        <ul class="pagination">
+
 
         {% if show_first_page %}
              <li>
