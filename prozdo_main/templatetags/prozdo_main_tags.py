@@ -226,7 +226,6 @@ def breadcrumbs(context):
         obj = context['obj']
         breadcrumbs_list.append(Breadcrumb(title=obj.title, href=obj.get_absolute_url()))
 
-
     elif url_name == 'user-profile':
         user = context['user']
         breadcrumbs_list.append(Breadcrumb(title='Профиль пользователя {0}'.format(user), href=reverse('user-profile')))
@@ -244,6 +243,9 @@ def breadcrumbs(context):
             breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href=reverse('user-karma', kwargs={'pk': user.pk})))
         elif url_name == 'user-activity':
             breadcrumbs_list.append(Breadcrumb(title='Действия пользователя {0}'.format(user), href=reverse('user-activity', kwargs={'pk': user.pk})))
+
+    elif url_name == 'search':
+        breadcrumbs_list.append(Breadcrumb(title="Поиск по сайту", href=reverse('search')))
 
     return {'breadcrumbs_list': breadcrumbs_list}
 
@@ -319,6 +321,9 @@ def metatags(context):
             pass
         elif url_name == 'user-karma':
             pass
+
+    elif url_name == 'search':
+        metatags_dict['title'] = 'Поиск по сайту | Про здоровье'
 
     return metatags_dict
 

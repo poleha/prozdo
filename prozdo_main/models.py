@@ -143,6 +143,8 @@ class SuperModel(CachedModelMixin):
             self.updated = timezone.now()
         super().save(*args, **kwargs)
 
+
+
 class AbstractModel(SuperModel):
     class Meta:
         abstract = True
@@ -151,6 +153,9 @@ class AbstractModel(SuperModel):
 
     def __str__(self):
         return self.title
+
+    def type_str(self):
+        raise NotImplemented
 
 
 def class_with_published_mixin(published_status):
@@ -516,6 +521,9 @@ class Component(Post):
     component_type = models.IntegerField(choices=COMPONENT_TYPES, verbose_name='Тип компонента', db_index=True)
     objects = PostManager()
 
+    def type_str(self):
+        return 'Компонент'
+
     @property
     def component_type_text(self):
         for component_type in COMPONENT_TYPES:
@@ -539,6 +547,9 @@ class Drug(Post):
     components = models.ManyToManyField(Component, verbose_name='Состав', blank=True, related_name='drugs')
     category = TreeManyToManyField(Category, verbose_name='Категория', blank=True, db_index=True)
     objects = PostManager()
+
+    def type_str(self):
+        return 'Препарат'
 
     @property
     def thumb110(self):
@@ -570,6 +581,11 @@ class Cosmetics(Post):
     dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = PostManager()
+
+
+    def type_str(self):
+        return 'Косметика'
+
 
     #TODO проверить, убрать лишнее
     @property
@@ -604,6 +620,8 @@ class Blog(Post):
     category = TreeManyToManyField(Category, verbose_name='Категория', db_index=True)
     objects = PostManager()
 
+    def type_str(self):
+        return 'Запись блога'
 
     @property
     def thumb110(self):
@@ -679,6 +697,7 @@ class CommentTreeQueryset(TreeQuerySet):
         return queryset
 
 
+
 class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset), ManagerMixin):
     use_for_related_fields = True
 
@@ -708,6 +727,9 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     def __str__(self):
         return self.short_body
+
+    def type_str(self):
+        return 'Сообщение'
 
     @cached_property
     def has_avaliable_children(self):

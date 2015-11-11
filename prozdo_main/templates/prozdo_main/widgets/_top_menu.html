@@ -5,10 +5,8 @@
 </div>
 {% endfor %}
 <div class="col-lg-2 col-md-2 col-sm-2" id="search-block">
-<div class="">
     <form method="get" action="{% url 'search' %}" id="search-form">
             {{ search_form.q }}
                     <input type="submit" value="Искать">
     </form>
-    </div>
 </div>
