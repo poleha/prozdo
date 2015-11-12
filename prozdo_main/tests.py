@@ -157,7 +157,7 @@ class CommentAntispanTests(BaseTest):
         drug = self.drug
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         form = page.forms['comment-form']
-        body = 'Привет, это хороший отзыв1234567890123456789012345678901234567'
+        body = 'Привет, это хороший отзыв12345678901267890125678901234567'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
         form['email'] = email
@@ -175,7 +175,7 @@ class CommentAntispanTests(BaseTest):
         drug = self.drug
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         form = page.forms['comment-form']
-        body = 'Привет, это хороший отзывzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
+        body = 'Привет, это хороший отзывzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
         form['email'] = email
@@ -193,7 +193,7 @@ class CommentAntispanTests(BaseTest):
         drug = self.drug
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         form = page.forms['comment-form']
-        body = 'Привет, это хороший отзывzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
+        body = 'Привет, это хороший отзывzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
         form['email'] = email

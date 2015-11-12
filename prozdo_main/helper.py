@@ -165,6 +165,10 @@ def get_endlish_letters_percent(text):
 
 
 def comment_body_ok(text):
+    text = text.strip()
+    text = text.replace("\r","")
+    text = text.replace("\n","")
+    text = text.replace(" ","")
     if get_digits_percent(text) > 60 or get_endlish_letters_percent(text) > 60 or check_bad_words(text):
         return False
     else:
