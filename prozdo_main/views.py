@@ -704,7 +704,7 @@ class ProzdoConnectionsView(ConnectionsView):
 
     @login_required
     def dispatch(self, request, *args, **kwargs):
-        super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 class ProzdoEmailView(EmailView):
     template_name = 'prozdo_main/user/email.html'
