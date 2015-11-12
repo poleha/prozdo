@@ -554,21 +554,21 @@ class Drug(Post):
     @property
     def thumb110(self):
         try:
-            return get_thumbnail(self.image, '110x200', quality=99).url
+            return get_thumbnail(self.image, '110x200', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb150(self):
         try:
-            return get_thumbnail(self.image, '150x300', quality=99).url
+            return get_thumbnail(self.image, '150x300', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb220(self):
         try:
-            return get_thumbnail(self.image, '220x400', quality=99).url
+            return get_thumbnail(self.image, '220x400', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
@@ -591,21 +591,21 @@ class Cosmetics(Post):
     @property
     def thumb110(self):
         try:
-            return get_thumbnail(self.image, '110x200', quality=99).url
+            return get_thumbnail(self.image, '110x200', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb150(self):
         try:
-            return get_thumbnail(self.image, '150x300', quality=99).url
+            return get_thumbnail(self.image, '150x300', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb220(self):
         try:
-            return get_thumbnail(self.image, '220x400', quality=99).url
+            return get_thumbnail(self.image, '220x400', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
@@ -626,28 +626,28 @@ class Blog(Post):
     @property
     def thumb110(self):
         try:
-            return get_thumbnail(self.image, '110x200', quality=99).url
+            return get_thumbnail(self.image, '110x200', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb150(self):
         try:
-            return get_thumbnail(self.image, '150x300', quality=99).url
+            return get_thumbnail(self.image, '150x300', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb220(self):
         try:
-            return get_thumbnail(self.image, '220x400', quality=99).url
+            return get_thumbnail(self.image, '220x400', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb360(self):
         try:
-            return get_thumbnail(self.image, '360x720', quality=99).url
+            return get_thumbnail(self.image, '360x720', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
@@ -1391,14 +1391,14 @@ class UserProfile(SuperModel):
     @property
     def thumb50(self):
         try:
-            return get_thumbnail(self.image, '50x50', quality=99).url
+            return get_thumbnail(self.image, '50x50', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 
     @property
     def thumb100(self):
         try:
-            return get_thumbnail(self.image, '100x100', quality=99).url
+            return get_thumbnail(self.image, '100x100', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
 

@@ -435,3 +435,6 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'haystack',
     },
 }
+
+
+DEFAULT_THUMBNAIL_QUALITY = 75
