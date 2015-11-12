@@ -4,8 +4,14 @@
 
 {% block content %}
 
-<p>Вы собираетесь войти на {{site.name}} с помощью {{account.get_provider.name}}. Для завершения, пожалуйста, заполните эту форму:</p>
+<p>Вы собираетесь войти на {{site.name}} с помощью {{account.get_provider.name}}.</p>
 
+<p>Ваш электронный адрес уже используется на Prozdo.ru и он не подтвержден, потому мы не можем просто присоединить эту учетную запись соцсети к существующей учетной записи.</p>
+
+<p>Пожалуйста, <a href="{% url 'login' %}">войдите</a> на Prozdo.ru с помощью существующей учетной записи. После этого Вы сможете присоединить учетную запись соцсети к Вашей учетной записи Prozdo.ru.</p>
+<p>Если Вы забыли пароль, Вы всегда можете<a href="{% url 'password-reset' %}">сбросить его</a>.</p>
+
+{% comment %}
 <form class="signup auth-form" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
   {% csrf_token %}
   {{ form.as_p }}
@@ -14,5 +20,7 @@
   {% endif %}
   <button class="btn btn-success" type="submit">Войти &raquo;</button>
 </form>
+{% endcomment %}
+
 
 {% endblock %}

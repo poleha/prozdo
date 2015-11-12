@@ -18,7 +18,8 @@ class ProzdoSocialAccountAdapter(DefaultSocialAccountAdapter):
             if email_adress:
                 try:
                     user = User.objects.get(email=email_adress)
-                    sociallogin.connect(request, user)
+                    if user.email_confirmed:
+                        sociallogin.connect(request, user)
                 except:
                     pass
         super().pre_social_login(request, sociallogin)
