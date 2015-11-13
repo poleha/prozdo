@@ -560,6 +560,28 @@ class HistoryAjaxSaveTests(BaseTest):
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count, result_hist_count)
 
+    def test_session_key_is_applied_to_comment_without_session_key_on_comment_delete(self):
+        comment = self.comment
+        comment.session_key = None
+        comment.save()
+        user = self.user
+        up = user.user_profile
+        up.role = models.USER_ROLE_DOCTOR
+        up.save()
+        self.assertEqual(comment.session_key, None)
+
+        params= {
+                'action': 'comment-delete',
+                'pk': comment.pk,
+            }
+
+        comment.delete_mark = False
+        comment.save()
+        page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+        comment = comment.saved_version
+        self.assertNotEqual(comment.session_key, None)
+
+
 
 class PostPagesTest(BaseTest):
     def setUp(self):
@@ -1079,6 +1101,34 @@ class GeneralCommentTests(BaseTest):
         mails_count2 = models.Mail.objects.all().count()
         self.assertEqual(page.status_code, 200)
         self.assertEqual(mails_count1, mails_count2)
+
+
+    def test_session_key_is_changed_on_comment_update_and_udater_is_applied(self):
+        u = self.user
+        d = self.drug
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': d.pk}), user=u)
+        form = page.forms['comment-form']
+        body = 'Привет, это вот мой коммент'
+        form['body'] = body
+        page = form.submit()
+        c = models.Comment.objects.latest('created')
+        session_key = c.session_key
+        self.assertEqual(c.updater, None)
+
+        self.renew_app()
+
+        page = self.app.get(reverse('comment-update', kwargs={'pk': c.pk}), user=u)
+        form = page.forms['comment-form']
+        body = 'Привет, это вот мой коммент еще один'
+        form['body'] = body
+        page = form.submit()
+
+        c = c.saved_version
+
+        self.assertEqual(c.body, body)
+        self.assertNotEqual(session_key, c.session_key)
+        self.assertEqual(c.updater, u)
+
 
 
 class CacheTests(BaseTest):

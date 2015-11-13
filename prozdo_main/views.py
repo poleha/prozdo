@@ -434,12 +434,13 @@ class HistoryAjaxSave(generic.View):
             data['mark'] = 0
             return JsonResponse(data)
 
-
         elif action == 'comment-delete':
             if not user.is_regular:
                 comment = models.Comment.objects.get(pk=pk)
                 if not comment.delete_mark:
                     comment.delete_mark = True
+                    if not comment.session_key:
+                        comment.session_key = session_key
                     comment.save()
                     return JsonResponse({'saved': True})
             return JsonResponse({'saved': False})
@@ -908,6 +909,7 @@ class CommentUpdate(generic.UpdateView):
             return HttpResponseRedirect(comment.get_absolute_url())
         form = self.form_class(request.POST, instance=comment)
         form.instance.updater = request.user
+        form.instance.session_key = get_session_key(request.session)
         comment = form.save()
         return HttpResponseRedirect(comment.get_absolute_url())
 
