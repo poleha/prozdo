@@ -21,7 +21,7 @@ from django.db.models import Q
 #from django.contrib.contenttypes.fields import GenericForeignKey
 #from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from cacheops.query import ManagerMixin
+#from cacheops.query import ManagerMixin
 #from cacheops import invalidate_obj, invalidate_model, invalidate_all
 from django.core.mail.message import EmailMultiAlternatives
 from django.utils import timezone
@@ -177,7 +177,7 @@ class PostQueryset(models.QuerySet):
         return queryset
 
 
-class PostManager(models.manager.BaseManager.from_queryset(PostQueryset), ManagerMixin):
+class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
     use_for_related_fields = True
 
     def get_queryset(self):
@@ -699,7 +699,7 @@ class CommentTreeQueryset(TreeQuerySet):
 
 
 
-class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset), ManagerMixin):
+class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset)):
     use_for_related_fields = True
 
 
