@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
 from django.core.cache import cache
-from cacheops import invalidate_all
+#from cacheops import invalidate_all
 from django.core.exceptions import ValidationError
 from haystack.management.commands import rebuild_index, update_index
 #from django.test.client import Client
@@ -12,7 +12,6 @@ from haystack.management.commands import rebuild_index, update_index
 
 class BaseTest(WebTest):
     def setUp(self):
-        invalidate_all()
         cache.clear()
         self.user = models.User.objects.create(username='asdgsdfhhfgdjfh', password='1234567', email='sdfgsdfg@sdfsdg.ru')
 
@@ -68,7 +67,6 @@ class BaseTest(WebTest):
         )
 
     def tearDown(self):
-        invalidate_all()
         cache.clear()
 
 

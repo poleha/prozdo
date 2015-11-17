@@ -42,13 +42,13 @@ if HOSTNAME in ['ubuntu']:
     PROZDO_CACHE_ENABLED = True
     DEBUG_TOOLBAR = False
 
-    CACHEOPS = {
-    'auth.user': {'ops': 'all'},
-    'account.emailaddress': {'ops': 'all'},
-    'prozdo_main.userprofile': {'ops': 'all'},
+    #CACHEOPS = {
+    #'auth.user': {'ops': 'all'},
+    #'account.emailaddress': {'ops': 'all'},
+    #'prozdo_main.userprofile': {'ops': 'all'},
     #'prozdo_main.*': {'ops': 'all'},
-    '*.*': {},
-}
+    #'*.*': {},
+#}
 
 
 else:
@@ -59,13 +59,13 @@ else:
     HTML_MINIFY = True
     EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
-    CACHEOPS = {
-    'auth.user': {'ops': 'all'},
-    'account.emailaddress': {'ops': 'all'},
-    'prozdo_main.userprofile': {'ops': 'all'},
+    #CACHEOPS = {
+    #'auth.user': {'ops': 'all'},
+    #'account.emailaddress': {'ops': 'all'},
+    #'prozdo_main.userprofile': {'ops': 'all'},
     #'prozdo_main.*': {'ops': 'all'},
-    '*.*': {},
-}
+    #'*.*': {},
+#}
 
 
 
@@ -94,7 +94,7 @@ INSTALLED_APPS = (
     'reversion',
     'ckeditor',
     'ckeditor_uploader',
-    'cacheops',
+    #'cacheops',
     'django_mobile',
     'haystack',
 )
@@ -328,7 +328,7 @@ CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
-CACHEOPS_DURATION = 60
+#CACHEOPS_DURATION = 60
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
 #CACHE_MIDDLEWARE_SECONDS = 60 * 60
@@ -346,9 +346,9 @@ CACHEOPS_REDIS = {
 
 
 
-CACHEOPS_DEFAULTS = {
-    'timeout': CACHEOPS_DURATION
-}
+#CACHEOPS_DEFAULTS = {
+#    'timeout': CACHEOPS_DURATION
+#}
 
 
 if DEBUG_TOOLBAR:
