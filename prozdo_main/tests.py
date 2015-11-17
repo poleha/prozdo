@@ -562,8 +562,9 @@ class HistoryAjaxSaveTests(BaseTest):
 
     def test_session_key_is_applied_to_comment_without_session_key_on_comment_delete(self):
         comment = self.comment
-        comment.session_key = None
-        comment.save()
+        type(comment).objects.filter(pk=comment.pk).update(session_key=None, delete_mark=False)
+        #comment.session_key = None
+        comment = comment.saved_version
         user = self.user
         up = user.user_profile
         up.role = models.USER_ROLE_DOCTOR
@@ -575,9 +576,9 @@ class HistoryAjaxSaveTests(BaseTest):
                 'pk': comment.pk,
             }
 
-        comment.delete_mark = False
-        comment.save()
         page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
+        comment = comment.saved_version
+
         comment = comment.saved_version
         self.assertNotEqual(comment.session_key, None)
 
@@ -1178,6 +1179,60 @@ class CacheTests(BaseTest):
         self.assertNotIn(comment_body, page)
         self.assertNotIn(child_body, page)
 
+    def test_cached_method_works_for_hist_exists_by_request(self):
+        page = self.app.get(self.drug.get_absolute_url())
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший отзыв'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = 'dfsgdfgsdfgsdfg'
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
+        self.renew_app()
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
+
+    def test_cached_method_works_for_show_do_action_button(self):
+        page = self.app.get(self.drug.get_absolute_url())
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший отзыв'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = 'dfsgdfgsdfgsdfg'
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        history = models.History.objects.latest('created')
+        type(history).objects.filter(pk=history.pk).update(ip='123.235.345.567')
+        type(comment).objects.filter(pk=comment.pk).update(ip='534.345.456.467')
+        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.renew_app()
+        page = self.app.get(self.drug.get_absolute_url())
+        history = models.History.objects.latest('created')
+        type(history).objects.filter(pk=history.pk).update(ip='103.331.145.527')
+        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)
+
+        params= {
+                'action': 'comment-mark',
+                'pk': comment.pk,
+            }
+        page = self.app.post(reverse('history-ajax-save'), params=params)
+        page = self.app.get(comment.get_absolute_url())
+        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+
+
+
+
+
 
 
 class AccountMailTests(BaseTest):
@@ -1249,8 +1304,8 @@ class PostTests(BaseTest):
         self.assertIn('<span id="post-marks-count">2)</span>', page)
         self.assertEqual(drug.marks_count, 2)
         self.assertEqual(drug.average_mark, 4.5)
-        self.assertEqual(drug.post_ptr.marks_count, 2)
-        self.assertEqual(drug.post_ptr.average_mark, 4.5)
+        self.assertEqual(drug.marks_count, 2)
+        self.assertEqual(drug.average_mark, 4.5)
 
         params= {
                 'action': 'post-unmark',
@@ -1263,8 +1318,8 @@ class PostTests(BaseTest):
         self.assertIn('<span id="post-marks-count">1)</span>', page)
         self.assertEqual(drug.marks_count, 1)
         self.assertEqual(drug.average_mark, 5)
-        self.assertEqual(drug.post_ptr.marks_count, 1)
-        self.assertEqual(drug.post_ptr.average_mark, 5)
+        self.assertEqual(drug.marks_count, 1)
+        self.assertEqual(drug.average_mark, 5)
 
     def test_marks_count_works_as_expected_for_blog_detail(self):
         blog = self.blog
@@ -1288,7 +1343,7 @@ class PostTests(BaseTest):
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
         self.assertIn('<span class="blog-current-mark-span">2</span>', page)
         self.assertEqual(blog.marks_count, 2)
-        self.assertEqual(blog.post_ptr.marks_count, 2)
+        self.assertEqual(blog.marks_count, 2)
 
         params= {
                 'action': 'post-unmark',
@@ -1382,4 +1437,6 @@ class SearchTests(BaseTest):
         page = form.submit()
         self.assertEqual(page.status_code, 200)
         self.assertIn(comment.get_absolute_url(), page)
+
+
 

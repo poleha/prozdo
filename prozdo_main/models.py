@@ -22,11 +22,11 @@ from django.db.models import Q
 #from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from cacheops.query import ManagerMixin
-from cacheops import invalidate_obj, invalidate_model, invalidate_all
+#from cacheops import invalidate_obj, invalidate_model, invalidate_all
 from django.core.mail.message import EmailMultiAlternatives
 from django.utils import timezone
 from django.template.loader import render_to_string
-from .cache import CachedModelMixin, cached_property
+from .cache import CachedModelMixin, cached_property, cached_method
 
 
 #<Constants***********************************************************
@@ -363,6 +363,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
+    @cached_method
     def get_mark_by_request(self, request):
         user = request.user
         if user.is_authenticated():
@@ -876,7 +877,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     @cached_property
     def available_first_level_children(self):
-        return self.children.filter(status=COMMENT_STATUS_PUBLISHED)
+        return type(self).objects.filter(parent=self)
 
 
     #@cached_property
@@ -981,17 +982,17 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         ancestors = list(self.get_ancestors())
         descendants = list(self.get_descendants())
         if post:
-            invalidate_obj(post.obj)
+            #invalidate_obj(post.obj)
             post.obj.full_invalidate_cache()
         if user:
-            invalidate_obj(user.user_profile)
+            #invalidate_obj(user.user_profile)
             user.user_profile.full_invalidate_cache()
         for ancestor in ancestors:
             ancestor.full_invalidate_cache()
-            invalidate_obj(ancestor)
+            #invalidate_obj(ancestor)
         for descendant in descendants:
             descendant.full_invalidate_cache()
-            invalidate_obj(descendant)
+            #invalidate_obj(descendant)
 
     def delete(self, *args, **kwargs):
         post = self.post
@@ -1000,24 +1001,28 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         descendants = list(self.get_descendants())
         super().delete(*args, **kwargs)
         if post:
-            invalidate_obj(post.obj)
+            #invalidate_obj(post.obj)
             post.obj.full_invalidate_cache()
         if user:
-            invalidate_obj(user.user_profile)
+            #invalidate_obj(user.user_profile)
             user.user_profile.full_invalidate_cache()
         for ancestor in ancestors:
             ancestor.full_invalidate_cache()
-            invalidate_obj(ancestor)
+            #invalidate_obj(ancestor)
         for descendant in descendants:
             descendant.full_invalidate_cache()
-            invalidate_obj(descendant)
+            #invalidate_obj(descendant)
 
 
 
     #******************
+
+
+    @cached_method
     def hist_exists_by_comment_and_user(self, history_type, user):
         return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
 
+    @cached_method
     def hist_exists_by_request(self, history_type, request):
         user = request.user
         if user and user.is_authenticated():
@@ -1029,12 +1034,15 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             hist_exists = History.exists_by_comment(session_key, self, history_type)
         return hist_exists
 
+    @cached_method
     def show_do_action_button(self, history_type, request):
         return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
+    @cached_method
     def show_undo_action_button(self, history_type, request):
         return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
+    @cached_method
     def is_author_for_show_buttons(self, request):
         user = request.user
         if user and user.is_authenticated():
@@ -1045,6 +1053,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     #******************
 
+    @cached_method
     def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
@@ -1062,12 +1071,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return hist_exists
 
 
+    @cached_method
     def can_do_action(self, history_type, user, ip, session_key):
         return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
     #def can_undo_action(self, history_type, user, session_key):
     #    return self.hist_exists_by_data(history_type=history_type, user=user, session_key=session_key) and not self.is_author_for_save_history(user=user, session_key=session_key)
 
+    @cached_method
     def is_author_for_save_history(self, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             return user == self.user
@@ -1270,25 +1281,25 @@ class History(SuperModel):
         super().save(*args, **kwargs)
         if self.comment:
             self.comment.full_invalidate_cache()
-            invalidate_obj(self.comment)
+            #invalidate_obj(self.comment)
 
             for ancestor in self.comment.get_ancestors():
                 ancestor.full_invalidate_cache()
-                invalidate_obj(ancestor)
+                #invalidate_obj(ancestor)
             for descendant in self.comment.get_descendants():
                 descendant.full_invalidate_cache()
-                invalidate_obj(descendant)
+                #invalidate_obj(descendant)
 
         if self.post:
             self.post.obj.full_invalidate_cache()
-            invalidate_obj(self.post.obj)
+            #invalidate_obj(self.post.obj)
 
 
         if self.user:
             self.user.user_profile.full_invalidate_cache()
         if self.author:
             self.author.user_profile.full_invalidate_cache()
-            invalidate_obj(self.author)
+            #invalidate_obj(self.author)
         self.invalidate_exists()
         self.invalidate_exists_by_comment()
 
@@ -1303,25 +1314,25 @@ class History(SuperModel):
         super().delete(*args, **kwargs)
         if comment:
             comment.full_invalidate_cache()
-            invalidate_obj(comment)
+            #invalidate_obj(comment)
 
             for ancestor in comment.get_ancestors():
                 ancestor.full_invalidate_cache()
-                invalidate_obj(ancestor)
+                #invalidate_obj(ancestor)
             for descendant in comment.get_descendants():
                 descendant.full_invalidate_cache()
-                invalidate_obj(descendant)
+                #invalidate_obj(descendant)
 
         if post:
             post.obj.full_invalidate_cache()
-            invalidate_obj(post.obj)
+            #invalidate_obj(post.obj)
 
         if user:
             user.user_profile.full_invalidate_cache()
-            invalidate_obj(user)
+            #invalidate_obj(user)
         if author:
             author.user_profile.full_invalidate_cache()
-            invalidate_obj(author)
+            #invalidate_obj(author)
 
 
 class UserProfile(SuperModel):
@@ -1335,6 +1346,7 @@ class UserProfile(SuperModel):
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
 
+    @cached_method
     def can_publish_comment(self):
         if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM:
             return True
@@ -1418,7 +1430,7 @@ class UserProfile(SuperModel):
             self.role = USER_ROLE_ADMIN
 
         super().save(*args, **kwargs)
-        invalidate_obj(self.user)
+        #invalidate_obj(self.user)
 
 
 

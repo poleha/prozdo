@@ -39,13 +39,14 @@ if HOSTNAME in ['ubuntu']:
     DEBUG = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
-    PROZDO_CACHE_ENABLED = False
+    PROZDO_CACHE_ENABLED = True
     DEBUG_TOOLBAR = False
 
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
     'account.emailaddress': {'ops': 'all'},
-    'prozdo_main.*': {'ops': 'all'},
+    'prozdo_main.userprofile': {'ops': 'all'},
+    #'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
 
@@ -61,7 +62,8 @@ else:
     CACHEOPS = {
     'auth.user': {'ops': 'all'},
     'account.emailaddress': {'ops': 'all'},
-    'prozdo_main.*': {'ops': 'all'},
+    'prozdo_main.userprofile': {'ops': 'all'},
+    #'prozdo_main.*': {'ops': 'all'},
     '*.*': {},
 }
 
@@ -326,7 +328,7 @@ CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 
 PROZDO_CACHE_DURATION = 60 * 60 * 24 * 7
-CACHEOPS_DURATION = 60 * 60 * 24 * 3
+CACHEOPS_DURATION = 60
 PROZDO_CACHED_PROPERTY_DURATION = PROZDO_CACHE_DURATION
 HISTORY_EXISTS_DURATION = PROZDO_CACHE_DURATION
 #CACHE_MIDDLEWARE_SECONDS = 60 * 60
@@ -439,3 +441,5 @@ HAYSTACK_CONNECTIONS = {
 
 
 DEFAULT_THUMBNAIL_QUALITY = 75
+
+
