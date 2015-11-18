@@ -1275,12 +1275,17 @@ class AccountMailTests(BaseTest):
 class PostTests(BaseTest):
     def test_marks_count_and_average_mark_works_as_expected_for_drug_detail(self):
         drug = self.drug
+        self.assertEqual(drug.marks_count, 0)
+        self.assertEqual(drug.average_mark, 0)
         params= {
                 'action': 'post-mark',
                 'mark': 5,
                 'pk': drug.pk,
             }
         page = self.app.post(reverse('history-ajax-save'), params=params)
+        h1 = models.History.objects.latest('created')
+        self.assertEqual(h1.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h1.post, drug.post_ptr)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         self.assertIn('<span id="current-post-mark">5</span>', page)
         self.assertIn('<span id="post-marks-count">1)</span>', page)
@@ -1297,6 +1302,10 @@ class PostTests(BaseTest):
             }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        h2 = models.History.objects.latest('created')
+        self.assertEqual(h2.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h2.post, drug.post_ptr)
+        self.assertNotEqual(h1.pk, h2.pk)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         self.assertIn('<span id="post-average-mark">4,5</span>', page)
         self.assertIn('<span id="post-marks-count">2)</span>', page)
@@ -1304,6 +1313,8 @@ class PostTests(BaseTest):
         self.assertEqual(drug.average_mark, 4.5)
         self.assertEqual(drug.marks_count, 2)
         self.assertEqual(drug.average_mark, 4.5)
+        self.assertEqual(drug.post_ptr.marks_count, 1)
+        self.assertEqual(drug.post_ptr.average_mark, 5)
 
         params= {
                 'action': 'post-unmark',
@@ -1311,13 +1322,18 @@ class PostTests(BaseTest):
             }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
+        h3 = models.History.objects.latest('created')
+        self.assertEqual(h3.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h3.post, drug.post_ptr)
+        self.assertEqual(h2.pk, h3.pk)
+        self.assertEqual(h3.deleted, True)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         self.assertIn('<span id="post-average-mark">5,0</span>', page)
         self.assertIn('<span id="post-marks-count">1)</span>', page)
         self.assertEqual(drug.marks_count, 1)
         self.assertEqual(drug.average_mark, 5)
-        self.assertEqual(drug.marks_count, 1)
-        self.assertEqual(drug.average_mark, 5)
+        self.assertEqual(drug.post_ptr.marks_count, 1)
+        self.assertEqual(drug.post_ptr.average_mark, 5)
 
     def test_marks_count_works_as_expected_for_blog_detail(self):
         blog = self.blog

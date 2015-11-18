@@ -105,7 +105,7 @@ class PostDetail(ProzdoListView):
 
         return comments
 
-    @cached_view(timeout=settings.PROZDO_CACHE_DURATION, test=models.request_with_empty_guest)
+    @cached_view(test=models.request_with_empty_guest)
     def get(self, request, *args, **kwargs):
         self.set_obj()
         self.set_comment_page()
@@ -113,7 +113,7 @@ class PostDetail(ProzdoListView):
         last_modified = self.obj.last_modified
         if last_modified:
             last_modified = convert_date(last_modified)
-            expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHE_DURATION)
+            expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHED_VIEW_DURATION)
             res['Last-Modified'] = last_modified
             res['Expires'] = convert_date(expires)
         return res

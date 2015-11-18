@@ -363,7 +363,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
-    @cached_method
+    @cached_method()
     def get_mark_by_request(self, request):
         user = request.user
         if user.is_authenticated():
@@ -1018,11 +1018,11 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     #******************
 
 
-    @cached_method
+    @cached_method()
     def hist_exists_by_comment_and_user(self, history_type, user):
         return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
 
-    @cached_method
+    @cached_method()
     def hist_exists_by_request(self, history_type, request):
         user = request.user
         if user and user.is_authenticated():
@@ -1034,15 +1034,15 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             hist_exists = History.exists_by_comment(session_key, self, history_type)
         return hist_exists
 
-    @cached_method
+    @cached_method()
     def show_do_action_button(self, history_type, request):
         return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
-    @cached_method
+    @cached_method()
     def show_undo_action_button(self, history_type, request):
         return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
-    @cached_method
+    @cached_method()
     def is_author_for_show_buttons(self, request):
         user = request.user
         if user and user.is_authenticated():
@@ -1053,7 +1053,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     #******************
 
-    @cached_method
+    @cached_method()
     def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
@@ -1071,14 +1071,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         return hist_exists
 
 
-    @cached_method
+    @cached_method()
     def can_do_action(self, history_type, user, ip, session_key):
         return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
     #def can_undo_action(self, history_type, user, session_key):
     #    return self.hist_exists_by_data(history_type=history_type, user=user, session_key=session_key) and not self.is_author_for_save_history(user=user, session_key=session_key)
 
-    @cached_method
+    @cached_method()
     def is_author_for_save_history(self, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             return user == self.user
@@ -1346,7 +1346,7 @@ class UserProfile(SuperModel):
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
 
-    @cached_method
+    @cached_method()
     def can_publish_comment(self):
         if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM:
             return True

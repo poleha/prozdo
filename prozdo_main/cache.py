@@ -40,7 +40,6 @@ def cached_property(func):
             return func(self)
     return wrapper
 
-
 from django.db.models import Model
 CACHED_METHOD_KEY_TEMPLATE = '_cached_method_{0}_{1}_{2}'
 CACHED_METHOD_KEY_FULL_TEMPLATE = CACHED_METHOD_KEY_TEMPLATE + '_{3}'
@@ -78,24 +77,25 @@ def make_key_from_args(args, kwargs):
             res_args += '_' + str(arg)
     return res_args
 
-
-def cached_method(func):
-    def wrapper(self, *args, **kwargs):
-        if settings.PROZDO_CACHE_ENABLED:
-            key = CACHED_METHOD_KEY_FULL_TEMPLATE.format(type(self).__name__, func.__name__, self.pk, make_key_from_args(args, kwargs))
-            res = cache.get(key)
-            if res is None:
-                res = func.__get__(self)(*args, **kwargs)
+def cached_method(timeout=settings.PROZDO_CACHED_METHOD_DURATION):
+    def _cached_method(func):
+        def wrapper(self, *args, **kwargs):
+            if settings.PROZDO_CACHE_ENABLED:
+                key = CACHED_METHOD_KEY_FULL_TEMPLATE.format(type(self).__name__, func.__name__, self.pk, make_key_from_args(args, kwargs))
+                res = cache.get(key)
                 if res is None:
-                    res = EMPTY_CACHE_PLACEHOLDER
-                cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
-            if res == EMPTY_CACHE_PLACEHOLDER:
-                res = None
-            return res
-        else:
-            return func.__get__(self)(*args, **kwargs)
-    wrapper.__is_cached_method__ = True
-    return wrapper
+                    res = func.__get__(self)(*args, **kwargs)
+                    if res is None:
+                        res = EMPTY_CACHE_PLACEHOLDER
+                    cache.set(key, res, timeout)
+                if res == EMPTY_CACHE_PLACEHOLDER:
+                    res = None
+                return res
+            else:
+                return func.__get__(self)(*args, **kwargs)
+        wrapper.__is_cached_method__ = True
+        return wrapper
+    return _cached_method
 
 
 
@@ -108,10 +108,11 @@ class CachedModelMixin(Model):
     def get_cached_property_cache_key(self, attr_name):
         return CACHED_PROPERTY_KEY_TEMPLATE.format(type(self).__name__, attr_name, self.pk)
 
-    def invalidate_cache(self, attr_name):
+    def invalidate_cached_property(self, attr_name, delete=True):
         if settings.PROZDO_CACHE_ENABLED:
             key = self.get_cached_property_cache_key(attr_name)
-            cache.delete(key)
+            if delete:
+                cache.delete(key)
             res = getattr(self, attr_name)
             if res is None:
                 res = EMPTY_CACHE_PLACEHOLDER
@@ -131,7 +132,10 @@ class CachedModelMixin(Model):
                 #prop_keys += [k for k, v in c.__dict__.items() if isinstance(v, CachedProperty) or v.__name__ == 'wrapper']
 
             for attr_name in set(prop_keys):
-                self.invalidate_cache(attr_name)
+                self.clean_cached_property(attr_name)
+
+            for attr_name in set(prop_keys):
+                self.invalidate_cached_property(attr_name, delete=False)
 
             for attr_name in set(meth_keys):
                 cache.delete_pattern(CACHED_METHOD_KEY_TEMPLATE.format(type(self).__name__, attr_name, self.pk) + '*')
@@ -139,7 +143,7 @@ class CachedModelMixin(Model):
             for cls_name, func_name in self.cached_views:
                 cache.delete_pattern(CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
 
-    def clean_cache(self, attr_name):
+    def clean_cached_property(self, attr_name):
         if settings.PROZDO_CACHE_ENABLED:
             key = self.get_cached_property_cache_key(attr_name)
             cache.delete(key)
@@ -150,7 +154,7 @@ class CachedModelMixin(Model):
             self.full_invalidate_cache()
 
 
-def cached_view(timeout=settings.PROZDO_CACHE_DURATION, test=lambda request: True):
+def cached_view(timeout=settings.PROZDO_CACHED_VIEW_DURATION, test=lambda request: True):
     def decorator(func):
         def wrapper(self, request, *args, **kwargs):
             if settings.PROZDO_CACHE_ENABLED and test(request):
