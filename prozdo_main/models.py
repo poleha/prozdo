@@ -981,6 +981,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         user = self.user
         ancestors = list(self.get_ancestors())
         descendants = list(self.get_descendants())
+        """
         if post:
             #invalidate_obj(post.obj)
             post.obj.full_invalidate_cache()
@@ -993,6 +994,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         for descendant in descendants:
             descendant.full_invalidate_cache()
             #invalidate_obj(descendant)
+        """
 
     def delete(self, *args, **kwargs):
         post = self.post

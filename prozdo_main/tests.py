@@ -1140,6 +1140,7 @@ class CacheTests(BaseTest):
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='алоуоац4ай34аглвырпилвыапилоывапиавапыв',
                 status=models.COMMENT_STATUS_PUBLISHED,
+                session_key='sdkfngsdfjgndfsjgnsdfg',
             )
 
         comment = models.Comment.objects.create(
@@ -1149,6 +1150,7 @@ class CacheTests(BaseTest):
                 body='ваыпоуд4прышгукпргвынпргывапвыап',
                 status=models.COMMENT_STATUS_PUBLISHED,
                 parent=parent,
+                session_key='sdkfngsdfjgndfsjgnsdfg',
             )
 
         child = models.Comment.objects.create(
@@ -1158,6 +1160,7 @@ class CacheTests(BaseTest):
                 body='авпрволыдапывдалпрывдлапрлывадпргушкпршва',
                 status=models.COMMENT_STATUS_PUBLISHED,
                 parent=comment,
+                session_key='sdkfngsdfjgndfsjgnsdfg',
             )
 
         page = self.app.get(self.drug.get_absolute_url())
