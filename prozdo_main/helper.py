@@ -109,7 +109,7 @@ def make_alias(text):
     return transliterate(full_trim(text))
 
 
-
+"""
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -117,6 +117,8 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+"""
+
 
 def cut_text(text, length=100):
     res = text[:length]
@@ -216,11 +218,11 @@ def get_class_that_defined_method(meth):
     return None # not required since None would have been implicitly returned anyway
 
 
-
+"""
 def get_session_key(session):
     key = session.get('prozdo_key', None)
     return key
-
+"""
 
 def set_and_get_session_key(session):
     key = session.get('prozdo_key', None)

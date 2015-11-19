@@ -1231,11 +1231,6 @@ class CacheTests(BaseTest):
         self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
 
 
-
-
-
-
-
 class AccountMailTests(BaseTest):
     def test_confirmation_mail_is_sent_on_registration_and_mail_model_is_created(self):
         mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_USER_REGISTRATION).count()
@@ -1456,4 +1451,23 @@ class SearchTests(BaseTest):
         self.assertIn(comment.get_absolute_url(), page)
 
 
+"""
+class ProzdoMiddlewareTests(BaseTest):
+    def test_set_ip_middleware_works_as_expected(self):
+        drug = self.drug
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
+        self.assertEqual(self.app.session.get('prozdo_key', None), None)
 
+        form = page.forms['comment-form']
+        body = 'Привет, это хороший отзыв'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = 'dfsgdfgsdfgsdfg'
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.latest('created')
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
+        self.assertNotEqual(self.app.session.get('prozdo_key', None), None)
+"""

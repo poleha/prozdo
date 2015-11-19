@@ -373,7 +373,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
                 mark = ''
         else:
             try:
-                mark = History.objects.get(post=self, session_key=helper.get_session_key(request.session), history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).mark
+                mark = History.objects.get(post=self, session_key=request.session.prozdo_key, history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).mark
             except:
                 mark = 0
 
@@ -678,7 +678,7 @@ class Blog(Post):
                 mark = 0
         else:
             try:
-                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).filter(session_key=helper.get_session_key(request.session)).count()
+                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).filter(session_key=request.session.prozdo_key).count()
             except:
                 mark = 0
 
@@ -833,8 +833,8 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if not user and request:
             user = request.user
         if request:
-            ip = helper.get_client_ip(request)
-            session_key = helper.get_session_key(request.session)
+            ip = request.client_ip
+            session_key = request.session.prozdo_key
         else:
             ip = None
             session_key = None
@@ -1030,7 +1030,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if user and user.is_authenticated():
             hist_exists = self.hist_exists_by_comment_and_user(history_type, user)
         else:
-            session_key = helper.get_session_key(request.session)
+            session_key = request.session.prozdo_key
             if session_key is None:
                 return False
             hist_exists = History.exists_by_comment(session_key, self, history_type)
@@ -1050,7 +1050,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if user and user.is_authenticated():
             return user == self.user
         else:
-            session_key = helper.get_session_key(request.session)
+            session_key = request.session.prozdo_key
             return self.session_key == session_key
 
     #******************
@@ -1563,7 +1563,7 @@ def request_with_empty_guest(request):
     if user.is_authenticated():
         return False
 
-    session_key = helper.get_session_key(request.session)
+    session_key = request.session.prozdo_key
 
     if not session_key:
         return True

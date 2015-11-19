@@ -13,7 +13,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import get_client_ip, to_int, get_session_key, set_and_get_session_key
+from .helper import to_int, set_and_get_session_key
 from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
@@ -179,7 +179,7 @@ class PostDetail(ProzdoListView):
             if user.is_authenticated():
                 hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=get_session_key(request.session), post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.prozdo_key, post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -201,7 +201,7 @@ class PostDetail(ProzdoListView):
         comment_form = forms.CommentForm(request.POST, request=request, post=self.post)
         if comment_form.is_valid():
             comment_form.instance.post = self.post
-            comment_form.instance.ip = get_client_ip(request)
+            comment_form.instance.ip = request.client_ip
             comment_form.instance.session_key = set_and_get_session_key(request.session)
             if user.is_authenticated() and not comment_form.instance.user:
                 comment_form.instance.user = user
@@ -214,7 +214,7 @@ class PostDetail(ProzdoListView):
                 messages.add_message(request, messages.INFO, 'Ваш отзыв будет опубликован после проверки модератором')
             comment.send_confirmation_mail(request=request)
 
-            #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=get_client_ip(request), comment=comment)
+            #models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, user=request.user, ip=request.client_ip, comment=comment)
             if request.is_ajax():
                 return JsonResponse({'href': comment.get_absolute_url(), 'status': 1, 'published': published})
             else:
@@ -341,7 +341,7 @@ class HistoryAjaxSave(generic.View):
     def post(self, request, *args, **kwargs):
         pk = request.POST['pk']
         action = request.POST['action']
-        ip = get_client_ip(request)
+        ip = request.client_ip
         user = request.user
         session_key = set_and_get_session_key(request.session)
 

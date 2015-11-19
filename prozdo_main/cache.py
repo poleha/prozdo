@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db.models import Model
 from django.core.cache import cache
-from .helper import get_class_that_defined_method, get_session_key
+from .helper import get_class_that_defined_method
 #from .models import History
 
 EMPTY_CACHE_PLACEHOLDER = '__EMPTY__'
@@ -15,7 +15,7 @@ from django.core.handlers.wsgi import WSGIRequest
 
 
 CACHED_METHOD_SPECIAL_CASES = {
-   WSGIRequest: ('user.pk', (get_session_key, 'session'))
+   WSGIRequest: ('user.pk', 'session.prozdo_key', 'client_ip')
 }
 
 
@@ -63,11 +63,7 @@ def make_key_from_args(args, kwargs):
         if isinstance(arg, tuple(CACHED_METHOD_SPECIAL_CASES.keys())):
             res_arg = type(arg).__name__
             for v in CACHED_METHOD_SPECIAL_CASES[type(arg)]:
-                if not isinstance(v, tuple):
-                    res_arg += '_' + str(rec_getattr(arg, v))
-                else:
-                    fun, val = v
-                    res_arg += '_' + str(fun(rec_getattr(arg, val)))
+                res_arg += '_' + str(rec_getattr(arg, v))
             res_args += '_' + res_arg
         elif isinstance(arg, Model):
             res_args += '{0}-{1}'.format(type(arg).__name__, arg.pk)

@@ -107,6 +107,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'prozdo_main.middleware.SetClientIpMiddleware',
+    'prozdo_main.middleware.SetProzdoKeyMiddleware',
     #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
     'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
