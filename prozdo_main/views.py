@@ -13,7 +13,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import get_client_ip, to_int, get_session_key
+from .helper import get_client_ip, to_int, get_session_key, set_and_get_session_key
 from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
@@ -202,7 +202,7 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.post = self.post
             comment_form.instance.ip = get_client_ip(request)
-            comment_form.instance.session_key = get_session_key(request.session)
+            comment_form.instance.session_key = set_and_get_session_key(request.session)
             if user.is_authenticated() and not comment_form.instance.user:
                 comment_form.instance.user = user
             comment_form.instance.status = comment_form.instance.get_status()
@@ -343,8 +343,7 @@ class HistoryAjaxSave(generic.View):
         action = request.POST['action']
         ip = get_client_ip(request)
         user = request.user
-        session_key = get_session_key(request.session)
-
+        session_key = set_and_get_session_key(request.session)
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
@@ -377,7 +376,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=get_session_key(request.session))
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
             data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
@@ -404,7 +403,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=get_session_key(request.session))
+            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=session_key)
             data = {}
             if h:
                 data['saved'] = True
@@ -454,28 +453,6 @@ class HistoryAjaxSave(generic.View):
                     return JsonResponse({'saved': True})
             return JsonResponse({'saved': False})
 
-
-
-        """
-        elif action == 'blog-mark':
-            post = models.Post.objects.get(pk=pk)
-            blog = post.obj
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, ip=ip, session_key=get_session_key(request.session))
-            data = {}
-            if h:
-                data['saved'] = True
-            else:
-                data['saved'] = False
-
-            data = {'mark': blog.mark}
-
-            if h:
-                data['saved'] = True
-            else:
-                data['saved'] = False
-
-            return JsonResponse(data)
-        """
 
 class CommentGetTreeAjax(generic.TemplateView):
     template_name = 'prozdo_main/widgets/_get_child_comments.html'
@@ -909,7 +886,7 @@ class CommentUpdate(generic.UpdateView):
             return HttpResponseRedirect(comment.get_absolute_url())
         form = self.form_class(request.POST, instance=comment)
         form.instance.updater = request.user
-        form.instance.session_key = get_session_key(request.session)
+        form.instance.session_key = set_and_get_session_key(request.session)
         comment = form.save()
         return HttpResponseRedirect(comment.get_absolute_url())
 

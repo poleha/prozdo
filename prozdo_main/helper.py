@@ -219,6 +219,11 @@ def get_class_that_defined_method(meth):
 
 def get_session_key(session):
     key = session.get('prozdo_key', None)
+    return key
+
+
+def set_and_get_session_key(session):
+    key = session.get('prozdo_key', None)
     if key is None:
         key = generate_key(128)
         session['prozdo_key'] = key
