@@ -26,7 +26,8 @@ from django.core.cache import cache
 from django.core.mail.message import EmailMultiAlternatives
 from django.utils import timezone
 from django.template.loader import render_to_string
-from .cache import CachedModelMixin, cached_property, cached_method
+from cache.models import CachedModelMixin
+from cache.decorators import cached_property, cached_method
 
 
 #<Constants***********************************************************

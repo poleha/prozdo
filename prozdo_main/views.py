@@ -18,7 +18,7 @@ from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
 from django.utils import timezone
-from .cache import cached_view
+from cache.decorators import cached_view
 from django.core.exceptions import ObjectDoesNotExist
 
 def convert_date(date):
