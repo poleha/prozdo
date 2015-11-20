@@ -1262,7 +1262,7 @@ class History(SuperModel):
         res = cache.get(key)
         if res is None:
             res = History.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
-            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+            cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
         return res
 
     def invalidate_exists_by_comment(self):
@@ -1272,7 +1272,7 @@ class History(SuperModel):
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
                 cache.delete(key)
                 res = History.objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type, deleted=False).exists()
-                cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+                cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
 
     def delete_exists_by_comment(self):
         if settings.CACHE_ENABLED:

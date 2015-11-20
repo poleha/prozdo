@@ -18,11 +18,11 @@ class Settings:
 
     @property
     def CACHED_VIEW_DURATION(self):
-        return 60 * 60 * 24
+        return 60 * 60 * 24 * 7
 
     @property
     def CACHED_PROPERTY_DURATION(self):
-        return 60 * 60
+        return 60 * 60 * 24 * 7
 
     @property
     def CACHED_METHOD_DURATION(self):
