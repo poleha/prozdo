@@ -25,14 +25,14 @@ class CachedProperty(property):
 def cached_property(func):
     @CachedProperty
     def wrapper(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             key = CACHED_PROPERTY_KEY_TEMPLATE.format(type(self).__name__, func.__name__, self.pk)
             res = cache.get(key)
             if res is None:
                 res = func(self)
                 if res is None:
                     res = EMPTY_CACHE_PLACEHOLDER
-                cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
+                cache.set(key, res, settings.CACHED_PROPERTY_DURATION)
             if res == EMPTY_CACHE_PLACEHOLDER:
                 res = None
             return res
@@ -73,10 +73,10 @@ def make_key_from_args(args, kwargs):
             res_args += '_' + str(arg)
     return res_args
 
-def cached_method(timeout=settings.PROZDO_CACHED_METHOD_DURATION):
+def cached_method(timeout=settings.CACHED_METHOD_DURATION):
     def _cached_method(func):
         def wrapper(self, *args, **kwargs):
-            if settings.PROZDO_CACHE_ENABLED:
+            if settings.CACHE_ENABLED:
                 key = CACHED_METHOD_KEY_FULL_TEMPLATE.format(type(self).__name__, func.__name__, self.pk, make_key_from_args(args, kwargs))
                 res = cache.get(key)
                 if res is None:
@@ -105,17 +105,17 @@ class CachedModelMixin(Model):
         return CACHED_PROPERTY_KEY_TEMPLATE.format(type(self).__name__, attr_name, self.pk)
 
     def invalidate_cached_property(self, attr_name, delete=True):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             key = self.get_cached_property_cache_key(attr_name)
             if delete:
                 cache.delete(key)
             res = getattr(self, attr_name)
             if res is None:
                 res = EMPTY_CACHE_PLACEHOLDER
-            cache.set(key, res, settings.PROZDO_CACHED_PROPERTY_DURATION)
+            cache.set(key, res, settings.CACHED_PROPERTY_DURATION)
 
     def full_invalidate_cache(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             prop_keys = []
             meth_keys = []
             for c in type(self).mro():
@@ -140,20 +140,20 @@ class CachedModelMixin(Model):
                 cache.delete_pattern(CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
 
     def clean_cached_property(self, attr_name):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             key = self.get_cached_property_cache_key(attr_name)
             cache.delete(key)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             self.full_invalidate_cache()
 
 
-def cached_view(timeout=settings.PROZDO_CACHED_VIEW_DURATION, test=lambda request: True):
+def cached_view(timeout=settings.CACHED_VIEW_DURATION, test=lambda request: True):
     def decorator(func):
         def wrapper(self, request, *args, **kwargs):
-            if settings.PROZDO_CACHE_ENABLED and test(request):
+            if settings.CACHE_ENABLED and test(request):
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
                 flavour = getattr(request, 'flavour', '')

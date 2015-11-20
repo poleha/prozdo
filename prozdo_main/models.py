@@ -4,7 +4,6 @@ from django.db.models.signals import post_save, pre_save
 from . import helper
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
-#from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
 from django.core.urlresolvers import reverse
@@ -17,12 +16,7 @@ import re
 from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
-from django.db.models import Q
-#from django.contrib.contenttypes.fields import GenericForeignKey
-#from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-#from cacheops.query import ManagerMixin
-#from cacheops import invalidate_obj, invalidate_model, invalidate_all
 from django.core.mail.message import EmailMultiAlternatives
 from django.utils import timezone
 from django.template.loader import render_to_string
@@ -1224,7 +1218,7 @@ class History(SuperModel):
     def exists(cls, session_key):
         if not session_key:
             return False
-        if not settings.PROZDO_CACHE_ENABLED:
+        if not settings.CACHE_ENABLED:
             return History.objects.filter(session_key=session_key, deleted=False).exists()
         prefix = '_cached_history_exists_'
         key = prefix + session_key
@@ -1235,7 +1229,7 @@ class History(SuperModel):
         return res
 
     def invalidate_exists(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             prefix = '_cached_history_exists_'
             key = prefix + self.session_key
             cache.delete(key)
@@ -1243,7 +1237,7 @@ class History(SuperModel):
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             prefix = '_cached_history_exists_'
             key = prefix + self.session_key
             cache.delete(key)
@@ -1253,7 +1247,7 @@ class History(SuperModel):
     def exists_by_comment(cls, session_key, comment, history_type):
         if not session_key:
             return False
-        if not settings.PROZDO_CACHE_ENABLED:
+        if not settings.CACHE_ENABLED:
             return History.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
         template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
         key = template.format(session_key, comment.pk, history_type)
@@ -1264,7 +1258,7 @@ class History(SuperModel):
         return res
 
     def invalidate_exists_by_comment(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             if self.comment:
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
@@ -1273,7 +1267,7 @@ class History(SuperModel):
                 cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists_by_comment(self):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             if self.comment:
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)

@@ -39,34 +39,15 @@ if HOSTNAME in ['ubuntu']:
     DEBUG = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
-    PROZDO_CACHE_ENABLED = True
-    DEBUG_TOOLBAR = False
-
-    #CACHEOPS = {
-    #'auth.user': {'ops': 'all'},
-    #'account.emailaddress': {'ops': 'all'},
-    #'prozdo_main.userprofile': {'ops': 'all'},
-    #'prozdo_main.*': {'ops': 'all'},
-    #'*.*': {},
-#}
-
-
+    CACHE_ENABLED = True
+    DEBUG_TOOLBAR = True
 else:
     DEBUG = False
     DEBUG_TOOLBAR = False
-    PROZDO_CACHE_ENABLED = True
+    CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     EXCLUDE_FROM_MINIFYING = ('^admin/',)
-
-    #CACHEOPS = {
-    #'auth.user': {'ops': 'all'},
-    #'account.emailaddress': {'ops': 'all'},
-    #'prozdo_main.userprofile': {'ops': 'all'},
-    #'prozdo_main.*': {'ops': 'all'},
-    #'*.*': {},
-#}
-
 
 
 # Application definition
@@ -328,11 +309,6 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-
-PROZDO_CACHED_VIEW_DURATION = 60 * 60 * 24 * 7
-PROZDO_CACHED_PROPERTY_DURATION = 60 * 60 * 3
-PROZDO_CACHED_METHOD_DURATION = 60 * 60 * 2
-HISTORY_EXISTS_DURATION = 60 * 60 * 2
 #CACHE_MIDDLEWARE_SECONDS = 60 * 60
 
 
@@ -385,7 +361,7 @@ if DEBUG_TOOLBAR:
 }
 
 
-if PROZDO_CACHE_ENABLED and not DEBUG:
+if CACHE_ENABLED and not DEBUG:
 
     TEMPLATES[0]['OPTIONS']['loaders'] = [
             #'django_mobile.loader.Loader',
@@ -445,3 +421,13 @@ HAYSTACK_CONNECTIONS = {
 DEFAULT_THUMBNAIL_QUALITY = 75
 
 
+
+
+CACHED_METHOD_SPECIAL_CASES = {
+    'django.core.handlers.wsgi.WSGIRequest': ('user.pk', 'session.prozdo_key', 'client_ip')
+}
+
+CACHED_VIEW_DURATION = 60 * 60 * 24 * 7
+CACHED_PROPERTY_DURATION = 60 * 60 * 3
+CACHED_METHOD_DURATION = 60 * 60 * 2
+HISTORY_EXISTS_DURATION = 60 * 60 * 2

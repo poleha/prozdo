@@ -39,13 +39,13 @@ from django.core.cache.backends.db import DatabaseCache
 
 class ProzdoCacheBackendMixin:
     def get(self, *args, **kwargs):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             return super().get(*args, **kwargs)
         else:
             return None
 
     def set(self, *args, **kwargs):
-        if settings.PROZDO_CACHE_ENABLED:
+        if settings.CACHE_ENABLED:
             return super().set(*args, **kwargs)
         else:
             return None

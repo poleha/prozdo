@@ -113,7 +113,7 @@ class PostDetail(ProzdoListView):
         last_modified = self.obj.last_modified
         if last_modified:
             last_modified = convert_date(last_modified)
-            expires = timezone.now() + timezone.timedelta(seconds=settings.PROZDO_CACHED_VIEW_DURATION)
+            expires = timezone.now() + timezone.timedelta(seconds=settings.CACHED_VIEW_DURATION)
             res['Last-Modified'] = last_modified
             res['Expires'] = convert_date(expires)
         return res
