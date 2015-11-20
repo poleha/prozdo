@@ -1180,6 +1180,7 @@ class CacheTests(BaseTest):
         self.assertNotIn(comment_body, page)
         self.assertNotIn(child_body, page)
 
+    #Not cache tests anymore, but let it be
     def test_cached_method_works_for_hist_exists_by_request(self):
         page = self.app.get(self.drug.get_absolute_url())
         form = page.forms['comment-form']
@@ -1198,6 +1199,7 @@ class CacheTests(BaseTest):
         page = self.app.get(comment.get_absolute_url())
         self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
 
+    #Not cache tests anymore, but let it be
     def test_cached_method_works_for_show_do_action_button(self):
         page = self.app.get(self.drug.get_absolute_url())
         form = page.forms['comment-form']

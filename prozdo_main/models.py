@@ -359,8 +359,9 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
         else:
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
-    @cached_method()
     def get_mark_by_request(self, request):
+        if request_with_empty_guest(request):
+            return 0
         user = request.user
         if user.is_authenticated():
             try:
@@ -1020,8 +1021,9 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
     def hist_exists_by_comment_and_user(self, history_type, user):
         return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
 
-    @cached_method()
     def hist_exists_by_request(self, history_type, request):
+        if request_with_empty_guest(request):
+            return False
         user = request.user
         if user and user.is_authenticated():
             hist_exists = self.hist_exists_by_comment_and_user(history_type, user)
@@ -1032,16 +1034,19 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             hist_exists = History.exists_by_comment(session_key, self, history_type)
         return hist_exists
 
-    @cached_method()
     def show_do_action_button(self, history_type, request):
+        if request_with_empty_guest(request):
+            return True
         return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
-    @cached_method()
     def show_undo_action_button(self, history_type, request):
+        if request_with_empty_guest(request):
+            return False
         return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
-    @cached_method()
     def is_author_for_show_buttons(self, request):
+        if request_with_empty_guest(request):
+            return False
         user = request.user
         if user and user.is_authenticated():
             return user == self.user
@@ -1054,10 +1059,11 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
     #******************
 
-    @cached_method()
     def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
+        elif not History.exists(session_key):
+            return False
         else:
             if session_key:
                 hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key, deleted=False).exists()
@@ -1071,15 +1077,14 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
 
         return hist_exists
 
-
-    @cached_method()
     def can_do_action(self, history_type, user, ip, session_key):
+        if user and not user.is_authenticated():
+            return True
         return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
     #def can_undo_action(self, history_type, user, session_key):
     #    return self.hist_exists_by_data(history_type=history_type, user=user, session_key=session_key) and not self.is_author_for_save_history(user=user, session_key=session_key)
 
-    @cached_method()
     def is_author_for_save_history(self, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
             return user == self.user
@@ -1146,9 +1151,6 @@ class History(SuperModel):
 
     def __str__(self):
         return "{0} - {1} - {2}".format(self.history_type, self.post, self.comment)
-
-
-
 
     @staticmethod
     def save_history(history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
@@ -1246,13 +1248,15 @@ class History(SuperModel):
             key = prefix + self.session_key
             cache.delete(key)
 
-
+    #TODO change to cached_method
     @classmethod
     def exists_by_comment(cls, session_key, comment, history_type):
         if not session_key:
             return False
         if not settings.CACHE_ENABLED:
             return History.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
+        if not History.exists(session_key):
+            return False
         template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
         key = template.format(session_key, comment.pk, history_type)
         res = cache.get(key)
