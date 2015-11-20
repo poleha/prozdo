@@ -4,6 +4,7 @@ from django.db.models.signals import post_save, pre_save
 from . import helper
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
+#from multi_image_upload.models import MyImageField
 from django.conf import settings
 from math import ceil
 from django.core.urlresolvers import reverse
@@ -1046,7 +1047,10 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
             return user == self.user
         else:
             session_key = request.session.prozdo_key
-            return self.session_key == session_key
+            if session_key is None:
+                return False
+            else:
+                return self.session_key == session_key
 
     #******************
 

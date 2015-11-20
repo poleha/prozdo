@@ -1195,7 +1195,7 @@ class CacheTests(BaseTest):
         page = self.app.get(self.drug.get_absolute_url())
         self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
         self.renew_app()
-        page = self.app.get(self.drug.get_absolute_url())
+        page = self.app.get(comment.get_absolute_url())
         self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
 
     def test_cached_method_works_for_show_do_action_button(self):
@@ -1217,7 +1217,7 @@ class CacheTests(BaseTest):
         type(comment).objects.filter(pk=comment.pk).update(ip='534.345.456.467')
         self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
         self.renew_app()
-        page = self.app.get(self.drug.get_absolute_url())
+        page = self.app.get(comment.get_absolute_url())
         history = models.History.objects.latest('created')
         type(history).objects.filter(pk=history.pk).update(ip='103.331.145.527')
         self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)

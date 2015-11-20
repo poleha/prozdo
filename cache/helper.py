@@ -25,12 +25,12 @@ def make_key_from_args(args, kwargs):
     res_args = ''
     for arg in args + tuple(kwargs.values()):
         if isinstance(arg, tuple(settings.special_cases.keys())):
-            res_arg = type(arg).__name__
+            res_arg = get_class_path(type(arg))
             for v in settings.special_cases[type(arg)]:
                 res_arg += '_' + str(rec_getattr(arg, v))
             res_args += '_' + res_arg
         elif isinstance(arg, Model):
-            res_args += '{0}-{1}'.format(type(arg).__name__, arg.pk)
+            res_args += '{0}-{1}'.format(get_class_path(type(arg)), arg.pk)
         elif isinstance(arg, str):
             res_args += '_' + arg
         else:

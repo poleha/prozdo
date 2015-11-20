@@ -40,7 +40,7 @@ if HOSTNAME in ['ubuntu']:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     CACHE_ENABLED = True
-    DEBUG_TOOLBAR = True
+    DEBUG_TOOLBAR = False
 else:
     DEBUG = False
     DEBUG_TOOLBAR = False

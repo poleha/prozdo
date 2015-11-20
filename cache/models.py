@@ -3,6 +3,7 @@ from .app_settings import settings
 from django.core.cache import cache
 from django.db.models import Model
 from .decorators import CachedProperty
+from .helper import get_class_path
 
 
 class CachedModelMixin(Model):
@@ -12,7 +13,7 @@ class CachedModelMixin(Model):
     cached_views = tuple()
 
     def get_cached_property_cache_key(self, attr_name):
-        return constants.CACHED_PROPERTY_KEY_TEMPLATE.format(type(self).__name__, attr_name, self.pk)
+        return constants.CACHED_PROPERTY_KEY_TEMPLATE.format(get_class_path(type(self)), attr_name, self.pk)
 
     def invalidate_cached_property(self, attr_name, delete=True):
         if settings.CACHE_ENABLED:
@@ -44,7 +45,7 @@ class CachedModelMixin(Model):
                 self.invalidate_cached_property(attr_name, delete=False)
 
             for attr_name in set(meth_keys):
-                cache.delete_pattern(constants.CACHED_METHOD_KEY_TEMPLATE.format(type(self).__name__, attr_name, self.pk) + '*')
+                cache.delete_pattern(constants.CACHED_METHOD_KEY_TEMPLATE.format(get_class_path(type(self)), attr_name, self.pk) + '*')
 
             for cls_name, func_name in self.cached_views:
                 cache.delete_pattern(constants.CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
