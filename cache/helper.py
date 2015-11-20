@@ -39,4 +39,4 @@ def make_key_from_args(args, kwargs):
 
 
 def get_class_path(klass):
-    return "{0}/{1}".format(inspect.getfile(klass), klass.__name__)
+    return '{0}.{1}'.format(inspect.getmodule(klass).__name__, klass.__name__)

@@ -56,7 +56,7 @@ def cached_view(timeout=settings.CACHED_VIEW_DURATION, test=lambda request: True
                 url = request.build_absolute_uri()
                 cls = get_class_that_defined_method(func)
                 flavour = getattr(request, 'flavour', '')
-                prefix = constants.CACHED_VIEW_TEMLPATE_PREFIX.format(cls.__name__, func.__name__, flavour)
+                prefix = constants.CACHED_VIEW_TEMLPATE_PREFIX.format(get_class_path(cls), func.__name__, flavour)
                 key = "{0}-{1}".format(prefix, url)
                 res = cache.get(key)
                 if res is None:

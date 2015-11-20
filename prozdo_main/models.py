@@ -190,7 +190,7 @@ class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     objects = PostManager()
 
     cached_views = (
-        ('PostDetail', 'get'),
+        ('prozdo_main.views.PostDetail', 'get'),
     )
 
     @cached_property
