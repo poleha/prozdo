@@ -36,8 +36,6 @@ class CachedModelMixin(Model):
                     elif hasattr(v, '__is_cached_method__'):
                         meth_keys.append(k)
 
-                #prop_keys += [k for k, v in c.__dict__.items() if isinstance(v, CachedProperty) or v.__name__ == 'wrapper']
-
             for attr_name in set(prop_keys):
                 self.clean_cached_property(attr_name)
 

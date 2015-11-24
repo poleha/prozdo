@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.conf import settings
-#from allauth.account.forms import LoginForm
 from prozdo_main.forms import ProzdoSearchForm
 
 register = template.Library()

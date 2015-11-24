@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load prozdo_main_tags %}
+{% load contact_form_tags %}
 
 <!DOCTYPE html>
 <html lang="ru">
@@ -218,6 +219,7 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
  {% endif %}
+{% get_contact_form %}
 {% endblock sidebar_right %}
 </div>
 </div>

@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     #'cacheops',
     'django_mobile',
     'haystack',
+    'contact_form',
 )
 
 
