@@ -20,6 +20,7 @@ from calendar import timegm
 from django.utils import timezone
 from cache.decorators import cached_view
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Case, Value, When, CharField
 
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
@@ -994,11 +995,31 @@ class ProzdoSearchView(SearchView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # further filter queryset based on some set of criteria
         queryset = queryset.order_by('weight')
         return queryset
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        # do something
-        return context
+
+class ProzdoAutocompleteView(generic.View):
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        q = request.POST.get('q', '').strip()
+        if len(q) > 2:
+            queryset = models.Post.objects.filter(title__icontains=q).annotate(
+        entry_type=Case(
+         When(post_type=models.POST_TYPE_DRUG, then=Value(1)),
+         When(post_type=models.POST_TYPE_BLOG, then=Value(2)),
+         When(post_type=models.POST_TYPE_COSMETICS, then=Value(3)),
+         When(post_type=models.POST_TYPE_COMPONENT, then=Value(4)),
+         default=Value(5),
+         output_field=CharField(),
+     )).annotate(comment_count=Count('comments')).order_by('-comment_count', 'entry_type')[:5]
+            suggestions = [post.title for post in queryset]
+        else:
+            suggestions = []
+        data = {
+            'results': suggestions
+        }
+        return JsonResponse(data)

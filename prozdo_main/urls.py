@@ -90,6 +90,8 @@ urlpatterns = [
     url(r'^rss/rss/$', LatestBlogEntriesFeed(), name='rss'),
 
     url(r'^search/', views.ProzdoSearchView.as_view(), name='search'),
+    url(r'^autocomplete/$', views.ProzdoAutocompleteView.as_view(), name='autocomplete'),
+
 
 ]
 

@@ -274,6 +274,7 @@ class ProzdoSearchForm(SearchForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['q'].widget.attrs['placeholder'] = 'Поиск по сайту'
+        self.fields['q'].widget.attrs['autocomplete'] = 'Off'
 
     def search(self):
         # First, store the SearchQuerySet received from other processing.

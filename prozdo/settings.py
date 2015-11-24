@@ -37,7 +37,7 @@ except:
 
 if HOSTNAME in ['ubuntu']:
     DEBUG = True
-    COMPRESS_ENABLED = True
+    COMPRESS_ENABLED = False
     HTML_MINIFY = True
     CACHE_ENABLED = True
     DEBUG_TOOLBAR = False
