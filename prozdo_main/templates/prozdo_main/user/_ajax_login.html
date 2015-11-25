@@ -5,7 +5,11 @@
 {% include 'prozdo_main/user/social/_login.html' with process='login' %}
 
   {% csrf_token %}
-  {{ form.as_p }}
+    <div class="login-form-inner">
+
+          <div>{{ form.login }}</div>
+            <div>{{ form.password }}</div>
+   </div>
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
