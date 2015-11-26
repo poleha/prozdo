@@ -200,14 +200,14 @@ class PostDetail(ProzdoListView):
         self.set_obj()
         self.object_list = self.get_queryset()
         comment_form = forms.CommentForm(request.POST, request=request, post=self.post)
-        if comment_form.is_valid():
-            comment_form.instance.post = self.post
-            comment_form.instance.ip = request.client_ip
-            comment_form.instance.session_key = set_and_get_session_key(request.session)
-            if user.is_authenticated() and not comment_form.instance.user:
-                comment_form.instance.user = user
-            comment_form.instance.status = comment_form.instance.get_status()
+        comment_form.instance.post = self.post
+        comment_form.instance.ip = request.client_ip
+        comment_form.instance.session_key = set_and_get_session_key(request.session)
+        if user.is_authenticated() and not comment_form.instance.user:
+            comment_form.instance.user = user
 
+        if comment_form.is_valid():
+            comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
             published = comment.status == models.COMMENT_STATUS_PUBLISHED
 

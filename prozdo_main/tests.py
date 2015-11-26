@@ -1081,7 +1081,7 @@ class CommentInterfaceTests(BaseTest):
 
 
 class GeneralCommentTests(BaseTest):
-    def test_guest_cannot_send_repeated_comment(self):
+    def test_user_cannot_send_repeated_comment(self):
         mails_count0 = models.Mail.objects.all().count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
         form = page.forms['comment-form']
@@ -1092,11 +1092,10 @@ class GeneralCommentTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         self.assertEqual(mails_count0 + 1, mails_count1)
 
-        with self.assertRaises(ValidationError):
-            page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
-            form = page.forms['comment-form']
-            form['body'] = body
-            page = form.submit()
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=self.user2)
+        form = page.forms['comment-form']
+        form['body'] = body
+        page = form.submit()
         mails_count2 = models.Mail.objects.all().count()
         self.assertEqual(page.status_code, 200)
         self.assertEqual(mails_count1, mails_count2)

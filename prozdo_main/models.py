@@ -938,8 +938,7 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         else:
             return helper.generate_key(128)
 
-
-    def save(self, *args, **kwargs):
+    def clean(self):
         if not self.pk:
             try:
                 comment = type(self).objects.filter(body=self.body, session_key=self.session_key, user=self.user, post=self.post).latest('created')
@@ -950,6 +949,9 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
                 if delta.seconds < 180:
                     raise ValidationError('Повторный отзыв')
 
+
+
+    def save(self, *args, **kwargs):
         saved_version = self.saved_version
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
@@ -974,11 +976,12 @@ class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_P
         if self.status == COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
             self.send_answer_to_comment_message()
 
+        """
         post = self.post
         user = self.user
         ancestors = list(self.get_ancestors())
         descendants = list(self.get_descendants())
-        """
+
         if post:
             #invalidate_obj(post.obj)
             post.obj.full_invalidate_cache()

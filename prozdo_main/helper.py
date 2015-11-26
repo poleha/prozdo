@@ -119,14 +119,11 @@ def get_client_ip(request):
     return ip
 """
 
-
 def cut_text(text, length=100):
     res = text[:length]
     if not res == text:
         res += '...'
     return res
-
-
 
 def check_bad_words(text):
     bad_words = settings.BAD_WORDS
@@ -135,15 +132,10 @@ def check_bad_words(text):
             return True
     return False
 
-
-
-
-
 def get_digits_percent(text):
     total = len(text)
     digits_count = 0
     digits = map(str, range(10))
-
 
     for digit in digits:
         if digit in text:
@@ -164,8 +156,6 @@ def get_endlish_letters_percent(text):
 
     return (engs_count / total) * 100
 
-
-
 def comment_body_ok(text):
     text = text.strip()
     text = text.replace("\r","")
@@ -175,7 +165,6 @@ def comment_body_ok(text):
         return False
     else:
         return True
-
 
 def comment_author_ok(text):
     if check_bad_words(text):
