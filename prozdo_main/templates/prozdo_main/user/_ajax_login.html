@@ -6,9 +6,11 @@
 
   {% csrf_token %}
     <div class="login-form-inner">
-
-          <div>{{ form.login }}</div>
-            <div>{{ form.password }}</div>
+    {{ form.non_field_errors }}
+          <div>{{ form.login.errors }}
+              {{ form.login }}
+          </div>
+            <div>{{ form.password.errors }}{{ form.password }}</div>
    </div>
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
