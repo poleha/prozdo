@@ -1,4 +1,3 @@
-from . import constants
 from .app_settings import settings
 from django.core.cache import cache
 from django.db.models import Model
@@ -13,7 +12,7 @@ class CachedModelMixin(Model):
     cached_views = tuple()
 
     def get_cached_property_cache_key(self, attr_name):
-        return constants.CACHED_PROPERTY_KEY_TEMPLATE.format(get_class_path(type(self)), attr_name, self.pk)
+        return settings.CACHED_PROPERTY_KEY_TEMPLATE.format(get_class_path(type(self)), attr_name, self.pk)
 
     def invalidate_cached_property(self, attr_name, delete=True):
         if settings.CACHE_ENABLED:
@@ -22,7 +21,7 @@ class CachedModelMixin(Model):
                 cache.delete(key)
             res = getattr(self, attr_name)
             if res is None:
-                res = constants.EMPTY_CACHE_PLACEHOLDER
+                res = settings.EMPTY_CACHE_PLACEHOLDER
             cache.set(key, res, settings.CACHED_PROPERTY_DURATION)
 
     def full_invalidate_cache(self):
@@ -43,10 +42,11 @@ class CachedModelMixin(Model):
                 self.invalidate_cached_property(attr_name, delete=False)
 
             for attr_name in set(meth_keys):
-                cache.delete_pattern(constants.CACHED_METHOD_KEY_TEMPLATE.format(get_class_path(type(self)), attr_name, self.pk) + '*')
+                cache.delete_pattern(settings.CACHED_METHOD_KEY_TEMPLATE.format(
+                    get_class_path(type(self)), attr_name, self.pk) + '*')
 
             for cls_name, func_name in self.cached_views:
-                cache.delete_pattern(constants.CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
+                cache.delete_pattern(settings.CACHED_VIEW_PARTIAL_TEMPLATE_PREFIX.format(cls_name, func_name) + '*')
 
     def clean_cached_property(self, attr_name):
         if settings.CACHE_ENABLED:

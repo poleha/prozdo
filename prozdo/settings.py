@@ -47,8 +47,8 @@ else:
     CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
-    EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
+EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
 # Application definition
 
@@ -91,7 +91,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'prozdo_main.middleware.SetClientIpMiddleware',
     'prozdo_main.middleware.SetProzdoKeyMiddleware',
-    #'prozdo_main.middleware.ProzdoUpdateCacheMiddleware',    #cache
     'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,7 +103,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
     'htmlmin.middleware.HtmlMinifyMiddleware',
     'htmlmin.middleware.MarkRequestMiddleware',
-    #'prozdo_main.middleware.ProzdoFetchFromCacheMiddleware',    #cache
 )
 
 

@@ -109,16 +109,6 @@ def make_alias(text):
     return transliterate(full_trim(text))
 
 
-"""
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-"""
-
 def cut_text(text, length=100):
     res = text[:length]
     if not res == text:
@@ -177,9 +167,6 @@ def myround(x, base):
     return int(base * round(float(x)/base))
 
 
-
-
-
 def generate_key(size=128, upper=False, chars=None):
     if chars is None:
         chars = string.ascii_lowercase + string.digits
@@ -195,23 +182,6 @@ def to_int(val):
         res = 0
     return res
 
-
-def get_class_that_defined_method(meth):
-    if inspect.ismethod(meth):
-        for cls in inspect.getmro(meth.__self__.__class__):
-            if cls.__dict__.get(meth.__name__) is meth:
-                return cls
-    if inspect.isfunction(meth):
-        return getattr(inspect.getmodule(meth),
-                       meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
-    return None # not required since None would have been implicitly returned anyway
-
-
-"""
-def get_session_key(session):
-    key = session.get('prozdo_key', None)
-    return key
-"""
 
 def set_and_get_session_key(session):
     key = session.get('prozdo_key', None)
