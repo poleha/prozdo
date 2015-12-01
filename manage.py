@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!var/www/prozdo/venv python
 import os
 import sys
 
