@@ -23,6 +23,20 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from cache.models import CachedModelMixin
 from cache.decorators import cached_property, cached_method
+from super_model.models import SuperModel, class_with_published_mixin
+
+
+class AbstractModel(SuperModel, CachedModelMixin):
+    class Meta:
+        abstract = True
+        ordering = ('title', )
+    title = models.CharField(max_length=500, verbose_name='Название', db_index=True)
+
+    def __str__(self):
+        return self.title
+
+    def type_str(self):
+        raise NotImplemented
 
 
 #<Constants***********************************************************
@@ -112,59 +126,6 @@ COMPONENT_TYPES = (
 
 #<Posts******************************************************************
 
-
-
-class SuperModel(CachedModelMixin):
-    created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
-    updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения', db_index=True)
-
-    class Meta:
-        abstract = True
-
-    @property
-    def saved_version(self):
-        if self.pk:
-            try:
-                saved_version = type(self).objects.get(pk=self.pk)
-            except:
-                saved_version = None
-        else:
-            saved_version = None
-        return saved_version
-
-    def save(self, *args, **kwargs):
-        if not self.pk and not self.created:
-            self.created = timezone.now()
-        if self.pk and not self.updated:
-            self.updated = timezone.now()
-        super().save(*args, **kwargs)
-
-
-
-class AbstractModel(SuperModel):
-    class Meta:
-        abstract = True
-        ordering = ('title', )
-    title = models.CharField(max_length=500, verbose_name='Название', db_index=True)
-
-    def __str__(self):
-        return self.title
-
-    def type_str(self):
-        raise NotImplemented
-
-
-def class_with_published_mixin(published_status):
-    class PublishedModelMixin(models.Model):
-        class Meta:
-            abstract = True
-
-        published = models.DateTimeField(null=True, blank=True, verbose_name='Время публикации', db_index=True)
-        def save(self, *args, **kwargs):
-            if self.status == published_status and not self.published:
-                self.published = timezone.now()
-            super().save(*args, **kwargs)
-    return PublishedModelMixin
 
 
 class PostQueryset(models.QuerySet):
@@ -701,7 +662,7 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
 
 
 
-class Comment(SuperModel, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
+class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
         ordering = ['-created']
     post = models.ForeignKey(Post, related_name='comments', db_index=True)
@@ -1343,7 +1304,7 @@ class History(SuperModel):
             #invalidate_obj(author)
 
 
-class UserProfile(SuperModel):
+class UserProfile(SuperModel, CachedModelMixin):
     # required by the auth model
     user = models.OneToOneField(User, related_name='user_profile', db_index=True)  # reverse returns single object, not queryset
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True, db_index=True)
