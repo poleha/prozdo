@@ -340,8 +340,13 @@ class HistoryAjaxSave(generic.View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        pk = request.POST['pk']
-        action = request.POST['action']
+        pk = request.POST.get('pk', None)
+        action = request.POST.get('action', None)
+
+        if not pk or not action:
+            data = {'saved': False}
+            return JsonResponse(data)
+
         ip = request.client_ip
         user = request.user
         session_key = set_and_get_session_key(request.session)

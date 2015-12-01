@@ -580,6 +580,10 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = comment.saved_version
         self.assertNotEqual(comment.session_key, None)
 
+    def test_history_ajax_save_works_fine_without_pk(self):
+        page = self.app.post(reverse('history-ajax-save'))
+        self.assertEqual(page.status_code, 200)
+
 
 
 class PostPagesTest(BaseTest):
