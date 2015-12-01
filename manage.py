@@ -1,4 +1,4 @@
-#!var/www/prozdo/venv python
+#!var/www/prozdo/venv/bin python
 import os
 import sys
 
