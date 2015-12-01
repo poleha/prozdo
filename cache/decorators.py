@@ -61,7 +61,8 @@ def cached_view(timeout=settings.CACHED_VIEW_DURATION, test=lambda request: True
                 res = cache.get(key)
                 if res is None:
                     res = func(self, request, *args, **kwargs)
-                    res.render()
+                    if hasattr(res, 'render'):
+                        res.render()
                     cache.set(key, res, timeout)
             else:
                 res = func(self, request, *args, **kwargs)

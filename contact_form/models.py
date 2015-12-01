@@ -19,7 +19,7 @@ class ContactForm(models.Model):
     status = models.IntegerField(default=STATUS_CREATED, choices=STATUSES)
 
     def __str__(self):
-        return "{0} - {1} - {2} - {3}".format(self.name, self.status, self.created, self.body[0:30])
+        return "{0} - {1} - {2} - {3}".format(self.name, self.status, self.created, self.body[:300])
 
     class Meta:
         ordering = ['created']
