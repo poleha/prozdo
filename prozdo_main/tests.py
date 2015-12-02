@@ -918,19 +918,19 @@ class PublishedModelMixinTests(BaseTest):
 
           )
 
-        self.assertEqual(drug.status, models.POST_STATUS_PROJECT)
+        self.assertEqual(drug.status, super_models.POST_STATUS_PROJECT)
         self.assertEqual(drug.published, None)
 
-        drug.status = models.POST_STATUS_PUBLISHED
+        drug.status = super_models.POST_STATUS_PUBLISHED
         drug.save()
 
-        self.assertEqual(drug.status, models.POST_STATUS_PUBLISHED)
+        self.assertEqual(drug.status, super_models.POST_STATUS_PUBLISHED)
         self.assertNotEqual(drug.published, None)
         published = drug.published
 
         drug.save()
 
-        self.assertEqual(drug.status, models.POST_STATUS_PUBLISHED)
+        self.assertEqual(drug.status, super_models.POST_STATUS_PUBLISHED)
         self.assertEqual(drug.published, published)
 
 class CommentMessagesTest(BaseTest):
@@ -1380,7 +1380,7 @@ class SearchTests(BaseTest):
         rebuild_index.Command().handle(interactive=False)
 
         drug = self.drug
-        drug.status = models.POST_STATUS_PUBLISHED
+        drug.status = super_super_models.POST_STATUS_PUBLISHED
         drug.title = 'аыпывапыврапврарвапрапр'
         drug.body = 'варвапрварварварвапрвапрв'
         drug.indications = 'аволдтрывалтплыовапг54нцпшдцатп'

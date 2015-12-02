@@ -10,6 +10,9 @@ from django.core.urlresolvers import reverse
 from math import ceil
 from helper import helper
 from django.utils.html import strip_tags
+import re
+from django.core.exceptions import ValidationError
+from django.utils.module_loading import import_string
 
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
@@ -162,6 +165,53 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
     def get_absolute_url(self):
         return self._cached_get_absolute_url
 
+    def clean(self):
+        if not self.pk:
+                try:
+                    comment = type(self).objects.filter(body=self.body, session_key=self.session_key, user=self.user, post=self.post).latest('created')
+                except:
+                    comment = None
+                if comment:
+                    delta = timezone.now() - comment.created
+                    if delta.seconds < 180:
+                        raise ValidationError('Повторный отзыв')
+
+    def generate_key(self):
+        if self.key:
+            return self.key
+        else:
+            return helper.generate_key(128)
+
+    def get_status(self):
+        if self.user and self.user.user_profile.can_publish_comment():
+            return COMMENT_STATUS_PUBLISHED
+        else:
+            if (helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username)) or self.email in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
+                return COMMENT_STATUS_PUBLISHED
+            else:
+                return COMMENT_STATUS_PENDING_APPROVAL
+
+
+    def delete(self, *args, **kwargs):
+        post = self.post
+        user = self.user
+        ancestors = list(self.get_ancestors())
+        descendants = list(self.get_descendants())
+        super().delete(*args, **kwargs)
+        if post:
+            #invalidate_obj(post.obj)
+            post.obj.full_invalidate_cache()
+        if user:
+            #invalidate_obj(user.user_profile)
+            user.user_profile.full_invalidate_cache()
+        for ancestor in ancestors:
+            ancestor.full_invalidate_cache()
+            #invalidate_obj(ancestor)
+        for descendant in descendants:
+            descendant.full_invalidate_cache()
+            #invalidate_obj(descendant)
+
+
     def save(self, *args, **kwargs):
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
@@ -177,3 +227,102 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
         super().save(*args, **kwargs)
 
 
+class AbstractModel(SuperModel, CachedModelMixin):
+    class Meta:
+        abstract = True
+        ordering = ('title', )
+    title = models.CharField(max_length=500, verbose_name='Название', db_index=True)
+
+    def __str__(self):
+        return self.title
+
+    def type_str(self):
+        raise NotImplemented
+
+
+POST_STATUS_PROJECT = 1
+POST_STATUS_PUBLISHED = 2
+
+
+POST_STATUSES = (
+    (POST_STATUS_PROJECT, 'Проект'),
+    (POST_STATUS_PUBLISHED, 'Опубликован'),
+)
+
+
+class PostQueryset(models.QuerySet):
+    def get_available(self):
+        queryset = self.filter(status=POST_STATUS_PUBLISHED)
+        return queryset
+
+
+class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset
+
+class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
+    class Meta:
+        abstract = True
+    alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
+    status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
+
+    objects = PostManager()
+
+    history_class = None
+
+    @cached_property
+    def last_modified(self):
+        try:
+            return self.history_class.objects.filter(post=self).latest('created').created
+        except:
+            if self.updated:
+                return self.updated
+            elif self.created:
+                return self.created
+            else:
+                return None
+
+    @cached_property
+    def published_comments_count(self):
+        return self.comments.get_available().count()
+
+    @cached_property
+    def last_comment_date(self):
+        try:
+            last_comment = self.comments.get_available().latest('created')
+            date = last_comment.created
+        except:
+            date = None
+        return date
+
+
+    def make_alias(self):
+        return helper.make_alias(self.title)
+
+    def clean(self):
+        if self.alias:
+            try:
+                self.alias.encode('ascii')
+            except:
+                raise ValidationError('Недопустимые символы в синониме {0}'.format(self.alias))
+
+            result = re.match('[a-z0-9_\-]{1,}', self.alias)
+            if not result:
+                raise ValidationError('Недопустимые символы в синониме')
+    def save(self, *args, **kwargs):
+        self.clean()
+        self.title = helper.trim_title(self.title)
+        #saved_version = self.saved_version
+        if hasattr(self, 'title') and self.title and not self.alias:
+            self.alias = self.make_alias()
+        if self.alias:
+            BASE_POST_CLASS = import_string(settings.BASE_POST_CLASS)
+            alias_is_busy = BASE_POST_CLASS.objects.filter(alias=self.alias).exclude(pk=self.pk)
+            if alias_is_busy:
+                raise ValidationError('Синоним {0} занят'.format(self.alias))
+
+        self.post_type = self.get_post_type()
+        super().save(*args, **kwargs)
