@@ -1,15 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, pre_save
-from . import helper
+from helper import helper
 from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Sum, Count
 #from multi_image_upload.models import MyImageField
 from django.conf import settings
-from math import ceil
 from django.core.urlresolvers import reverse
 from mptt.models import MPTTModel, TreeForeignKey, TreeManager
-from mptt.querysets import TreeQuerySet
 from mptt.fields import TreeManyToManyField
 from allauth.account.models import EmailAddress, EmailConfirmation
 from sorl.thumbnail import ImageField, get_thumbnail
@@ -23,10 +21,10 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from cache.models import CachedModelMixin
 from cache.decorators import cached_property, cached_method
-from super_model.models import SuperModel, class_with_published_mixin
+from super_model import models as super_models
 
 
-class AbstractModel(SuperModel, CachedModelMixin):
+class AbstractModel(super_models.SuperModel, CachedModelMixin):
     class Meta:
         abstract = True
         ordering = ('title', )
@@ -91,13 +89,7 @@ POST_MARKS_FOR_COMMENT = (
     (5, '5'),
 )
 
-COMMENT_STATUS_PENDING_APPROVAL = 1
-COMMENT_STATUS_PUBLISHED = 2
 
-COMMENT_STATUSES = (
-    (COMMENT_STATUS_PENDING_APPROVAL, 'На согласовании'),
-    (COMMENT_STATUS_PUBLISHED, 'Опубликован'),
-)
 
 
 POST_STATUS_PROJECT = 1
@@ -143,7 +135,7 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
 
 
 
-class Post(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
+class Post(AbstractModel, super_models.class_with_published_mixin(POST_STATUS_PUBLISHED)):
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
     post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи', db_index=True )
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
@@ -650,39 +642,20 @@ class Blog(Post):
 
 
 
-class CommentTreeQueryset(TreeQuerySet):
-    def get_available(self):
-        queryset = self.filter(status=COMMENT_STATUS_PUBLISHED)
-        return queryset
 
+from super_model.models import SuperComment
 
-
-class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryset)):
-    use_for_related_fields = True
-
-
-
-class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
+class Comment(SuperComment):
     class Meta:
         ordering = ['-created']
     post = models.ForeignKey(Post, related_name='comments', db_index=True)
-    username = models.CharField(max_length=256, verbose_name='Имя')
-    email = models.EmailField(verbose_name='E-Mail')
     post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
-    body = models.TextField(verbose_name='Сообщение')
-    user = models.ForeignKey(User, null=True, blank=True, related_name='comments', db_index=True)
-    ip = models.CharField(max_length=300, db_index=True)
-    session_key = models.TextField(blank=True, null=True, db_index=True)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
-    status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус', db_index=True)
-    updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
-    key = models.CharField(max_length=128, blank=True)
     confirmed = models.BooleanField(default=False, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
     delete_mark = models.BooleanField(verbose_name='Пометка удаления', default=False, db_index=True)
 
-    objects = CommentManager()
+
 
     def __str__(self):
         return self.short_body
@@ -690,59 +663,20 @@ class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixi
     def type_str(self):
         return 'Сообщение'
 
-    @cached_property
-    def has_avaliable_children(self):
-        return self.children.get_available().exists()
 
-
-    @property
-    def get_tree_level(self):
-        if hasattr(self, 'tree_level'):
-            return self.tree_level
-        else:
-            return 0
+    def get_confirm_url(self):
+        return reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
 
     @property
     def consult_done(self):
         return self.available_children.filter(user__user_profile__role=USER_ROLE_DOCTOR).exists()
 
-    @property
-    def update_url(self):
-        return reverse('comment-update', kwargs={'pk': self.pk})
 
-
-    @cached_property
-    def get_children_tree(self):
-        return self._get_children_tree()
-
-    def _get_children_tree(self, cur=None, level=1):
-        tree = []
-        if cur is None:
-            cur = self
-        else:
-            tree.append(cur)
-        for child in cur.children.get_available().order_by('created'):
-            child.tree_level = level
-            tree += child._get_children_tree(child, level+1)
-        return tree
-
-    @property
-    def page(self):
-        comments = self.post.comments.get_available().order_by('-created')
-        #count = comments.count()
-        #pages_count = ceil(count / page_size)
-        page_size = settings.POST_COMMENTS_PAGE_SIZE
-        comments_tuple = tuple(comments)
-        try:
-            index = comments_tuple.index(self) + 1
-            current_page = ceil(index / page_size)
-        except:
-            current_page = 1
-        return current_page
 
     def send_answer_to_comment_message(self):
         user = self.parent.user
-        if user.user_profile.receive_messages and not self.user == self.parent.user and self.status == COMMENT_STATUS_PUBLISHED and \
+        if user.user_profile.receive_messages and not self.user == self.parent.user and \
+                        self.status == super_models.COMMENT_STATUS_PUBLISHED and \
                 not Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT, entity_id=self.pk).exists():
             email_to = user.email
 
@@ -824,28 +758,7 @@ class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixi
                 except:
                     pass
 
-    @cached_property
-    def available_children(self):
-        return self.get_descendants().filter(status=COMMENT_STATUS_PUBLISHED)
 
-
-    @cached_property
-    def available_children_count(self):
-        return self.available_children.count()
-
-    @cached_property
-    def available_first_level_children(self):
-        return type(self).objects.filter(parent=self)
-
-
-    #@cached_property
-    #def available_first_level_children_count(self):
-    #    return self.available_first_level_children.count()
-
-
-    @property
-    def short_body(self):
-        return helper.cut_text(strip_tags(self.body))
 
 
     @cached_property
@@ -858,30 +771,6 @@ class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixi
             mark = 0
         return mark
 
-
-    @cached_property
-    def _cached_get_absolute_url(self):
-        if self.status == COMMENT_STATUS_PUBLISHED:
-            #return '{0}comment/{1}#c{1}'.format(self.post.get_absolute_url(), self.pk)
-            return reverse('post-detail-pk-comment', kwargs={'pk': self.post.pk, 'comment_pk': self.pk}) + '#c' + str(self.pk)
-        else:
-            return self.post.get_absolute_url()
-
-    def get_absolute_url(self):
-        return self._cached_get_absolute_url
-
-    def get_confirm_url(self):
-        return reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
-
-
-    def get_status(self):
-        if self.user and self.user.user_profile.can_publish_comment():
-            return COMMENT_STATUS_PUBLISHED
-        else:
-            if (helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username)) or self.email in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
-                return COMMENT_STATUS_PUBLISHED
-            else:
-                return COMMENT_STATUS_PENDING_APPROVAL
 
     @cached_property
     def complain_count(self):
@@ -910,22 +799,18 @@ class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixi
                 if delta.seconds < 180:
                     raise ValidationError('Повторный отзыв')
 
+    def get_status(self):
+        if self.user and self.user.user_profile.can_publish_comment():
+            return super_models.COMMENT_STATUS_PUBLISHED
+        else:
+            if (helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username)) or self.email in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
+                return super_models.COMMENT_STATUS_PUBLISHED
+            else:
+                return super_models.COMMENT_STATUS_PENDING_APPROVAL
 
 
     def save(self, *args, **kwargs):
         saved_version = self.saved_version
-        if not self.confirmed:
-            if self.user and self.user.email_confirmed:
-                self.confirmed = True
-            elif self.email in settings.AUTO_APPROVE_EMAILS:
-                self.confirmed = True
-
-        if not self.key:
-            self.key = self.generate_key()
-
-        if not self.user or self.user.is_regular:
-            self.body = strip_tags(self.body)
-
         super().save(*args, **kwargs)
         History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
 
@@ -934,28 +819,8 @@ class Comment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixi
         except:
             old_status = None
 
-        if self.status == COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
+        if self.status == super_models.COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
             self.send_answer_to_comment_message()
-
-        """
-        post = self.post
-        user = self.user
-        ancestors = list(self.get_ancestors())
-        descendants = list(self.get_descendants())
-
-        if post:
-            #invalidate_obj(post.obj)
-            post.obj.full_invalidate_cache()
-        if user:
-            #invalidate_obj(user.user_profile)
-            user.user_profile.full_invalidate_cache()
-        for ancestor in ancestors:
-            ancestor.full_invalidate_cache()
-            #invalidate_obj(ancestor)
-        for descendant in descendants:
-            descendant.full_invalidate_cache()
-            #invalidate_obj(descendant)
-        """
 
     def delete(self, *args, **kwargs):
         post = self.post
@@ -1094,7 +959,7 @@ HISTORY_TYPE_COMMENT_COMPLAINT: 0,
 }
 
 
-class History(SuperModel):
+class History(super_models.SuperModel):
     post = models.ForeignKey(Post, related_name='history_post', db_index=True)
     history_type = models.IntegerField(choices=HISTORY_TYPES, db_index=True)
     author = models.ForeignKey(User, null=True, blank=True, related_name='history_author', db_index=True)
@@ -1304,7 +1169,7 @@ class History(SuperModel):
             #invalidate_obj(author)
 
 
-class UserProfile(SuperModel, CachedModelMixin):
+class UserProfile(super_models.SuperModel, CachedModelMixin):
     # required by the auth model
     user = models.OneToOneField(User, related_name='user_profile', db_index=True)  # reverse returns single object, not queryset
     role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True, db_index=True)
@@ -1504,7 +1369,7 @@ MAIL_TYPES = (
     (MAIL_TYPE_EMAIL_CONFIRMATION, 'Подтверждение электронного адреса'),
 )
 
-class Mail(SuperModel):
+class Mail(super_models.SuperModel):
     mail_type = models.PositiveIntegerField(choices=MAIL_TYPES, db_index=True)
     subject = models.TextField()
     body_html=models.TextField(default='', blank=True)

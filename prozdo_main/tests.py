@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
 from django.core.cache import cache
+from super_model import models as super_models
 #from cacheops import invalidate_all
 from django.core.exceptions import ValidationError
 from haystack.management.commands import rebuild_index, update_index
@@ -87,7 +88,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
     def test_comment_antispan_comment_with_bad_word_in_body_not_published_for_guest(self):
         drug = self.drug
@@ -108,7 +109,7 @@ class CommentAntispanTests(BaseTest):
             self.assertEqual(comment.body, bad_body)
             self.assertEqual(comment.username, username)
             self.assertEqual(comment.email, email)
-            self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+            self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
     def test_comment_antispan_comment_with_bad_word_in_username_not_published_for_guest(self):
         drug = self.drug
@@ -131,7 +132,7 @@ class CommentAntispanTests(BaseTest):
             self.assertEqual(comment.body, body)
             self.assertEqual(comment.username, bad_username)
             self.assertEqual(comment.email, email)
-            self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+            self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
     def test_comment_antispan_comment_with_too_much_digits_in_body_not_published_for_guest(self):
         drug = self.drug
@@ -149,7 +150,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
     def test_comment_antispan_comment_with_not_too_much_digits_in_body_published_for_guest(self):
         drug = self.drug
@@ -167,7 +168,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
     def test_comment_antispan_comment_with_too_much_eng_in_body_not_published_for_guest(self):
         drug = self.drug
@@ -185,7 +186,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
     def test_comment_antispan_comment_with_not_too_much_eng_in_body_published_for_guest(self):
         drug = self.drug
@@ -203,7 +204,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
     def test_comment_antispan_comment_with_errors_not_published_for_user(self):
         drug = self.drug
@@ -222,7 +223,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
 
     def test_comment_antispan_comment_with_errors_published_for_user_with_karm_above_9(self):
@@ -242,8 +243,8 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
-        comment.status = models.COMMENT_STATUS_PUBLISHED
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
+        comment.status = super_models.COMMENT_STATUS_PUBLISHED
         comment.save()
         for k in range(settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM):
             models.History.save_history(post=comment.post, comment=comment, history_type=models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
@@ -262,7 +263,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
     def test_comment_antispan_comment_with_errors_published_for_doctor(self):
         drug = self.drug
@@ -283,7 +284,7 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.body, body)
         #self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
 
 class HistoryTests(BaseTest):
@@ -601,7 +602,7 @@ class PostPagesTest(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='авырлпоырваыпиорвполривапрва-level0-{0}'.format(k),
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
 
             )
             comments0.append(comment)
@@ -612,7 +613,7 @@ class PostPagesTest(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='авырлпоырваыпиорвполривапрва-level1-{0}'.format(k),
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
                 parent=comments0[k]
 
             )
@@ -624,7 +625,7 @@ class PostPagesTest(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='авырлпоырваыпиорвполривапрва-level2-{0}'.format(k),
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
                 parent=comments1[k]
 
             )
@@ -682,13 +683,13 @@ class CommentConfirmationTests(BaseTest):
 
         mail = models.Mail.objects.latest('created')
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.assertEqual(mail.mail_type, models.MAIL_TYPE_COMMENT_CONFIRM)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
         page = self.app.get(comment.get_confirm_url())
         comment = comment.saved_version
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
     def test_comment_comment_cant_be_activated_with_wrong_key(self):
@@ -707,13 +708,13 @@ class CommentConfirmationTests(BaseTest):
         mail = models.Mail.objects.latest('created')
         comment = models.Comment.objects.latest('created')
         self.assertEqual(mail.mail_type, models.MAIL_TYPE_COMMENT_CONFIRM)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
         url = settings.SITE_URL + reverse('comment-confirm', kwargs={'comment_pk': comment.pk, 'key': comment.key + 'z'})
         page = self.app.get(url)
         comment = comment.saved_version
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
 
 
@@ -730,7 +731,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk})
         form = page.form
@@ -753,7 +754,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_start, mail_count_end)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
 
@@ -768,7 +769,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.email_adress2.verified = True
         self.email_adress2.save()
@@ -790,12 +791,12 @@ class CommentConfirmationTests(BaseTest):
 
         mail = models.Mail.objects.latest('created')
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
         page = self.app.get(comment.get_confirm_url())
         comment = comment.saved_version
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
         email = user.emailaddress_set.all()[0]
         self.assertEqual(email.verified, True)
@@ -814,7 +815,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk}, user=user)
         #form = page.form
@@ -824,7 +825,7 @@ class CommentConfirmationTests(BaseTest):
         comment = comment.saved_version
         mail_count_2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1, mail_count_2)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
     def test_guest_comment_cant_confirm_own_comment_by_link_with_wrong_mail(self):
@@ -840,7 +841,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk})
         form = page.form
@@ -864,7 +865,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
     def test_comment_with_email_in_auto_dont_approve_emails_is_published_and_mail_is_not_sent_and_not_confirmed(self):
@@ -880,7 +881,7 @@ class CommentConfirmationTests(BaseTest):
         mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0, mail_count_1)
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
 
 
@@ -891,22 +892,22 @@ class PublishedModelMixinTests(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='авырлпоырваыпdsgdsfgиорвполривапрва-dsfgsdfffffffffffffffffglevelsdfgfsd',
-                status=models.COMMENT_STATUS_PENDING_APPROVAL,
+                status=super_models.COMMENT_STATUS_PENDING_APPROVAL,
             )
 
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
         self.assertEqual(comment.published, None)
 
-        comment.status = models.COMMENT_STATUS_PUBLISHED
+        comment.status = super_models.COMMENT_STATUS_PUBLISHED
         comment.save()
 
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertNotEqual(comment.published, None)
         published = comment.published
 
         comment.save()
 
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.published, published)
 
 
@@ -955,7 +956,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
@@ -971,7 +972,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, False)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1 + 1, mails_count2)
 
@@ -996,7 +997,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, False)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
@@ -1012,7 +1013,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
 
@@ -1031,7 +1032,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
@@ -1046,7 +1047,7 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
-        self.assertEqual(comment.status, models.COMMENT_STATUS_PUBLISHED)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
 
@@ -1142,7 +1143,7 @@ class CacheTests(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='алоуоац4ай34аглвырпилвыапилоывапиавапыв',
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
                 session_key='sdkfngsdfjgndfsjgnsdfg',
             )
 
@@ -1151,7 +1152,7 @@ class CacheTests(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='ваыпоуд4прышгукпргвынпргывапвыап',
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
                 parent=parent,
                 session_key='sdkfngsdfjgndfsjgnsdfg',
             )
@@ -1161,7 +1162,7 @@ class CacheTests(BaseTest):
                 username='gdfsgsdfgsdfg',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='авпрволыдапывдалпрывдлапрлывадпргушкпршва',
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
                 parent=comment,
                 session_key='sdkfngsdfjgndfsjgnsdfg',
             )
@@ -1428,7 +1429,7 @@ class SearchTests(BaseTest):
                 username='аывпывапварварвар',
                 email='fdsfsd@sdgdfgdfg.ru',
                 body='варвварправрвар',
-                status=models.COMMENT_STATUS_PUBLISHED,
+                status=super_models.COMMENT_STATUS_PUBLISHED,
             )
 
         page = self.app.get(reverse('main-page'))

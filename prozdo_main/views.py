@@ -13,7 +13,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from .helper import to_int, set_and_get_session_key
+from helper.helper import to_int, set_and_get_session_key
 from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
@@ -21,6 +21,7 @@ from django.utils import timezone
 from cache.decorators import cached_view
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When, CharField
+from super_model import models as super_models
 
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
@@ -209,7 +210,7 @@ class PostDetail(ProzdoListView):
         if comment_form.is_valid():
             comment_form.instance.status = comment_form.instance.get_status()
             comment = comment_form.save()
-            published = comment.status == models.COMMENT_STATUS_PUBLISHED
+            published = comment.status == super_models.COMMENT_STATUS_PUBLISHED
 
             if not published:
                 messages.add_message(request, messages.INFO, 'Ваш отзыв будет опубликован после проверки модератором')
