@@ -831,10 +831,7 @@ class UserActivityView(ProzdoListView):
         context['current_user'] = user
         return context
 
-
-
-
-class PostCreateUpdateMixin(restrict_by_role_mixin(models.USER_ROLE_ADMIN), PostViewMixin):
+class PostCreateUpdateMixin(restrict_by_role_mixin(super_models.USER_ROLE_ADMIN), PostViewMixin):
     def get_form_class(self):
         if self.model == models.Drug:
             return forms.DrugForm

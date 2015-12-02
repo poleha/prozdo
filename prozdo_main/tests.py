@@ -268,7 +268,7 @@ class CommentAntispanTests(BaseTest):
     def test_comment_antispan_comment_with_errors_published_for_doctor(self):
         drug = self.drug
         u = self.user
-        u.user_profile.role = models.USER_ROLE_DOCTOR
+        u.user_profile.role = super_models.USER_ROLE_DOCTOR
         u.user_profile.save()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
         form = page.forms['comment-form']
@@ -495,7 +495,7 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = self.comment
         user = self.user
         up = user.user_profile
-        up.role = models.USER_ROLE_DOCTOR
+        up.role = super_models.USER_ROLE_DOCTOR
         up.save()
         params= {
                 'action': 'comment-delete',
@@ -566,7 +566,7 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = comment.saved_version
         user = self.user
         up = user.user_profile
-        up.role = models.USER_ROLE_DOCTOR
+        up.role = super_models.USER_ROLE_DOCTOR
         up.save()
         self.assertEqual(comment.session_key, None)
 
@@ -1076,7 +1076,7 @@ class CommentInterfaceTests(BaseTest):
     def test_doctor_author_guest_can_see_delete_button(self):
         u = self.user
         c = self.comment
-        for role in (models.USER_ROLE_AUTHOR, models.USER_ROLE_DOCTOR, models.USER_ROLE_ADMIN):
+        for role in (super_models.USER_ROLE_AUTHOR, super_models.USER_ROLE_DOCTOR, super_models.USER_ROLE_ADMIN):
             self.renew_app()
             up = u.user_profile
             up.role = role

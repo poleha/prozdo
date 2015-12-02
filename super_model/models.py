@@ -3,7 +3,7 @@ from django.utils import timezone
 from cache.models import CachedModelMixin
 from mptt.models import MPTTModel, TreeForeignKey
 from mptt.querysets import TreeQuerySet
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from cache.decorators import cached_property
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -13,6 +13,8 @@ from django.utils.html import strip_tags
 import re
 from django.core.exceptions import ValidationError
 from django.utils.module_loading import import_string
+from django.db.models import ImageField
+
 
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
@@ -183,7 +185,7 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
             return helper.generate_key(128)
 
     def get_status(self):
-        if self.user and self.user.user_profile.can_publish_comment():
+        if self.user and self.user.user_profile.can_publish_comment:
             return COMMENT_STATUS_PUBLISHED
         else:
             if (helper.comment_body_ok(self.body) and helper.comment_author_ok(self.username)) or self.email in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
@@ -326,3 +328,112 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
 
         self.post_type = self.get_post_type()
         super().save(*args, **kwargs)
+
+USER_ROLE_REGULAR = 1
+USER_ROLE_AUTHOR = 2
+USER_ROLE_DOCTOR = 3
+USER_ROLE_ADMIN = 33
+
+USER_ROLES = (
+    (USER_ROLE_REGULAR, 'Обычный пользователь'),
+    (USER_ROLE_AUTHOR, 'Автор'),
+    (USER_ROLE_DOCTOR, 'Врач'),
+    (USER_ROLE_ADMIN, 'Админ'),
+)
+
+
+class SuperUserProfile(SuperModel, CachedModelMixin):
+    class Meta:
+        abstract = True
+
+    user = models.OneToOneField(User, related_name='user_profile', db_index=True)  # reverse returns single object, not queryset
+    role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True, db_index=True)
+    image = ImageField(verbose_name='Изображение', upload_to='user_profile', blank=True, null=True)
+    receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True, db_index=True)
+
+    @property
+    def can_publish_comment(self):
+        if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM:
+            return True
+        else:
+            return False
+
+    def __str__(self):
+        return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)
+
+    @classmethod
+    def get_profile(cls, user):
+        user_profile, created = cls.objects.get_or_create(user=user)
+        if created:
+            user_profile.save()
+        return user_profile
+
+    def save(self, *args, **kwargs):
+        if self.user.is_staff:
+            self.role = USER_ROLE_ADMIN
+
+        super().save(*args, **kwargs)
+        #invalidate_obj(self.user)
+
+
+
+def is_regular(self):
+    if self.user_profile.role == USER_ROLE_REGULAR:
+        return True
+    else:
+        return False
+
+def get_user_image(self):
+    return self.user_profile.image
+
+@property
+def karm_history(self):
+    return self.user_profile.karm_history
+
+@property
+def activity_history(self):
+    return self.user_profile.activity_history
+
+@property
+def get_user_activity(self):
+    return self.user_profile.get_user_activity
+
+@property
+def get_user_karm(self):
+    return self.user_profile.get_user_karm
+
+
+@property
+def get_email_confirmed(self):
+    return self.user_profile.get_email_confirmed()
+
+User.is_regular = property(is_regular)
+User.image = property(get_user_image)
+User.karm_history = karm_history
+User.activity_history = activity_history
+User.karm = get_user_karm
+User.get_karm_url = lambda self: reverse('user-karma', kwargs={'pk': self.pk})
+User.get_comments_url = lambda self: reverse('user-comments', kwargs={'pk': self.pk})
+User.get_activity_url = lambda self: reverse('user-activity', kwargs={'pk': self.pk})
+User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.pk})
+
+User.activity = get_user_activity
+User.email_confirmed = get_email_confirmed
+
+User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)
+User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHOR)
+User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGULAR)
+User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
+User.thumb100 = property(lambda self: self.user_profile.thumb100)
+User.thumb50 = property(lambda self: self.user_profile.thumb50)
+
+
+AnonymousUser.is_regular = True
+AnonymousUser.is_doctor = False
+AnonymousUser.is_admin = False
+AnonymousUser.is_author = False
+
+AnonymousUser.image = None
+AnonymousUser.email_confirmed = False
+AnonymousUser.karm = 0
+AnonymousUser.activity = 0
