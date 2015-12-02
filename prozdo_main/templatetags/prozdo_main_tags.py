@@ -8,6 +8,7 @@ from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from prozdo_main.forms import ProzdoSearchForm
+from super_model import models as super_models
 
 register = template.Library()
 
@@ -80,11 +81,11 @@ def get_comment(context, comment):
     res['comment'] = comment
     #res['is_author'] = comment.is_author(request=request)
 
-    res['can_mark'] = comment.show_do_action_button(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
-    res['can_unmark'] = comment.show_undo_action_button(history_type=models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    res['can_mark'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    res['can_unmark'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
 
-    res['can_complain'] = comment.show_do_action_button(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
-    res['can_uncomplain'] = comment.show_undo_action_button(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_complain'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_uncomplain'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
 
 
     #if show_as_child:
@@ -109,7 +110,7 @@ def recent_comments():
 def best_comments():
     res = {}
     date = timezone.now() - timedelta(days=settings.BEST_COMMENTS_DAYS)
-    comments = models.Comment.objects.filter(history_comment__history_type=models.HISTORY_TYPE_COMMENT_RATED, created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
+    comments = models.Comment.objects.filter(history_comment__history_type=super_models.HISTORY_TYPE_COMMENT_RATED, created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
 
     res['comments'] = comments
     res['portlet_type'] = 'best_comments'

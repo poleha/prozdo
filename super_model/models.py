@@ -14,6 +14,7 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.module_loading import import_string
 from django.db.models import ImageField
+from django.core.cache import cache
 
 
 class SuperModel(models.Model):
@@ -437,3 +438,249 @@ AnonymousUser.image = None
 AnonymousUser.email_confirmed = False
 AnonymousUser.karm = 0
 AnonymousUser.activity = 0
+
+
+HISTORY_TYPE_COMMENT_CREATED = 1
+HISTORY_TYPE_COMMENT_SAVED = 2
+HISTORY_TYPE_COMMENT_RATED = 3
+HISTORY_TYPE_POST_CREATED = 4
+HISTORY_TYPE_POST_SAVED = 5
+HISTORY_TYPE_POST_RATED = 6
+HISTORY_TYPE_COMMENT_COMPLAINT = 7
+#HISTORY_TYPE_POST_COMPLAINT = 8
+#HISTORY_TYPE_BLOG_RATED = 8
+
+HISTORY_TYPES = (
+    (HISTORY_TYPE_COMMENT_CREATED, 'Комментарий создан'),
+    (HISTORY_TYPE_COMMENT_SAVED, 'Комментарий сохранен'),
+    (HISTORY_TYPE_COMMENT_RATED, 'Комментарий оценен'),
+    (HISTORY_TYPE_POST_CREATED, 'Материал создан'),
+    (HISTORY_TYPE_POST_SAVED, 'Материал сохранен'),
+    (HISTORY_TYPE_POST_RATED, 'Материал оценен'),
+    (HISTORY_TYPE_COMMENT_COMPLAINT, 'Жалоба на комментарий'),
+    #(HISTORY_TYPE_POST_COMPLAINT, 'Жалоба на материал'),
+    #(HISTORY_TYPE_BLOG_RATED, 'Запись блога оценена'),
+
+)
+
+HISTORY_TYPES_POINTS = {
+HISTORY_TYPE_COMMENT_CREATED: 3,
+HISTORY_TYPE_COMMENT_SAVED: 0,
+HISTORY_TYPE_COMMENT_RATED: 1,
+HISTORY_TYPE_POST_CREATED: 0,
+HISTORY_TYPE_POST_SAVED: 0,
+HISTORY_TYPE_POST_RATED: 1,
+HISTORY_TYPE_COMMENT_COMPLAINT: 0,
+#HISTORY_TYPE_BLOG_RATED: 0,
+}
+
+
+
+class SuperHistory(SuperModel):
+    class Meta:
+        abstract = True
+    history_type = models.IntegerField(choices=HISTORY_TYPES, db_index=True)
+    author = models.ForeignKey(User, null=True, blank=True, related_name='history_author', db_index=True)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='history_user', db_index=True)
+    comment = models.ForeignKey('Comment', null=True, blank=True, related_name='history_comment', db_index=True)
+    user_points = models.PositiveIntegerField(default=0, blank=True)
+    #author_points = models.PositiveIntegerField(default=0, blank=True)
+    ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
+    session_key = models.TextField(blank=True, null=True, db_index=True)
+
+    old_id = models.PositiveIntegerField(null=True, blank=True)
+    deleted = models.BooleanField(verbose_name='Удалена', default=False, db_index=True)
+
+    @staticmethod
+    def get_points(history_type):
+        return HISTORY_TYPES_POINTS[history_type]
+
+    def __str__(self):
+        return "{0} - {1} - {2}".format(self.history_type, self.post, self.comment)
+
+    @classmethod
+    def save_history(cls, history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
+        History = cls
+        if hasattr(post, 'user'):
+            post_author = post.user
+        else:
+            post_author = None
+
+        if user and not user.is_authenticated():
+            user = None
+
+        if user is None and session_key is None:
+            return None
+
+        if isinstance(mark, str):
+            mark = int(mark)
+
+        if mark is None and comment is not None and comment.post_mark:
+            mark = comment.post_mark
+
+        if history_type == HISTORY_TYPE_POST_CREATED:
+            hist_exists = History.objects.filter(history_type=history_type, post=post, deleted=False).exists()
+            if not hist_exists:
+                h = History.objects.create(history_type=history_type, post=post, user=user,
+                                       user_points=History.get_points(history_type), ip=ip, author=post_author, session_key=session_key)
+            else:
+                h = History.save_history(HISTORY_TYPE_POST_SAVED, post, user, ip, session_key, comment)
+            return h
+        elif history_type == HISTORY_TYPE_POST_SAVED:
+            h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, author=post_author, session_key=session_key)
+            return h
+        elif history_type == HISTORY_TYPE_COMMENT_CREATED:
+            hist_exists = History.objects.filter(history_type=history_type, comment=comment, deleted=False).exists()
+            if not hist_exists:
+
+                h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                                       user_points=History.get_points(history_type),
+                                       author=post_author, mark=mark, session_key=session_key)
+            else:
+                h = History.save_history(HISTORY_TYPE_COMMENT_SAVED, post, user, ip, session_key, comment, mark=mark)
+            return h
+        elif history_type == HISTORY_TYPE_COMMENT_SAVED:
+            h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                                   user_points=History.get_points(history_type), author=post_author, session_key=session_key)
+            return h
+        elif history_type in [HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]:
+            #if history_type == HISTORY_TYPE_COMMENT_RATED:
+            #    author_points = 1
+            #else:
+            #    author_points = 0
+            if comment.can_do_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
+                h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                                       user_points=History.get_points(history_type),
+                                       author=comment.user, session_key=session_key)
+                return h
+        elif history_type == HISTORY_TYPE_POST_RATED:
+            if user and user.is_authenticated():
+                hist_exists = History.objects.filter(history_type=history_type, post=post, user=user, deleted=False).exists()
+            else:
+                hist_exists_by_key = History.objects.filter(history_type=history_type, post=post, session_key=session_key, user=None, deleted=False).exists()
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, post=post, ip=ip, user=None, deleted=False).exists()
+                hist_exists = hist_exists_by_key or hist_exists_by_ip
+
+            if not hist_exists and ((not post.is_blog and mark and mark > 0) or post.is_blog):
+                h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
+                                   user_points=History.get_points(history_type), author=post_author, mark=mark, session_key=session_key)
+                return h
+
+
+    @classmethod
+    def exists(cls, session_key):
+        if not session_key:
+            return False
+        if not settings.CACHE_ENABLED:
+            return cls.objects.filter(session_key=session_key, deleted=False).exists()
+        prefix = '_cached_history_exists_'
+        key = prefix + session_key
+        res = cache.get(key)
+        if res is None:
+            res = cls.objects.filter(session_key=session_key, deleted=False).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+        return res
+
+    def invalidate_exists(self):
+        if settings.CACHE_ENABLED:
+            prefix = '_cached_history_exists_'
+            key = prefix + self.session_key
+            cache.delete(key)
+            res = type(self).objects.filter(session_key=self.session_key, deleted=False).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
+
+    def delete_exists(self):
+        if settings.CACHE_ENABLED:
+            prefix = '_cached_history_exists_'
+            key = prefix + self.session_key
+            cache.delete(key)
+
+    #TODO change to cached_method
+    @classmethod
+    def exists_by_comment(cls, session_key, comment, history_type):
+        if not session_key:
+            return False
+        if not settings.CACHE_ENABLED:
+            return cls.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
+        if not cls.exists(session_key):
+            return False
+        template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+        key = template.format(session_key, comment.pk, history_type)
+        res = cache.get(key)
+        if res is None:
+            res = cls.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
+            cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
+        return res
+
+    def invalidate_exists_by_comment(self):
+        if settings.CACHE_ENABLED:
+            if self.comment:
+                template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+                key = template.format(self.session_key, self.comment.pk, self.history_type)
+                cache.delete(key)
+                res = type(self).objects.filter(session_key=self.session_key, comment=self.comment, history_type=self.history_type, deleted=False).exists()
+                cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
+
+    def delete_exists_by_comment(self):
+        if settings.CACHE_ENABLED:
+            if self.comment:
+                template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+                key = template.format(self.session_key, self.comment.pk, self.history_type)
+                cache.delete(key)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.comment:
+            self.comment.full_invalidate_cache()
+            #invalidate_obj(self.comment)
+
+            for ancestor in self.comment.get_ancestors():
+                ancestor.full_invalidate_cache()
+                #invalidate_obj(ancestor)
+            for descendant in self.comment.get_descendants():
+                descendant.full_invalidate_cache()
+                #invalidate_obj(descendant)
+
+        if self.post:
+            self.post.obj.full_invalidate_cache()
+            #invalidate_obj(self.post.obj)
+
+
+        if self.user:
+            self.user.user_profile.full_invalidate_cache()
+        if self.author:
+            self.author.user_profile.full_invalidate_cache()
+            #invalidate_obj(self.author)
+        self.invalidate_exists()
+        self.invalidate_exists_by_comment()
+
+
+    def delete(self, *args, **kwargs):
+        post = self.post
+        comment = self.comment
+        user = self.user
+        author = self.author
+        self.delete_exists_by_comment()
+        self.delete_exists()
+        super().delete(*args, **kwargs)
+        if comment:
+            comment.full_invalidate_cache()
+            #invalidate_obj(comment)
+
+            for ancestor in comment.get_ancestors():
+                ancestor.full_invalidate_cache()
+                #invalidate_obj(ancestor)
+            for descendant in comment.get_descendants():
+                descendant.full_invalidate_cache()
+                #invalidate_obj(descendant)
+
+        if post:
+            post.obj.full_invalidate_cache()
+            #invalidate_obj(post.obj)
+
+        if user:
+            user.user_profile.full_invalidate_cache()
+            #invalidate_obj(user)
+        if author:
+            author.user_profile.full_invalidate_cache()
+            #invalidate_obj(author)

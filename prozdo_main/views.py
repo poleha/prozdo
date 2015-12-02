@@ -179,9 +179,9 @@ class PostDetail(ProzdoListView):
         #visibility
         if context['mark']:
             if user.is_authenticated():
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=models.HISTORY_TYPE_POST_RATED, session_key=request.session.prozdo_key, post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_POST_RATED, session_key=request.session.prozdo_key, post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'
@@ -354,7 +354,7 @@ class HistoryAjaxSave(generic.View):
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
+            h = models.History.save_history(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
             data = {'mark': comment.comment_mark}
             if h:
                 data['saved'] = True
@@ -364,9 +364,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-unmark':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment, deleted=False)
+                hs = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, user=request.user, comment=comment, deleted=False)
             else:
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key, deleted=False)
+                hs = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, comment=comment, user=None, session_key=session_key, deleted=False)
                 #if session_key:
                 #    h = h.filter(Q(session_key=session_key)|Q(ip=ip))
                 #else:
@@ -383,7 +383,7 @@ class HistoryAjaxSave(generic.View):
             return JsonResponse(data)
         elif action == 'comment-complain':
             comment = models.Comment.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
+            h = models.History.save_history(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, post=comment.post, user=request.user, comment=comment, ip=ip, session_key=session_key)
             data = {'mark': comment.complain_count}
             if h:
                 data['saved'] = True
@@ -393,9 +393,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'comment-uncomplain':
             comment = models.Comment.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment, deleted=False)
+                hs = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, user=request.user, comment=comment, deleted=False)
             else:
-                hs = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key, deleted=False)
+                hs = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, comment=comment, user=None, session_key=session_key, deleted=False)
             data = {}
             if hs.exists():
                 for h in hs:
@@ -410,7 +410,7 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-mark':
             mark = request.POST.get('mark', None)
             post = models.Post.objects.get(pk=pk)
-            h = models.History.save_history(history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=session_key)
+            h = models.History.save_history(history_type=super_models.HISTORY_TYPE_POST_RATED, post=post, user=request.user, mark=mark, ip=ip, session_key=session_key)
             data = {}
             if h:
                 data['saved'] = True
@@ -424,9 +424,9 @@ class HistoryAjaxSave(generic.View):
         elif action == 'post-unmark':
             post = models.Post.objects.get(pk=pk)
             if request.user.is_authenticated():
-                hs = models.History.objects.filter(user=user, history_type=models.HISTORY_TYPE_POST_RATED, post=post, deleted=False)
+                hs = models.History.objects.filter(user=user, history_type=super_models.HISTORY_TYPE_POST_RATED, post=post, deleted=False)
             else:
-                hs = models.History.objects.filter(session_key=session_key, history_type=models.HISTORY_TYPE_POST_RATED, post=post, user=None, deleted=False)
+                hs = models.History.objects.filter(session_key=session_key, history_type=super_models.HISTORY_TYPE_POST_RATED, post=post, user=None, deleted=False)
             data = {}
             if hs.exists():
                 for h in hs:
@@ -594,9 +594,9 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
         pk = request.POST['pk']
         comment = models.Comment.objects.get(pk=pk)
 
-        user_pks = models.History.objects.filter(~Q(user=None), history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).values_list('user', flat=True)
+        user_pks = models.History.objects.filter(~Q(user=None), history_type=super_models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).values_list('user', flat=True)
         context['users'] = models.User.objects.filter(pk__in=user_pks)
-        context['guest_count'] = models.History.objects.filter(user=None, history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).count()
+        context['guest_count'] = models.History.objects.filter(user=None, history_type=super_models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).count()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -627,7 +627,7 @@ class MainPageView(generic.TemplateView):
         return blogs
 
     def get_recent_consults(self):
-        comments = models.Comment.objects.get_available().filter(user__user_profile__role=models.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:12]
+        comments = models.Comment.objects.get_available().filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:12]
         return comments
 
     def get_context_data(self, **kwargs):
@@ -928,12 +928,12 @@ class CommentDoctorListView(ProzdoListView):
             queryset = queryset.filter(consult_required=False)
 
         if consult_only:
-            queryset = queryset.filter(user__user_profile__role=models.USER_ROLE_DOCTOR)
+            queryset = queryset.filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR)
 
         if consult_done == forms.BOOL_CHOICE_YES:
-            queryset = queryset.filter(children__user__user_profile__role=models.USER_ROLE_DOCTOR)
+            queryset = queryset.filter(children__user__user_profile__role=super_models.USER_ROLE_DOCTOR)
         elif consult_done == forms.BOOL_CHOICE_NO:
-            queryset = queryset.exclude(children__user__user_profile__role=models.USER_ROLE_DOCTOR)
+            queryset = queryset.exclude(children__user__user_profile__role=super_models.USER_ROLE_DOCTOR)
 
         if start_date:
             queryset = queryset.filter(created__gte=start_date)

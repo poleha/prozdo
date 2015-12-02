@@ -247,7 +247,7 @@ class CommentAntispanTests(BaseTest):
         comment.status = super_models.COMMENT_STATUS_PUBLISHED
         comment.save()
         for k in range(settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM):
-            models.History.save_history(post=comment.post, comment=comment, history_type=models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
+            models.History.save_history(post=comment.post, comment=comment, history_type=super_models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
         form = page.forms['comment-form']
@@ -308,7 +308,7 @@ class HistoryTests(BaseTest):
         self.assertEqual(h.comment, comment)
         self.assertEqual(h.mark, None)
         self.assertEqual(comment.post_mark, None)
-        self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_CREATED)
+        self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_CREATED)
 
 
     def test_comment_create_and_save_and_post_mark_for_drug(self):
@@ -334,7 +334,7 @@ class HistoryTests(BaseTest):
         self.assertEqual(h.comment, comment)
         self.assertEqual(h.mark, 4)
         self.assertEqual(comment.post_mark, 4)
-        self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_CREATED)
+        self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_CREATED)
 
 
 
@@ -348,8 +348,8 @@ class HistoryAjaxSaveTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         self.comment = models.Comment.objects.latest('created')
         self.comment_actions = (
-            ('comment-mark', 'comment-unmark', models.HISTORY_TYPE_COMMENT_RATED),
-            ('comment-complain', 'comment-uncomplain', models.HISTORY_TYPE_COMMENT_COMPLAINT)
+            ('comment-mark', 'comment-unmark', super_models.HISTORY_TYPE_COMMENT_RATED),
+            ('comment-complain', 'comment-uncomplain', super_models.HISTORY_TYPE_COMMENT_COMPLAINT)
         )
 
 
@@ -477,7 +477,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(h.post, drug.post_ptr)
             self.assertEqual(h.comment, None)
             self.assertEqual(h.mark, 5)
-            self.assertEqual(h.history_type, models.HISTORY_TYPE_POST_RATED)
+            self.assertEqual(h.history_type, super_models.HISTORY_TYPE_POST_RATED)
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
@@ -506,7 +506,7 @@ class HistoryAjaxSaveTests(BaseTest):
         self.assertEqual(h.post, comment.post)
         self.assertEqual(h.comment, comment)
         self.assertEqual(h.mark, None)
-        self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_SAVED)
+        self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_SAVED)
         result_hist_count = models.History.objects.filter(deleted=False).count()
         self.assertEqual(start_hist_count + 1, result_hist_count)
         comment = comment.saved_version
@@ -543,7 +543,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.assertEqual(h.post, comment.post)
             self.assertEqual(h.comment, comment)
             self.assertEqual(h.mark, None)
-            self.assertEqual(h.history_type, models.HISTORY_TYPE_COMMENT_SAVED)
+            self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_SAVED)
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count, result_hist_count)
             comment = comment.saved_version
@@ -1061,8 +1061,8 @@ class CommentInterfaceTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         self.comment = models.Comment.objects.latest('created')
         self.comment_actions = (
-            ('comment-mark', 'comment-unmark', models.HISTORY_TYPE_COMMENT_RATED),
-            ('comment-complain', 'comment-uncomplain', models.HISTORY_TYPE_COMMENT_COMPLAINT)
+            ('comment-mark', 'comment-unmark', super_models.HISTORY_TYPE_COMMENT_RATED),
+            ('comment-complain', 'comment-uncomplain', super_models.HISTORY_TYPE_COMMENT_COMPLAINT)
         )
 
     def test_guest_and_regular_user_cannot_see_delete_button(self):
@@ -1198,10 +1198,10 @@ class CacheTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         page = self.app.get(self.drug.get_absolute_url())
-        self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
+        self.assertEqual(comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
         self.renew_app()
         page = self.app.get(comment.get_absolute_url())
-        self.assertEqual(comment.hist_exists_by_request(models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
+        self.assertEqual(comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
 
     #Not cache tests anymore, but let it be
     def test_cached_method_works_for_show_do_action_button(self):
@@ -1217,16 +1217,16 @@ class CacheTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         page = self.app.get(self.drug.get_absolute_url())
-        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
         history = models.History.objects.latest('created')
         type(history).objects.filter(pk=history.pk).update(ip='123.235.345.567')
         type(comment).objects.filter(pk=comment.pk).update(ip='534.345.456.467')
-        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
         self.renew_app()
         page = self.app.get(comment.get_absolute_url())
         history = models.History.objects.latest('created')
         type(history).objects.filter(pk=history.pk).update(ip='103.331.145.527')
-        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)
+        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)
 
         params= {
                 'action': 'comment-mark',
@@ -1234,7 +1234,7 @@ class CacheTests(BaseTest):
             }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         page = self.app.get(comment.get_absolute_url())
-        self.assertEqual(comment.show_do_action_button(models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
 
 
 class AccountMailTests(BaseTest):
@@ -1288,7 +1288,7 @@ class PostTests(BaseTest):
             }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         h1 = models.History.objects.latest('created')
-        self.assertEqual(h1.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h1.history_type, super_models.HISTORY_TYPE_POST_RATED)
         self.assertEqual(h1.post, drug.post_ptr)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         self.assertIn('<span id="current-post-mark">5</span>', page)
@@ -1307,7 +1307,7 @@ class PostTests(BaseTest):
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         h2 = models.History.objects.latest('created')
-        self.assertEqual(h2.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h2.history_type, super_models.HISTORY_TYPE_POST_RATED)
         self.assertEqual(h2.post, drug.post_ptr)
         self.assertNotEqual(h1.pk, h2.pk)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
@@ -1327,7 +1327,7 @@ class PostTests(BaseTest):
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         h3 = models.History.objects.latest('created')
-        self.assertEqual(h3.history_type, models.HISTORY_TYPE_POST_RATED)
+        self.assertEqual(h3.history_type, super_models.HISTORY_TYPE_POST_RATED)
         self.assertEqual(h3.post, drug.post_ptr)
         self.assertEqual(h2.pk, h3.pk)
         self.assertEqual(h3.deleted, True)
@@ -1380,7 +1380,7 @@ class SearchTests(BaseTest):
         rebuild_index.Command().handle(interactive=False)
 
         drug = self.drug
-        drug.status = super_super_models.POST_STATUS_PUBLISHED
+        drug.status = super_models.POST_STATUS_PUBLISHED
         drug.title = 'аыпывапыврапврарвапрапр'
         drug.body = 'варвапрварварварвапрвапрв'
         drug.indications = 'аволдтрывалтплыовапг54нцпшдцатп'

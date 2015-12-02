@@ -434,3 +434,4 @@ HISTORY_EXISTS_BY_COMMENT_DURATION = 60 * 60 * 24
 
 
 BASE_POST_CLASS = 'prozdo_main.models.Post'
+BASE_HISTORY_CLASS = 'prozdo_main.models.History'
