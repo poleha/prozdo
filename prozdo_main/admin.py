@@ -3,6 +3,7 @@ from . import models
 from mptt.admin import MPTTModelAdmin
 from sorl.thumbnail.admin import AdminImageMixin
 import reversion
+from super_model import models as super_models
 
 class PostAdminMixin(reversion.VersionAdmin):
     readonly_fields = ['post_type']
@@ -95,12 +96,12 @@ class MailAdmin(reversion.VersionAdmin):
 
 
 def comment_mass_publish(CommentAdmin, request, queryset):
-    queryset.update(status=models.COMMENT_STATUS_PUBLISHED)
+    queryset.update(status=super_models.COMMENT_STATUS_PUBLISHED)
 comment_mass_publish.short_description = "Опубликовать выбранные сообщения"
 
 
 def comment_mass_unpublish(CommentAdmin, request, queryset):
-    queryset.update(status=models.COMMENT_STATUS_PENDING_APPROVAL)
+    queryset.update(status=super_models.COMMENT_STATUS_PENDING_APPROVAL)
 comment_mass_unpublish.short_description = "Снять с публикации выбранные сообщения"
 
 

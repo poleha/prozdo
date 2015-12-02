@@ -15,6 +15,10 @@ from django.core.exceptions import ValidationError
 from django.utils.module_loading import import_string
 from django.db.models import ImageField
 from django.core.cache import cache
+from django.core.mail.message import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from allauth.account.models import EmailAddress
+from django.db.models.signals import post_save
 
 
 class SuperModel(models.Model):
@@ -78,6 +82,16 @@ class CommentManager(models.manager.BaseManager.from_queryset(CommentTreeQueryse
     use_for_related_fields = True
 
 
+
+POST_MARKS_FOR_COMMENT = (
+    (1, '1'),
+    (1, '2'),
+    (3, '3'),
+    (4, '4'),
+    (5, '5'),
+)
+
+
 class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
         abstract = True
@@ -92,8 +106,18 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус', db_index=True)
     updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
     key = models.CharField(max_length=128, blank=True)
+    confirmed = models.BooleanField(default=False, db_index=True)
+    delete_mark = models.BooleanField(verbose_name='Пометка удаления', default=False, db_index=True)
+    post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
 
     objects = CommentManager()
+
+    txt_template_name = None
+    html_template_name = None
+
+    confirm_comment_text_template_name = None
+    confirm_comment_html_template_name = None
+
 
     @cached_property
     def has_avaliable_children(self):
@@ -216,6 +240,8 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
 
 
     def save(self, *args, **kwargs):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        saved_version = self.saved_version
         if not self.confirmed:
             if self.user and self.user.email_confirmed:
                 self.confirmed = True
@@ -229,6 +255,104 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
             self.body = strip_tags(self.body)
         super().save(*args, **kwargs)
 
+        try:
+            old_status = saved_version.status
+        except:
+            old_status = None
+
+        if self.status == COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
+            self.send_answer_to_comment_message()
+        History.save_history(history_type=HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
+
+
+    def send_answer_to_comment_message(self):
+        Mail = import_string(settings.BASE_MAIL_CLASS)
+        user = self.parent.user
+        if user.user_profile.receive_messages and not self.user == self.parent.user and \
+                        self.status == COMMENT_STATUS_PUBLISHED and \
+                not Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT, entity_id=self.pk).exists():
+            email_to = user.email
+
+            email_sent = Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
+                                                     entity_id=self.pk,
+                                                     user=user).exists()
+            if email_sent:
+                return False
+
+
+            text = render_to_string(self.txt_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+            html = render_to_string(self.html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+
+            subject = 'Получен ответ на Ваш отзыв на {0}'.format(settings.SITE_NAME)
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            try:
+                msg = EmailMultiAlternatives(subject, text, from_email, [email_to])
+                msg.attach_alternative(html, "text/html")
+                res = msg.send()
+                if res:
+                    Mail.objects.create(
+                                mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
+                                user=user if user.is_authenticated() else None,
+                                subject=subject,
+                                body_html=html,
+                                body_text=text,
+                                email=email_to,
+                                ip=self.ip,
+                                session_key=self.session_key,
+                                entity_id=self.pk,
+                                email_from=from_email,
+                            )
+                    return True
+
+            except:
+                pass
+
+
+    def is_author_for_save_history(self, user=None, ip=None, session_key=None):
+        if user and user.is_authenticated():
+            return user == self.user
+        else:
+            return self.session_key == session_key or self.ip == ip
+
+    def send_confirmation_mail(self, user=None, request=None):
+        Mail = import_string(settings.BASE_MAIL_CLASS)
+        to = self.email
+        if to in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
+            return
+        if not user and request:
+            user = request.user
+        if request:
+            ip = request.client_ip
+            session_key = request.session.prozdo_key
+        else:
+            ip = None
+            session_key = None
+
+        if not user.email_confirmed and not self.confirmed:
+                html = render_to_string(self.confirm_comment_html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+                text = render_to_string(self.confirm_comment_text_template_name, {'comment': self, 'site_url': settings.SITE_URL})
+                subject = 'Вы оставили отзыв на {}'.format(settings.SITE_NAME)
+                from_email = settings.DEFAULT_FROM_EMAIL
+                try:
+                    msg = EmailMultiAlternatives(subject, text, from_email, [to])
+                    msg.attach_alternative(html, "text/html")
+                    res = msg.send()
+                    if res:
+                        Mail.objects.create(
+                            mail_type=MAIL_TYPE_COMMENT_CONFIRM,
+                            user=user if user.is_authenticated() else None,
+                            subject=subject,
+                            body_html=html,
+                            body_text=text,
+                            email=to,
+                            ip=ip,
+                            session_key=session_key,
+                            entity_id=self.pk,
+                            email_from=from_email,
+                        )
+                except:
+                    pass
 
 class AbstractModel(SuperModel, CachedModelMixin):
     class Meta:
@@ -271,6 +395,8 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
         abstract = True
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
+    post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True )
+
 
     objects = PostManager()
 
@@ -329,6 +455,8 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
 
         self.post_type = self.get_post_type()
         super().save(*args, **kwargs)
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
 
 USER_ROLE_REGULAR = 1
 USER_ROLE_AUTHOR = 2
@@ -361,6 +489,9 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
 
     def __str__(self):
         return 'Профиль пользователя {0}, pk={1}'.format(self.user.username, self.user.pk)
+
+    def get_email_confirmed(self):
+        return EmailAddress.objects.filter(user=self.user, verified=True, email=self.user.email).exists()
 
     @classmethod
     def get_profile(cls, user):
@@ -487,6 +618,7 @@ class SuperHistory(SuperModel):
     #author_points = models.PositiveIntegerField(default=0, blank=True)
     ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
     session_key = models.TextField(blank=True, null=True, db_index=True)
+    mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
 
     old_id = models.PositiveIntegerField(null=True, blank=True)
     deleted = models.BooleanField(verbose_name='Удалена', default=False, db_index=True)
@@ -500,6 +632,8 @@ class SuperHistory(SuperModel):
 
     @classmethod
     def save_history(cls, history_type, post, user=None, ip=None, session_key=None, comment=None, mark=None):
+        if hasattr(post, 'post_ptr'):
+            post = post.post_ptr
         History = cls
         if hasattr(post, 'user'):
             post_author = post.user
@@ -509,8 +643,9 @@ class SuperHistory(SuperModel):
         if user and not user.is_authenticated():
             user = None
 
-        if user is None and session_key is None:
-            return None
+        if history_type not in (HISTORY_TYPE_POST_CREATED, HISTORY_TYPE_POST_SAVED):
+            if user is None and session_key is None:
+                return None
 
         if isinstance(mark, str):
             mark = int(mark)
@@ -582,7 +717,7 @@ class SuperHistory(SuperModel):
         return res
 
     def invalidate_exists(self):
-        if settings.CACHE_ENABLED:
+        if settings.CACHE_ENABLED and self.session_key:
             prefix = '_cached_history_exists_'
             key = prefix + self.session_key
             cache.delete(key)
@@ -590,7 +725,7 @@ class SuperHistory(SuperModel):
             cache.set(key, res, settings.HISTORY_EXISTS_DURATION)
 
     def delete_exists(self):
-        if settings.CACHE_ENABLED:
+        if settings.CACHE_ENABLED and self.session_key:
             prefix = '_cached_history_exists_'
             key = prefix + self.session_key
             cache.delete(key)
@@ -613,7 +748,7 @@ class SuperHistory(SuperModel):
         return res
 
     def invalidate_exists_by_comment(self):
-        if settings.CACHE_ENABLED:
+        if settings.CACHE_ENABLED and self.session_key:
             if self.comment:
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
@@ -622,7 +757,7 @@ class SuperHistory(SuperModel):
                 cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
 
     def delete_exists_by_comment(self):
-        if settings.CACHE_ENABLED:
+        if settings.CACHE_ENABLED and self.session_key:
             if self.comment:
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
@@ -684,3 +819,83 @@ class SuperHistory(SuperModel):
         if author:
             author.user_profile.full_invalidate_cache()
             #invalidate_obj(author)
+
+
+
+MAIL_TYPE_COMMENT_CONFIRM = 1
+MAIL_TYPE_USER_REGISTRATION = 2
+MAIL_TYPE_PASSWORD_RESET = 3
+MAIL_TYPE_ANSWER_TO_COMMENT = 4
+MAIL_TYPE_EMAIL_CONFIRMATION = 5
+
+MAIL_TYPES = (
+    (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
+    (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
+    (MAIL_TYPE_PASSWORD_RESET, 'Сброс пароля'),
+    (MAIL_TYPE_ANSWER_TO_COMMENT, 'Ответ на отзыв'),
+    (MAIL_TYPE_EMAIL_CONFIRMATION, 'Подтверждение электронного адреса'),
+)
+
+class SuperMail(SuperModel):
+    class Meta:
+        abstract = True
+    mail_type = models.PositiveIntegerField(choices=MAIL_TYPES, db_index=True)
+    subject = models.TextField()
+    body_html=models.TextField(default='', blank=True)
+    body_text=models.TextField(default='', blank=True)
+    email = models.EmailField(db_index=True)
+    user = models.ForeignKey(User, blank=True, null=True, db_index=True)
+    ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
+    session_key = models.TextField(null=True, blank=True, db_index=True)
+    email_from = models.EmailField(db_index=True)
+    entity_id = models.CharField(max_length=20, blank=True, db_index=True)
+
+    @property
+    def mail_type_text(self):
+        for mail_type, text in MAIL_TYPES:
+            if mail_type == self.mail_type:
+                return text
+
+    def __str__(self):
+        return '{0} | {1} | {2} | {3}'.format(self.mail_type_text, self.email, self.user, self.created)
+
+def create_user_profile(sender, instance, created, **kwargs):
+    UserProfile = import_string(settings.BASE_USER_PROFILE_CLASS)
+    profile, created = UserProfile.objects.get_or_create(user=instance)
+    if created:
+        profile.save()
+
+def confirm_user_comments(sender, instance, created, **kwargs):
+    if instance.email_confirmed:
+        for comment in instance.comments.filter(confirmed=False):
+            comment.confirmed = True
+            comment.save()
+
+def confirm_user_comments_by_email(sender, instance, created, **kwargs):
+    if instance.verified:
+        for comment in instance.user.comments.filter(confirmed=False):
+            comment.confirmed = True
+            comment.save()
+
+
+post_save.connect(create_user_profile, sender=User)
+post_save.connect(confirm_user_comments, sender=User)
+post_save.connect(confirm_user_comments_by_email, sender=EmailAddress)
+
+
+def request_with_empty_guest(request):
+    user = request.user
+    if user.is_authenticated():
+        return False
+
+    session_key = request.session.prozdo_key
+
+    if not session_key:
+        return True
+
+    History = import_string(settings.BASE_HISTORY_CLASS)
+    exists = History.exists(session_key)
+    if not exists:
+        return True
+
+    return False

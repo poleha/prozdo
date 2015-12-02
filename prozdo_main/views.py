@@ -107,7 +107,7 @@ class PostDetail(ProzdoListView):
 
         return comments
 
-    @cached_view(test=models.request_with_empty_guest)
+    @cached_view(test=super_models.request_with_empty_guest)
     def get(self, request, *args, **kwargs):
         self.set_obj()
         self.set_comment_page()
@@ -313,7 +313,7 @@ class PostListFilterMixin(PostViewMixin, ProzdoListView):
 class PostList(PostListFilterMixin):
     template_name = 'prozdo_main/post/post_list.html'
 
-    @cached_view(timeout=60 * 60 * 12, test=models.request_with_empty_guest)
+    @cached_view(timeout=60 * 60 * 12, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -606,7 +606,7 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
 class MainPageView(generic.TemplateView):
     template_name = 'prozdo_main/base/main_page.html'
 
-    @cached_view(timeout=60 * 60, test=models.request_with_empty_guest)
+    @cached_view(timeout=60 * 60, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         res = super().dispatch(request, *args, **kwargs)
         try:
@@ -745,7 +745,7 @@ class UserProfileView(generic.TemplateView):
 class UserDetailView(generic.TemplateView):
     template_name = 'prozdo_main/user/user_detail.html'
 
-    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    @cached_view(timeout= 60 * 60 * 24, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -765,7 +765,7 @@ class UserCommentsView(ProzdoListView):
     context_object_name = 'comments'
     paginate_by = 50
 
-    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    @cached_view(timeout= 60 * 60 * 24, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -790,7 +790,7 @@ class UserKarmaView(ProzdoListView):
     paginate_by = 50
 
     #TODO переделать на инвалидацию и добавить заголовки. Пока сойтет так
-    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    @cached_view(timeout= 60 * 60 * 24, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -814,7 +814,7 @@ class UserActivityView(ProzdoListView):
     paginate_by = 50
 
     #TODO переделать на инвалидацию и добавить заголовки. Пока сойтет так
-    @cached_view(timeout= 60 * 60 * 24, test=models.request_with_empty_guest)
+    @cached_view(timeout= 60 * 60 * 24, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

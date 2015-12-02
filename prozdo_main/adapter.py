@@ -1,6 +1,7 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.adapter import DefaultAccountAdapter
-from .models import User, Mail, MAIL_TYPE_USER_REGISTRATION, MAIL_TYPE_EMAIL_CONFIRMATION, MAIL_TYPE_PASSWORD_RESET
+from .models import User, Mail
+from super_model.models import MAIL_TYPE_USER_REGISTRATION, MAIL_TYPE_EMAIL_CONFIRMATION, MAIL_TYPE_PASSWORD_RESET
 from django.core.exceptions import ValidationError
 from .forms import validate_contains_russian, validate_first_is_letter, validate_username
 from django.conf import settings

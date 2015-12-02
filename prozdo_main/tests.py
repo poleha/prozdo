@@ -669,7 +669,7 @@ class PostPagesTest(BaseTest):
 
 class CommentConfirmationTests(BaseTest):
     def test_comment_confirm_message_is_sent_for_published_guest_and_comment_can_be_activated(self):
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = 'dfjklsfdklsdghjkdfh@kjlgfsdgjksdfgh.com'
@@ -678,14 +678,14 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = 'Саша'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
         mail = models.Mail.objects.latest('created')
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
-        self.assertEqual(mail.mail_type, models.MAIL_TYPE_COMMENT_CONFIRM)
+        self.assertEqual(mail.mail_type, super_models.MAIL_TYPE_COMMENT_CONFIRM)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
         page = self.app.get(comment.get_confirm_url())
         comment = comment.saved_version
@@ -693,7 +693,7 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(comment.confirmed, True)
 
     def test_comment_comment_cant_be_activated_with_wrong_key(self):
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = 'dfjklsfdklsdghjkdfh@kjlgfsdgjksdfgh.com'
@@ -702,12 +702,12 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = 'Саша'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
         mail = models.Mail.objects.latest('created')
         comment = models.Comment.objects.latest('created')
-        self.assertEqual(mail.mail_type, models.MAIL_TYPE_COMMENT_CONFIRM)
+        self.assertEqual(mail.mail_type, super_models.MAIL_TYPE_COMMENT_CONFIRM)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
@@ -719,7 +719,7 @@ class CommentConfirmationTests(BaseTest):
 
 
     def test_guest_comment_can_confirm_own_comment_by_link(self):
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = 'dfjklsfdklsdghjkdfh@kjlgfsdgjksdfgh.com'
@@ -728,7 +728,7 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = 'Саша'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -739,19 +739,19 @@ class CommentConfirmationTests(BaseTest):
         form['comment'] = comment.pk
         page = form.submit()
         comment = comment.saved_version
-        mail_count_2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1 + 1, mail_count_2)
 
 
     def test_user_comment_with_approved_mail_is_approved(self):
         user = self.user
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=user)
         form = page.forms['comment-form']
         form['body'] = 'Привет, это вот мой коммент'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_start, mail_count_end)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -760,13 +760,13 @@ class CommentConfirmationTests(BaseTest):
 
     def test_user_comment_with_unapproved_mail_is_unapproved_but_approves_on_user_mail_approve(self):
         user = self.user2
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=user)
         form = page.forms['comment-form']
         form['body'] = 'Привет, это вот мой коммент'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -780,13 +780,13 @@ class CommentConfirmationTests(BaseTest):
         user = self.user2
         email = user.emailaddress_set.all()[0]
         self.assertEqual(email.verified, False)
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}), user=user)
         form = page.forms['comment-form']
         form['body'] = 'Привет, это вот мой коммент'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
         mail = models.Mail.objects.latest('created')
@@ -803,7 +803,7 @@ class CommentConfirmationTests(BaseTest):
 
     def test_user_with_approved_mail_approve_comments_by_click(self):
         user = self.user
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = user.email
@@ -812,7 +812,7 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = 'Саша'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -823,13 +823,13 @@ class CommentConfirmationTests(BaseTest):
         #form['pk'] = comment.pk
         #page = form.submit()
         comment = comment.saved_version
-        mail_count_2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1, mail_count_2)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
     def test_guest_comment_cant_confirm_own_comment_by_link_with_wrong_mail(self):
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = 'dfjklsfdklsdghjkdfh@kjlgfsdgjksdfgh.com'
@@ -838,7 +838,7 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = 'Саша'
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0 + 1, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -849,11 +849,11 @@ class CommentConfirmationTests(BaseTest):
         form['comment'] = comment.pk
         page = form.submit()
         comment = comment.saved_version
-        mail_count_2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1, mail_count_2)
 
     def test_comment_with_email_in_auto_approve_emails_is_published_and_mail_is_not_sent_and_confirmed(self):
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = settings.AUTO_APPROVE_EMAILS[0]
@@ -862,14 +862,14 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = settings.BAD_WORDS[1]
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
 
     def test_comment_with_email_in_auto_dont_approve_emails_is_published_and_mail_is_not_sent_and_not_confirmed(self):
-        mail_count_0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = settings.AUTO_DONT_APPROVE_EMAILS[0]
@@ -878,7 +878,7 @@ class CommentConfirmationTests(BaseTest):
         form['username'] = settings.BAD_WORDS[1]
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_COMMENT_CONFIRM).count()
+        mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_0, mail_count_1)
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
@@ -938,7 +938,7 @@ class CommentMessagesTest(BaseTest):
         super().setUp()
 
     def test_user_gets_email_when_his_approved_comment_is_answered(self):
-        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         drug = self.drug
         u1 = self.user
         email = u1.emailaddress_set.all()[0]
@@ -957,7 +957,7 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
 
@@ -973,13 +973,13 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, False)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1 + 1, mails_count2)
 
 
 
     def test_user_doesnt_get_email_when_his_unapproved_comment_is_answered(self):
-        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         drug = self.drug
         u1 = self.user
         email = u1.emailaddress_set.all()[0]
@@ -998,7 +998,7 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, False)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
 
@@ -1014,11 +1014,11 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
 
     def test_user_doesnt_get_email_when_his_approved_comment_is_answered_by_himself(self):
-        mails_count0 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         drug = self.drug
         u1 = self.user
         email = u1.emailaddress_set.all()[0]
@@ -1033,7 +1033,7 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count1 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
 
         self.assertEqual(mails_count0, mails_count1)
 
@@ -1048,7 +1048,7 @@ class CommentMessagesTest(BaseTest):
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.confirmed, True)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
-        mails_count2 = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
+        mails_count2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
 
 class CommentInterfaceTests(BaseTest):
@@ -1236,10 +1236,50 @@ class CacheTests(BaseTest):
         page = self.app.get(comment.get_absolute_url())
         self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
 
+    def test_post_detail_is_cached_for_passive_guest_and_reset_on_post_save(self):
+        cache.clear()
+        self.renew_app()
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertNotEqual(page.context, None)
+
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+        self.drug.save()
+
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertNotEqual(page.context, None)
+
+        page = self.app.get(self.drug.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+    def test_post_detail_is_not_cached_for_active_guest(self):
+        cache.clear()
+        self.renew_app()
+
+        params= {
+                'action': 'post-mark',
+                'mark': 5,
+                'pk': self.drug.pk,
+            }
+        page = self.app.post(reverse('history-ajax-save'), params=params)
+
+        page = self.app.get(self.drug.get_absolute_url())
+
+        self.assertNotEqual(page.context, None)
+
+    def test_post_detail_is_not_cached_for_user(self):
+        cache.clear()
+        self.renew_app()
+
+        page = self.app.get(self.drug.get_absolute_url(), user=self.user2)
+
+        self.assertNotEqual(page.context, None)
+
 
 class AccountMailTests(BaseTest):
     def test_confirmation_mail_is_sent_on_registration_and_mail_model_is_created(self):
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_USER_REGISTRATION).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_USER_REGISTRATION).count()
         page = self.app.get(reverse('signup'))
         form = page.forms['signup-form']
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
@@ -1251,29 +1291,29 @@ class AccountMailTests(BaseTest):
         form['password2'] = password
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_USER_REGISTRATION).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_USER_REGISTRATION).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
     def test_password_reset_mail_is_sent_and_mail_model_is_created(self):
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_PASSWORD_RESET).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_PASSWORD_RESET).count()
         page = self.app.get(reverse('password-reset'))
         form = page.forms['password-reset-form']
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         form['email'] = self.user.email
         page = form.submit()
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_PASSWORD_RESET).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_PASSWORD_RESET).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
     def test_mail_confirm_mail_is_sent_and_mail_model_is_created(self):
         user = self.user2
         self.assertEqual(user.email_confirmed, False)
-        mail_count_start = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
+        mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
         page = self.app.get(reverse('account_email'), user=user)
         form = page.forms['email-list-form']
         page = form.submit(name='action_send')
         self.assertEqual(page.status_code, 302)
-        mail_count_end = models.Mail.objects.filter(mail_type=models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
+        mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
 class PostTests(BaseTest):

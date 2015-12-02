@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save, pre_save
 from helper import helper
 from django.db.models.aggregates import Sum, Count
 from django.conf import settings
@@ -9,63 +8,12 @@ from mptt.models import MPTTModel, TreeForeignKey, TreeManager
 from mptt.fields import TreeManyToManyField
 from allauth.account.models import EmailAddress, EmailConfirmation
 from sorl.thumbnail import ImageField, get_thumbnail
-
 from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
-from django.core.cache import cache
-from django.core.mail.message import EmailMultiAlternatives
-from django.template.loader import render_to_string
 from cache.models import CachedModelMixin
 from cache.decorators import cached_property, cached_method
 from super_model import models as super_models
-
-
-
-
-#<Constants***********************************************************
-
-POST_TYPE_DRUG = 1
-POST_TYPE_BLOG = 2
-POST_TYPE_FORUM = 3
-POST_TYPE_COSMETICS = 4
-POST_TYPE_COMPONENT = 5
-POST_TYPE_BRAND = 6
-POST_TYPE_DRUG_DOSAGE_FORM = 7
-POST_TYPE_COSMETICS_DOSAGE_FORM = 8
-POST_TYPE_COSMETICS_LINE = 9
-POST_TYPE_COSMETICS_USAGE_AREA = 10
-POST_TYPE_DRUG_USAGE_AREA = 11
-POST_TYPE_CATEGORY = 12
-
-
-POST_TYPES = (
-    (POST_TYPE_DRUG, 'Препарат'),
-    (POST_TYPE_BLOG, 'Блог'),
-    (POST_TYPE_FORUM, 'Форум'),
-    (POST_TYPE_COMPONENT, 'Компонент'),
-    (POST_TYPE_COSMETICS, 'Косметика'),
-    (POST_TYPE_BRAND, 'Бренд'),
-    (POST_TYPE_DRUG_DOSAGE_FORM, 'Форма выпуска препарата'),
-    (POST_TYPE_COSMETICS_DOSAGE_FORM, 'Форма выпуска косметики'),
-    (POST_TYPE_COSMETICS_LINE, 'Линия косметики'),
-    (POST_TYPE_COSMETICS_USAGE_AREA, 'Область применения косметики'),
-    (POST_TYPE_DRUG_USAGE_AREA, 'Област применения препарата'),
-    (POST_TYPE_CATEGORY, 'Категория'),
-)
-
-
-
-POST_MARKS_FOR_COMMENT = (
-    (1, '1'),
-    (1, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-)
-
-
-
 
 
 COMPONENT_TYPE_VITAMIN = 1
@@ -80,30 +28,11 @@ COMPONENT_TYPES = (
 )
 
 
-
-
-
-
-#Constants>***********************************************************
-
-
-
-
-
 class History(super_models.SuperHistory):
     post = models.ForeignKey('Post', related_name='history_post', db_index=True)
-    mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
 
-
-
-
-
-
-#<Posts******************************************************************
 
 class Post(super_models.SuperPost):
-
-    post_type = models.IntegerField(choices=POST_TYPES, verbose_name='Вид записи', db_index=True )
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
     history_class = History
@@ -112,53 +41,46 @@ class Post(super_models.SuperPost):
         ('prozdo_main.views.PostDetail', 'get'),
     )
 
-
     @classmethod
     def get_post_type(cls):
         if cls == Drug:
-            return POST_TYPE_DRUG
+            return settings.POST_TYPE_DRUG
         elif cls == Blog:
-            return POST_TYPE_BLOG
-        #elif cls == Forum:
-        #    return POST_TYPE_FORUM
+            return settings.POST_TYPE_BLOG
         elif cls == Component:
-            return POST_TYPE_COMPONENT
+            return settings.POST_TYPE_COMPONENT
         elif cls == Cosmetics:
-            return POST_TYPE_COSMETICS
+            return settings.POST_TYPE_COSMETICS
         elif cls == Brand:
-            return POST_TYPE_BRAND
+            return settings.POST_TYPE_BRAND
         elif cls == DrugDosageForm:
-            return POST_TYPE_DRUG_DOSAGE_FORM
+            return settings.POST_TYPE_DRUG_DOSAGE_FORM
         elif cls == CosmeticsDosageForm:
-            return POST_TYPE_COSMETICS_DOSAGE_FORM
+            return settings.POST_TYPE_COSMETICS_DOSAGE_FORM
         elif cls == CosmeticsLine:
-            return POST_TYPE_COSMETICS_LINE
+            return settings.POST_TYPE_COSMETICS_LINE
         elif cls == CosmeticsUsageArea:
-            return POST_TYPE_COSMETICS_USAGE_AREA
+            return settings.POST_TYPE_COSMETICS_USAGE_AREA
         elif cls == DrugUsageArea:
-            return POST_TYPE_DRUG_USAGE_AREA
+            return settings.POST_TYPE_DRUG_USAGE_AREA
         elif cls == Category:
-            return POST_TYPE_CATEGORY
+            return settings.POST_TYPE_CATEGORY
 
     @property
     def is_drug(self):
-        return self.post_type == POST_TYPE_DRUG
+        return self.post_type == settings.POST_TYPE_DRUG
 
     @property
     def is_blog(self):
-        return self.post_type == POST_TYPE_BLOG
-
-    @property
-    def is_forum(self):
-        return self.post_type == POST_TYPE_FORUM
+        return self.post_type == settings.POST_TYPE_BLOG
 
     @property
     def is_component(self):
-        return self.post_type == POST_TYPE_COMPONENT
+        return self.post_type == settings.POST_TYPE_COMPONENT
 
     @property
     def is_cosmetics(self):
-        return self.post_type == POST_TYPE_COSMETICS
+        return self.post_type == settings.POST_TYPE_COSMETICS
 
 
     @classmethod
@@ -190,7 +112,6 @@ class Post(super_models.SuperPost):
         elif cls == Component:
             return reverse('component-list')
 
-
     @classmethod
     def get_list_url(cls):
         if cls == Component:
@@ -201,7 +122,6 @@ class Post(super_models.SuperPost):
             return reverse('blog-list')
         elif cls == Cosmetics:
             return reverse('cosmetics-list')
-
 
     @property
     def update_url(self):
@@ -226,29 +146,27 @@ class Post(super_models.SuperPost):
 
     @property
     def obj(self):
-        if self.post_type == POST_TYPE_DRUG:
+        if self.post_type == settings.POST_TYPE_DRUG:
             return self.drug
-        elif self.post_type == POST_TYPE_COMPONENT:
+        elif self.post_type == settings.POST_TYPE_COMPONENT:
             return self.component
-        elif self.post_type == POST_TYPE_BLOG:
+        elif self.post_type == settings.POST_TYPE_BLOG:
             return self.blog
-        elif self.post_type == POST_TYPE_FORUM:
-            return self.forum
-        elif self.post_type == POST_TYPE_COSMETICS:
+        elif self.post_type == settings.POST_TYPE_COSMETICS:
             return self.cosmetics
-        elif self.post_type == POST_TYPE_BRAND:
+        elif self.post_type == settings.POST_TYPE_BRAND:
             return self.brand
-        elif self.post_type == POST_TYPE_DRUG_DOSAGE_FORM:
-            return self.drug_dosage_form
-        elif self.post_type == POST_TYPE_COSMETICS_DOSAGE_FORM:
-            return self.cosmetics_dosage_form
-        elif self.post_type == POST_TYPE_COSMETICS_LINE:
-            return self.cosmetics_line
-        elif self.post_type == POST_TYPE_COSMETICS_USAGE_AREA:
-            return self.cosmetics_usage_area
-        elif self.post_type == POST_TYPE_DRUG_USAGE_AREA:
-            return self.drug_usage_area
-        elif self.post_type == POST_TYPE_CATEGORY:
+        elif self.post_type == settings.POST_TYPE_DRUG_DOSAGE_FORM:
+            return self.drugdosageform
+        elif self.post_type == settings.POST_TYPE_COSMETICS_DOSAGE_FORM:
+            return self.cosmeticsdosageform
+        elif self.post_type == settings.POST_TYPE_COSMETICS_LINE:
+            return self.cosmeticsline
+        elif self.post_type == settings.POST_TYPE_COSMETICS_USAGE_AREA:
+            return self.cosmeticsusagearea
+        elif self.post_type == settings.POST_TYPE_DRUG_USAGE_AREA:
+            return self.drugusagearea
+        elif self.post_type == settings.POST_TYPE_CATEGORY:
             return self.category
 
     def get_absolute_url(self):
@@ -259,7 +177,7 @@ class Post(super_models.SuperPost):
             return reverse('post-detail-pk', kwargs={'pk': self.pk})
 
     def get_mark_by_request(self, request):
-        if request_with_empty_guest(request):
+        if super_models.request_with_empty_guest(request):
             return 0
         user = request.user
         if user.is_authenticated():
@@ -293,30 +211,6 @@ class Post(super_models.SuperPost):
     def marks_count(self):
         return History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED, deleted=False).count()
 
-    def save(self, *args, **kwargs):
-        self.post_type = self.get_post_type()
-        super().save(*args, **kwargs)
-        History.save_history(history_type=super_models.HISTORY_TYPE_POST_CREATED, post=self)
-
-    """
-    @cached_property
-    def first_level_available_comments_created_dec(self):
-        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED, parent_id=None).order_by('-created')
-
-    @cached_property
-    def first_level_available_comments_created_inc(self):
-        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED, parent_id=None).order_by('created')
-
-
-    @cached_property
-    def available_comments_created_dec(self):
-        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED).order_by('-created')
-
-    @cached_property
-    def available_comments_created_inc(self):
-        return self.comments.filter(status=COMMENT_STATUS_PUBLISHED).order_by('created')
-    """
-
 
 class Brand(Post):
     def get_absolute_url(self):
@@ -324,6 +218,7 @@ class Brand(Post):
 
     def make_alias(self):
         return ''
+
 
 class DrugDosageForm(Post):
     def get_absolute_url(self):
@@ -348,6 +243,7 @@ class CosmeticsLine(Post):
     def make_alias(self):
         return ''
 
+
 class CosmeticsUsageArea(Post):
     def get_absolute_url(self):
         return "{0}?usage_areas={1}".format(reverse('cosmetics-list'), self.pk)
@@ -362,8 +258,6 @@ class DrugUsageArea(Post):
 
     def make_alias(self):
         return ''
-
-
 
 
 class Category(Post, MPTTModel):  #Для блога
@@ -388,7 +282,6 @@ class Component(Post):
         for component_type in COMPONENT_TYPES:
             if self.component_type == component_type[0]:
                 return component_type[1]
-
 
 class Drug(Post):
     body = RichTextField(verbose_name='Описание', blank=True)
@@ -441,10 +334,8 @@ class Cosmetics(Post):
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')
     objects = super_models.PostManager()
 
-
     def type_str(self):
         return 'Косметика'
-
 
     #TODO проверить, убрать лишнее
     @property
@@ -467,8 +358,6 @@ class Cosmetics(Post):
             return get_thumbnail(self.image, '220x400', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
-
-
 
 class Blog(Post):
     class Meta:
@@ -542,24 +431,18 @@ class Blog(Post):
 
         return mark
 
-#class Forum(Post):
-#    body = models.TextField(verbose_name='Содержимое', blank=True)
-
-
-#Post>*******************************************************************
-
 
 class Comment(super_models.SuperComment):
     class Meta:
         ordering = ['-created']
     post = models.ForeignKey(Post, related_name='comments', db_index=True)
-    post_mark = models.IntegerField(choices=POST_MARKS_FOR_COMMENT, blank=True, null=True, verbose_name='Оценка')
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
-    confirmed = models.BooleanField(default=False, db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
-    delete_mark = models.BooleanField(verbose_name='Пометка удаления', default=False, db_index=True)
+    txt_template_name = 'prozdo_main/comment/email/answer_to_comment.txt'
+    html_template_name = 'prozdo_main/comment/email/answer_to_comment.html'
 
-
+    confirm_comment_text_template_name = 'prozdo_main/comment/email/confirm_comment_html_template.html'
+    confirm_comment_html_template_name = 'prozdo_main/comment/email/confirm_comment_text_template.txt'
 
     def __str__(self):
         return self.short_body
@@ -567,103 +450,12 @@ class Comment(super_models.SuperComment):
     def type_str(self):
         return 'Сообщение'
 
-
     def get_confirm_url(self):
         return reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
 
     @property
     def consult_done(self):
         return self.available_children.filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR).exists()
-
-
-
-    def send_answer_to_comment_message(self):
-        user = self.parent.user
-        if user.user_profile.receive_messages and not self.user == self.parent.user and \
-                        self.status == super_models.COMMENT_STATUS_PUBLISHED and \
-                not Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT, entity_id=self.pk).exists():
-            email_to = user.email
-
-            email_sent = Mail.objects.filter(mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
-                                                     entity_id=self.pk,
-                                                     user=user).exists()
-            if email_sent:
-                return False
-
-            txt_template_name = 'prozdo_main/comment/email/answer_to_comment.txt'
-            html_template_name = 'prozdo_main/comment/email/answer_to_comment.html'
-
-            text = render_to_string(txt_template_name, {'comment': self, 'site_url': settings.SITE_URL})
-            html = render_to_string(html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
-
-            subject = 'Получен ответ на Ваш отзыв на Prozdo.ru'
-            from_email = settings.DEFAULT_FROM_EMAIL
-
-            try:
-                msg = EmailMultiAlternatives(subject, text, from_email, [email_to])
-                msg.attach_alternative(html, "text/html")
-                res = msg.send()
-                if res:
-                    Mail.objects.create(
-                                mail_type=MAIL_TYPE_ANSWER_TO_COMMENT,
-                                user=user if user.is_authenticated() else None,
-                                subject=subject,
-                                body_html=html,
-                                body_text=text,
-                                email=email_to,
-                                ip=self.ip,
-                                session_key=self.session_key,
-                                entity_id=self.pk,
-                                email_from=from_email,
-                            )
-                    return True
-
-            except:
-                pass
-
-
-    def send_confirmation_mail(self, user=None, request=None):
-        to = self.email
-        if to in (settings.AUTO_APPROVE_EMAILS + settings.AUTO_DONT_APPROVE_EMAILS):
-            return
-        if not user and request:
-            user = request.user
-        if request:
-            ip = request.client_ip
-            session_key = request.session.prozdo_key
-        else:
-            ip = None
-            session_key = None
-
-        confirm_comment_text_template_name = 'prozdo_main/comment/email/confirm_comment_html_template.html'
-        confirm_comment_html_template_name = 'prozdo_main/comment/email/confirm_comment_text_template.txt'
-        if not user.email_confirmed and not self.confirmed:
-                html = render_to_string(confirm_comment_html_template_name, {'comment': self, 'site_url': settings.SITE_URL})
-                text = render_to_string(confirm_comment_text_template_name, {'comment': self, 'site_url': settings.SITE_URL})
-                subject = 'Вы оставили отзыв на {}'.format('Prozdo.ru')
-                from_email = settings.DEFAULT_FROM_EMAIL
-                try:
-                    msg = EmailMultiAlternatives(subject, text, from_email, [to])
-                    msg.attach_alternative(html, "text/html")
-                    res = msg.send()
-                    if res:
-                        Mail.objects.create(
-                            mail_type=MAIL_TYPE_COMMENT_CONFIRM,
-                            user=user if user.is_authenticated() else None,
-                            subject=subject,
-                            body_html=html,
-                            body_text=text,
-                            email=to,
-                            ip=ip,
-                            session_key=session_key,
-                            entity_id=self.pk,
-                            email_from=from_email,
-                        )
-                except:
-                    pass
-
-
-
 
     @cached_property
     def comment_mark(self):
@@ -675,7 +467,6 @@ class Comment(super_models.SuperComment):
             mark = 0
         return mark
 
-
     @cached_property
     def complain_count(self):
         try:
@@ -686,30 +477,12 @@ class Comment(super_models.SuperComment):
             count = 0
         return count
 
-
-    def save(self, *args, **kwargs):
-        saved_version = self.saved_version
-        super().save(*args, **kwargs)
-        History.save_history(history_type=super_models.HISTORY_TYPE_COMMENT_CREATED, post=self.post, comment=self, ip=self.ip, session_key=self.session_key, user=self.user)
-
-        try:
-            old_status = saved_version.status
-        except:
-            old_status = None
-
-        if self.status == super_models.COMMENT_STATUS_PUBLISHED and old_status != self.status and self.parent and self.parent.confirmed and self.parent.user:
-            self.send_answer_to_comment_message()
-
-
-    #******************
-
-
     @cached_method()
     def hist_exists_by_comment_and_user(self, history_type, user):
         return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
 
     def hist_exists_by_request(self, history_type, request):
-        if request_with_empty_guest(request):
+        if super_models.request_with_empty_guest(request):
             return False
         user = request.user
         if user and user.is_authenticated():
@@ -722,17 +495,17 @@ class Comment(super_models.SuperComment):
         return hist_exists
 
     def show_do_action_button(self, history_type, request):
-        if request_with_empty_guest(request):
+        if super_models.request_with_empty_guest(request):
             return True
         return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
     def show_undo_action_button(self, history_type, request):
-        if request_with_empty_guest(request):
+        if super_models.request_with_empty_guest(request):
             return False
         return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
 
     def is_author_for_show_buttons(self, request):
-        if request_with_empty_guest(request):
+        if super_models.request_with_empty_guest(request):
             return False
         user = request.user
         if user and user.is_authenticated():
@@ -744,7 +517,6 @@ class Comment(super_models.SuperComment):
             else:
                 return self.session_key == session_key
 
-    #******************
 
     def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
         if user and user.is_authenticated():
@@ -769,25 +541,9 @@ class Comment(super_models.SuperComment):
             return True
         return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
-    #def can_undo_action(self, history_type, user, session_key):
-    #    return self.hist_exists_by_data(history_type=history_type, user=user, session_key=session_key) and not self.is_author_for_save_history(user=user, session_key=session_key)
-
-    def is_author_for_save_history(self, user=None, ip=None, session_key=None):
-        if user and user.is_authenticated():
-            return user == self.user
-        else:
-            return self.session_key == session_key or self.ip == ip
-
-    #******************
-
 
 class UserProfile(super_models.SuperUserProfile):
-    # required by the auth model
-
-    #first_name = models.CharField(max_length=800, verbose_name='Имя', blank=True)
-    #last_name = models.CharField(max_length=800, verbose_name='Фамилия', blank=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
-
 
     @cached_property
     def can_publish_comment(self):
@@ -837,12 +593,6 @@ class UserProfile(super_models.SuperUserProfile):
             karm = 0
         return karm if karm is not None else 0
 
-
-    def get_email_confirmed(self):
-        return EmailAddress.objects.filter(user=self.user, verified=True, email=self.user.email).exists()
-
-
-
     @property
     def thumb50(self):
         try:
@@ -857,88 +607,7 @@ class UserProfile(super_models.SuperUserProfile):
         except:
             return ''
 
-
-def create_user_profile(sender, instance, created, **kwargs):
-    profile, created = UserProfile.objects.get_or_create(user=instance)
-    if created:
-        profile.save()
-
-def confirm_user_comments(sender, instance, created, **kwargs):
-    if instance.email_confirmed:
-        for comment in instance.comments.filter(confirmed=False):
-            comment.confirmed = True
-            comment.save()
-
-def confirm_user_comments_by_email(sender, instance, created, **kwargs):
-    if instance.verified:
-        for comment in instance.user.comments.filter(confirmed=False):
-            comment.confirmed = True
-            comment.save()
-
-
-post_save.connect(create_user_profile, sender=User)
-post_save.connect(confirm_user_comments, sender=User)
-post_save.connect(confirm_user_comments_by_email, sender=EmailAddress)
-
-
-
-
-
-
-MAIL_TYPE_COMMENT_CONFIRM = 1
-MAIL_TYPE_USER_REGISTRATION = 2
-MAIL_TYPE_PASSWORD_RESET = 3
-MAIL_TYPE_ANSWER_TO_COMMENT = 4
-MAIL_TYPE_EMAIL_CONFIRMATION = 5
-
-MAIL_TYPES = (
-    (MAIL_TYPE_COMMENT_CONFIRM, 'Подтверждение отзыва'),
-    (MAIL_TYPE_USER_REGISTRATION, 'Регистрация пользователя'),
-    (MAIL_TYPE_PASSWORD_RESET, 'Сброс пароля'),
-    (MAIL_TYPE_ANSWER_TO_COMMENT, 'Ответ на отзыв'),
-    (MAIL_TYPE_EMAIL_CONFIRMATION, 'Подтверждение электронного адреса'),
-)
-
-class Mail(super_models.SuperModel):
-    mail_type = models.PositiveIntegerField(choices=MAIL_TYPES, db_index=True)
-    subject = models.TextField()
-    body_html=models.TextField(default='', blank=True)
-    body_text=models.TextField(default='', blank=True)
-    email = models.EmailField(db_index=True)
-    user = models.ForeignKey(User, blank=True, null=True, db_index=True)
-    ip = models.CharField(max_length=300, null=True, blank=True, db_index=True)
-    session_key = models.TextField(null=True, blank=True, db_index=True)
-    email_from = models.EmailField(db_index=True)
-    entity_id = models.CharField(max_length=20, blank=True, db_index=True)
-
-    @property
-    def mail_type_text(self):
-        for mail_type, text in MAIL_TYPES:
-            if mail_type == self.mail_type:
-                return text
-
-    def __str__(self):
-        return '{0} | {1} | {2} | {3}'.format(self.mail_type_text, self.email, self.user, self.created)
-
-def request_with_empty_guest(request):
-    user = request.user
-    if user.is_authenticated():
-        return False
-
-    session_key = request.session.prozdo_key
-
-    if not session_key:
-        return True
-
-    exists = History.exists(session_key)
-    if not exists:
-        return True
-
-    return False
-
-
-
-
-
+class Mail(super_models.SuperMail):
+    pass
 
 

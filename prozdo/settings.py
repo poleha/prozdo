@@ -81,22 +81,20 @@ INSTALLED_APPS = (
     'contact_form',
 )
 
-
-
-
 MIDDLEWARE_CLASSES = (
 
     'django.middleware.http.ConditionalGetMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'prozdo_main.middleware.SetClientIpMiddleware',
-    'prozdo_main.middleware.SetProzdoKeyMiddleware',
+
     'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'super_model.middleware.SetClientIpMiddleware',
+    'super_model.middleware.SetProzdoKeyMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -104,9 +102,6 @@ MIDDLEWARE_CLASSES = (
     'htmlmin.middleware.HtmlMinifyMiddleware',
     'htmlmin.middleware.MarkRequestMiddleware',
 )
-
-
-
 
 ROOT_URLCONF = 'prozdo.urls'
 
@@ -435,3 +430,38 @@ HISTORY_EXISTS_BY_COMMENT_DURATION = 60 * 60 * 24
 
 BASE_POST_CLASS = 'prozdo_main.models.Post'
 BASE_HISTORY_CLASS = 'prozdo_main.models.History'
+BASE_MAIL_CLASS = 'prozdo_main.models.Mail'
+BASE_USER_PROFILE_CLASS = 'prozdo_main.models.UserProfile'
+
+SITE_NAME = 'Prozdo.ru'
+
+
+
+POST_TYPE_DRUG = 1
+POST_TYPE_BLOG = 2
+POST_TYPE_FORUM = 3
+POST_TYPE_COSMETICS = 4
+POST_TYPE_COMPONENT = 5
+POST_TYPE_BRAND = 6
+POST_TYPE_DRUG_DOSAGE_FORM = 7
+POST_TYPE_COSMETICS_DOSAGE_FORM = 8
+POST_TYPE_COSMETICS_LINE = 9
+POST_TYPE_COSMETICS_USAGE_AREA = 10
+POST_TYPE_DRUG_USAGE_AREA = 11
+POST_TYPE_CATEGORY = 12
+
+
+POST_TYPES = (
+    (POST_TYPE_DRUG, 'Препарат'),
+    (POST_TYPE_BLOG, 'Блог'),
+    (POST_TYPE_FORUM, 'Форум'),
+    (POST_TYPE_COMPONENT, 'Компонент'),
+    (POST_TYPE_COSMETICS, 'Косметика'),
+    (POST_TYPE_BRAND, 'Бренд'),
+    (POST_TYPE_DRUG_DOSAGE_FORM, 'Форма выпуска препарата'),
+    (POST_TYPE_COSMETICS_DOSAGE_FORM, 'Форма выпуска косметики'),
+    (POST_TYPE_COSMETICS_LINE, 'Линия косметики'),
+    (POST_TYPE_COSMETICS_USAGE_AREA, 'Область применения косметики'),
+    (POST_TYPE_DRUG_USAGE_AREA, 'Област применения препарата'),
+    (POST_TYPE_CATEGORY, 'Категория'),
+)
