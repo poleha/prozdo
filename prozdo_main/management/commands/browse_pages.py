@@ -21,7 +21,8 @@ class Command(BaseCommand):
         urls += ('/sitemap.xml',)
 
         post_urls = (post.get_absolute_url() for post in models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED)
-                     if post.last_modified > (timezone.now() - timezone.timedelta(seconds=60 * 35)))
+                     if post.last_modified > (timezone.now() - timezone.timedelta(seconds=60 * 35))
+                    and (post.is_blog or post.is_drug or post.is_component or post.is_cosmetics))
 
         urls += tuple(post_urls)
         errors = []

@@ -354,6 +354,7 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
                 except:
                     pass
 
+
 class AbstractModel(SuperModel, CachedModelMixin):
     class Meta:
         abstract = True

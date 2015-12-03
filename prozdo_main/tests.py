@@ -42,28 +42,54 @@ class BaseTest(WebTest):
             body='body',
             title = 'title_component',
             component_type = models.COMPONENT_TYPE_MINERAL,
+            status=super_models.POST_STATUS_PUBLISHED,
         )
 
 
         self.drug_dosage_form = models.DrugDosageForm.objects.create(
             title = 'title_drug_dosage_form',
+            status=super_models.POST_STATUS_PUBLISHED,
         )
 
 
         self.drug_usage_area = models.DrugUsageArea.objects.create(
             title = 'title_drug_usage_area',
+            status=super_models.POST_STATUS_PUBLISHED,
         )
 
 
         self.drug = models.Drug.objects.create(
             title='title_drug',
             body='body',
+            status=super_models.POST_STATUS_PUBLISHED,
 
         )
 
         self.blog = models.Blog.objects.create(
             title='title_blog',
             body='body_blog',
+            status=super_models.POST_STATUS_PUBLISHED,
+
+        )
+
+        self.brand = models.Brand.objects.create(
+            title='title_brand',
+            status=super_models.POST_STATUS_PUBLISHED,
+
+        )
+
+        self.line = models.CosmeticsLine.objects.create(
+            title='title_line',
+            status=super_models.POST_STATUS_PUBLISHED,
+
+        )
+
+        self.cosmetics = models.Cosmetics.objects.create(
+            title='title_cosmetics',
+            body='body_cosmetics',
+            brand=self.brand,
+            line=self.line,
+            status=super_models.POST_STATUS_PUBLISHED,
 
         )
 
@@ -1521,3 +1547,61 @@ class ProzdoMiddlewareTests(BaseTest):
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         self.assertNotEqual(self.app.session.get('prozdo_key', None), None)
 """
+
+
+class PageTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.posts = []
+
+        for k in range(10):
+            drug = models.Drug.objects.create(
+            title='title_drug{0}'.format(k),
+            body='body',
+            status=super_models.POST_STATUS_PUBLISHED,
+            )
+            self.posts.append(drug)
+
+            cosmetics = models.Cosmetics.objects.create(
+                title='title_cosmetics_{0}'.format(k),
+                body='body',
+                status=super_models.POST_STATUS_PUBLISHED,
+                brand=self.brand,
+            )
+            self.posts.append(cosmetics)
+
+            blog = models.Blog.objects.create(
+                title='title_blog_{0}'.format(k),
+                body='body',
+                status=super_models.POST_STATUS_PUBLISHED,
+            )
+            self.posts.append(blog)
+
+            component = models.Component.objects.create(
+                title='title_component_{0}'.format(k),
+                body='body',
+                status=super_models.POST_STATUS_PUBLISHED,
+                component_type=models.COMPONENT_TYPE_MINERAL,
+            )
+            self.posts.append(component)
+
+    def test_main_pages_are_available(self):
+
+        count = 0
+
+        urls = tuple()
+        urls += (reverse('blog-list'),)
+        urls += (reverse('component-list'),)
+        urls += (reverse('drug-list'),)
+        urls += (reverse('cosmetics-list'),)
+        urls += (reverse('main-page'),)
+        urls += ('/sitemap.xml',)
+
+        post_urls = (post.get_absolute_url() for post in self.posts)
+
+        urls += tuple(post_urls)
+
+        for url in urls:
+            count += 1
+            page = self.app.get(url)
+            self.assertEqual(page.status_code, 200)
