@@ -171,6 +171,7 @@ USE_TZ = True
 SITE_ID = '1'
 SITE_URL = 'http://prozdo.ru'
 DEFAULT_FROM_EMAIL = 'Prozdo.ru <info@prozdo.ru>'
+SERVER_EMAIL = 'info@prozdo.ru'
 INTERNAL_IPS = ['127.0.0.1']
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
