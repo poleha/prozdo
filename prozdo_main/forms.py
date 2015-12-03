@@ -1,12 +1,10 @@
 from django import forms
 from . import models
-import re, os
+import re
 from django.forms import ValidationError
 from allauth.account.forms import SignupForm
 from django.utils.html import conditional_escape
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-#from multi_image_upload.models import save_thumbs
 
 
 class CommentForm(forms.ModelForm):
@@ -147,13 +145,13 @@ class PostFilterForm(forms.Form):
         from string import digits, ascii_lowercase
         super().__init__(*args, **kwargs)
         if isinstance(self, DrugFilterForm):
-            post_type = models.POST_TYPE_DRUG
+            post_type = settings.POST_TYPE_DRUG
             #url = models.Drug.get_list_url()
         elif isinstance(self, CosmeticsFilterForm):
-            post_type = models.POST_TYPE_COSMETICS
+            post_type = settings.POST_TYPE_COSMETICS
             #url = models.Cosmetics.get_list_url()
         elif isinstance(self, ComponentFilterForm):
-            post_type = models.POST_TYPE_COMPONENT
+            post_type = settings.POST_TYPE_COMPONENT
             #url = models.Component.get_list_url()
         alph = ()
         letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
