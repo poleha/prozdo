@@ -1276,6 +1276,10 @@ class CacheTests(BaseTest):
 
         self.assertNotEqual(page.context, None)
 
+        page = self.app.get(self.drug.get_absolute_url(), user=self.user2)
+
+        self.assertNotEqual(page.context, None)
+
 
 class AccountMailTests(BaseTest):
     def test_confirmation_mail_is_sent_on_registration_and_mail_model_is_created(self):

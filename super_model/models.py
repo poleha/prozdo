@@ -888,7 +888,7 @@ def request_with_empty_guest(request):
     if user.is_authenticated():
         return False
 
-    session_key = request.session.prozdo_key
+    session_key = request.session['prozdo_key']
 
     if not session_key:
         return True
