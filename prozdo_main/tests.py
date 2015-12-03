@@ -5,11 +5,8 @@ from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
 from django.core.cache import cache
 from super_model import models as super_models
-#from cacheops import invalidate_all
-from django.core.exceptions import ValidationError
 from haystack.management.commands import rebuild_index, update_index
-#from django.test.client import Client
-#c = Client()
+from helper import app_settings
 
 class BaseTest(WebTest):
     def setUp(self):
@@ -123,7 +120,7 @@ class CommentAntispanTests(BaseTest):
         body = 'Привет, это хороший отзыв'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
-        bad_words = settings.BAD_WORDS
+        bad_words = app_settings.BAD_WORDS
         for bad_word in bad_words:
             bad_body = body + bad_word
             form['email'] = email
@@ -145,7 +142,7 @@ class CommentAntispanTests(BaseTest):
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
 
-        bad_words = settings.BAD_WORDS
+        bad_words = app_settings.BAD_WORDS
         for bad_word in bad_words:
             bad_username = username + bad_word
             form['email'] = email
@@ -239,7 +236,7 @@ class CommentAntispanTests(BaseTest):
         form = page.forms['comment-form']
         body = 'zzzzzzzz1111'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
-        username = settings.BAD_WORDS[0]
+        username = app_settings.BAD_WORDS[0]
         form['email'] = email
         form['username'] = username
         form['body'] = body
@@ -259,7 +256,7 @@ class CommentAntispanTests(BaseTest):
         form = page.forms['comment-form']
         body = 'zzzzzzzz1111'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
-        username = settings.BAD_WORDS[0]
+        username = app_settings.BAD_WORDS[0]
         form['email'] = email
         form['username'] = username
         form['body'] = body
@@ -277,7 +274,7 @@ class CommentAntispanTests(BaseTest):
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
         form = page.forms['comment-form']
-        username = settings.BAD_WORDS[0]
+        username = app_settings.BAD_WORDS[0]
         form['email'] = email
         form['username'] = username
         body += 'а'
@@ -300,7 +297,7 @@ class CommentAntispanTests(BaseTest):
         form = page.forms['comment-form']
         body = 'zzzzzzzz1111'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
-        #username = settings.BAD_WORDS[0]
+        #username = app_settings.BAD_WORDS[0]
         form['email'] = email
         #form['username'] = username
         form['body'] = body
@@ -883,9 +880,9 @@ class CommentConfirmationTests(BaseTest):
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = settings.AUTO_APPROVE_EMAILS[0]
-        form['body'] = settings.BAD_WORDS[0]
+        form['body'] = app_settings.BAD_WORDS[0]
         form['email'] = email
-        form['username'] = settings.BAD_WORDS[1]
+        form['username'] = app_settings.BAD_WORDS[1]
         page = form.submit()
         self.assertEqual(page.status_code, 302)
         mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
@@ -899,9 +896,9 @@ class CommentConfirmationTests(BaseTest):
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
         form = page.forms['comment-form']
         email = settings.AUTO_DONT_APPROVE_EMAILS[0]
-        form['body'] = settings.BAD_WORDS[0]
+        form['body'] = app_settings.BAD_WORDS[0]
         form['email'] = email
-        form['username'] = settings.BAD_WORDS[1]
+        form['username'] = app_settings.BAD_WORDS[1]
         page = form.submit()
         self.assertEqual(page.status_code, 302)
         mail_count_1 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()

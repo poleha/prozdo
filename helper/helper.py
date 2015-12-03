@@ -1,7 +1,6 @@
-from django.conf import settings
 import string
 import random
-import inspect
+from . import app_settings
 
 def transliterate(text):
     text = text.lower()
@@ -116,7 +115,7 @@ def cut_text(text, length=100):
     return res
 
 def check_bad_words(text):
-    bad_words = settings.BAD_WORDS
+    bad_words = app_settings.BAD_WORDS
     for bad_word in bad_words:
         if bad_word in text:
             return True
