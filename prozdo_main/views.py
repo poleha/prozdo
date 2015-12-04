@@ -1012,10 +1012,10 @@ class ProzdoAutocompleteView(generic.View):
         if len(q) > 2:
             queryset = models.Post.objects.filter(title__icontains=q).annotate(
         entry_type=Case(
-         When(post_type=models.POST_TYPE_DRUG, then=Value(1)),
-         When(post_type=models.POST_TYPE_BLOG, then=Value(2)),
-         When(post_type=models.POST_TYPE_COSMETICS, then=Value(3)),
-         When(post_type=models.POST_TYPE_COMPONENT, then=Value(4)),
+         When(post_type=settings.POST_TYPE_DRUG, then=Value(1)),
+         When(post_type=settings.POST_TYPE_BLOG, then=Value(2)),
+         When(post_type=settings.POST_TYPE_COSMETICS, then=Value(3)),
+         When(post_type=settings.POST_TYPE_COMPONENT, then=Value(4)),
          default=Value(5),
          output_field=CharField(),
      )).annotate(comment_count=Count('comments')).order_by('-comment_count', 'entry_type')[:5]

@@ -1523,6 +1523,24 @@ class SearchTests(BaseTest):
         self.assertEqual(page.status_code, 200)
         self.assertIn(comment.get_absolute_url(), page)
 
+    def test_simple_search_autocomplete_test(self):
+        params = {
+            'q': self.drug.title,
+        }
+
+        page = self.app.post(reverse('autocomplete'), params=params)
+        self.assertIn(self.drug.title, page)
+
+    def test_search_autocomplete_test_with_wring_data(self):
+        title = 'rru34jhrwuier74fhuyfsd'
+        params = {
+            'q': title,
+        }
+
+        page = self.app.post(reverse('autocomplete'), params=params)
+        self.assertNotIn(title, page)
+
+
 
 """
 class ProzdoMiddlewareTests(BaseTest):
