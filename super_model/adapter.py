@@ -1,14 +1,16 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.adapter import DefaultAccountAdapter
-from .models import User, Mail
+from .models import User
 from super_model.models import MAIL_TYPE_USER_REGISTRATION, MAIL_TYPE_EMAIL_CONFIRMATION, MAIL_TYPE_PASSWORD_RESET
 from django.core.exceptions import ValidationError
-from .forms import validate_contains_russian, validate_first_is_letter, validate_username
-from django.conf import settings
+from django.utils.module_loading import import_string
+from .validators import validate_contains_russian, validate_first_is_letter, validate_username
+from .app_settings import settings
 
+Mail = import_string(settings.BASE_MAIL_CLASS)
 
 #I could do it with a signal, but it looks more convenient to store apapter here
-class ProzdoSocialAccountAdapter(DefaultSocialAccountAdapter):
+class SuperSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         if not request.user.is_authenticated():
             email_adress = None
@@ -65,7 +67,7 @@ class ProzdoSocialAccountAdapter(DefaultSocialAccountAdapter):
             return False
 
 
-class ProzdoAccountAdapter(DefaultAccountAdapter):
+class SuperAccountAdapter(DefaultAccountAdapter):
     def send_mail(self, template_prefix, email, context):
         msg = self.render_mail(template_prefix, email, context)
         res = msg.send()

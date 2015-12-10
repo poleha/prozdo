@@ -64,8 +64,8 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'mptt',
     'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.openid',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
     'prozdo_main',
@@ -75,7 +75,7 @@ INSTALLED_APPS = (
     'reversion',
     'ckeditor',
     'ckeditor_uploader',
-    #'cacheops',
+    'mptt',
     'django_mobile',
     'haystack',
     'contact_form',
@@ -213,8 +213,8 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_USERNAME_REQUIRED = True
-SOCIALACCOUNT_ADAPTER  = "prozdo_main.adapter.ProzdoSocialAccountAdapter"
-ACCOUNT_ADAPTER = "prozdo_main.adapter.ProzdoAccountAdapter"
+SOCIALACCOUNT_ADAPTER  = "super_model.adapter.SuperSocialAccountAdapter"
+ACCOUNT_ADAPTER = "super_model.adapter.SuperAccountAdapter"
 
 
 AUTHENTICATION_BACKENDS = (
