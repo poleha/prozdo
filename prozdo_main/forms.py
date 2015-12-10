@@ -1,8 +1,6 @@
 from django import forms
 from . import models
-from allauth.account.forms import SignupForm
 from django.conf import settings
-from super_model import validators
 from super_model import forms as super_forms
 
 
@@ -61,40 +59,6 @@ class CommentsOptionsForm(forms.Form):
     show_type= forms.ChoiceField(choices=COMMENTS_SHOW_TYPE_CHOICES, label='Вид показа отзывов', initial=COMMENTS_SHOW_TYPE_PLAIN, required=False)
 
 
-class UserNameField(forms.CharField):
-    default_validators = [validators.validate_first_is_letter, validators.validate_contains_russian, validators.validate_username]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, min_length=settings.ACCOUNT_USERNAME_MIN_LENGTH, max_length=30, label='Имя пользователя', **kwargs)
-
-
-"""
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = models.UserProfile
-        fields = ('image',)
-"""
-
-class ProzdoSignupForm(SignupForm):
-    required_css_class = 'required'
-    image = forms.ImageField(label='Изображение', required=False)
-    username = UserNameField()
-
-    def save(self, request, *args, **kwargs):
-        user = super().save(request, *args, **kwargs)
-        if 'image' in self.cleaned_data:
-            user_profile = user.user_profile
-            user_profile.image = self.cleaned_data['image']
-            user_profile.save()
-            #save_path = os.path.join(settings.MEDIA_ROOT)
-            #storage = FileSystemStorage(save_path)
-            #path = user_profile.image.path
-            #name = os.path.split(path)[-1]
-            #save_thumbs(storage, settings.USER_PROFILE_THUMB_SETTINGS, path, 'discount_shop',  name)
-        return user
-
-
-
 #alphabet = (('а', 'а'), )
 
 
@@ -136,21 +100,6 @@ class CosmeticsFilterForm(PostFilterForm):
     line = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
-
-
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = models.UserProfile
-        fields = ('image', 'receive_messages')
-
-    image = forms.ImageField(label='Изображение', widget=super_forms.SuperImageClearableFileInput(thumb_name='thumb100'), required=False)
-
-
-class UserForm(forms.ModelForm):
-    username = UserNameField()
-    class Meta:
-        model = models.User
-        fields = ('username', 'first_name', 'last_name')
 
 
 class DrugForm(forms.ModelForm):

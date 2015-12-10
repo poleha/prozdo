@@ -646,7 +646,7 @@ class MainPageView(generic.TemplateView):
 
 class ProzdoSignupView(SignupView):
     template_name = 'prozdo_main/user/signup.html'
-    form_class = forms.ProzdoSignupForm
+    form_class = super_forms.SuperSignupForm
 
 class ProzdoLoginView(LoginView):
     template_name = 'prozdo_main/user/login.html'
@@ -720,11 +720,11 @@ class UserProfileView(generic.TemplateView):
         context['user'] = user
         #context['user_profile'] = user_profile
         if user_profile_form is None:
-            user_profile_form = forms.UserProfileForm(instance=user_profile)
+            user_profile_form = super_forms.UserProfileForm(instance=user_profile)
         context['user_profile_form'] = user_profile_form
 
         if user_form is None:
-            user_form = forms.UserForm(instance=user)
+            user_form = super_forms.UserForm(instance=user)
         context['user_form'] = user_form
         return context
 
@@ -733,8 +733,8 @@ class UserProfileView(generic.TemplateView):
     def post(self, request, *args, **kwargs):
         user = self.request.user
         user_profile = self.request.user.user_profile
-        user_profile_form = forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        user_form = forms.UserForm(request.POST,instance=user)
+        user_profile_form = super_forms.UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        user_form = super_forms.UserForm(request.POST,instance=user)
         if user_form.is_valid() and user_profile_form.is_valid():
             user_form.save()
             user_profile_form.save()
