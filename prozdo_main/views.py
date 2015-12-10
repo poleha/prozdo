@@ -293,20 +293,20 @@ class PostListFilterMixin(PostViewMixin, ProzdoListView):
 
     def get_filter_form(self):
         if self.request.method.lower() == 'post':
-            d = self.request.POST
+            data = self.request.POST
         else:
-            d = self.request.GET
+            data = self.request.GET
         if self.model == models.Drug:
             if not hasattr(self, '_drug_filter_form'):
-                self._drug_filter_form = forms.DrugFilterForm(d)
+                self._drug_filter_form = forms.DrugFilterForm(data)
             return self._drug_filter_form
         elif self.model == models.Cosmetics:
             if not hasattr(self, '_cosmetics_filter_form'):
-                self._cosmetics_filter_form = forms.CosmeticsFilterForm(d)
+                self._cosmetics_filter_form = forms.CosmeticsFilterForm(data)
             return self._cosmetics_filter_form
         elif self.model == models.Component:
             if not hasattr(self, '_component_filter_form'):
-                self._component_filter_form = forms.ComponentFilterForm(d)
+                self._component_filter_form = forms.ComponentFilterForm(data)
             return self._component_filter_form
         else:
             return None

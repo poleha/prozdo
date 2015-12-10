@@ -2,6 +2,7 @@ from django import forms
 from . import models
 from django.conf import settings
 from super_model import forms as super_forms
+from super_model import fields as super_fields
 
 
 class CommentForm(forms.ModelForm):
@@ -59,43 +60,20 @@ class CommentsOptionsForm(forms.Form):
     show_type= forms.ChoiceField(choices=COMMENTS_SHOW_TYPE_CHOICES, label='Вид показа отзывов', initial=COMMENTS_SHOW_TYPE_PLAIN, required=False)
 
 
-#alphabet = (('а', 'а'), )
-
-
-class PostFilterForm(forms.Form):
-    alphabet = forms.MultipleChoiceField(choices=(), label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
-    title = forms.CharField(label='Название', required=False)
-
-    def __init__(self, *args, **kwargs):
-        from string import digits, ascii_lowercase
-        super().__init__(*args, **kwargs)
-        if isinstance(self, DrugFilterForm):
-            post_type = settings.POST_TYPE_DRUG
-            #url = models.Drug.get_list_url()
-        elif isinstance(self, CosmeticsFilterForm):
-            post_type = settings.POST_TYPE_COSMETICS
-            #url = models.Cosmetics.get_list_url()
-        elif isinstance(self, ComponentFilterForm):
-            post_type = settings.POST_TYPE_COMPONENT
-            #url = models.Component.get_list_url()
-        alph = ()
-        letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
-        for letter in letters:
-            posts = models.Post.objects.filter(post_type=post_type, title__istartswith=letter)
-            count = posts.count()
-            if count > 0:
-                alph += ((letter, '{0}({1})'.format(letter, count)), )
-        self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
-
-
-class DrugFilterForm(PostFilterForm):
+class DrugFilterForm(super_forms.PostFilterForm):
+    class Meta:
+        post_type = settings.POST_TYPE_DRUG
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.DrugDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.DrugUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
 
-class ComponentFilterForm(PostFilterForm):
+class ComponentFilterForm(super_forms.PostFilterForm):
+    class Meta:
+        post_type = settings.POST_TYPE_COMPONENT
     component_type = forms.MultipleChoiceField(choices=models.COMPONENT_TYPES, label='Тип компонента', widget=forms.CheckboxSelectMultiple(), required=False)
 
-class CosmeticsFilterForm(PostFilterForm):
+class CosmeticsFilterForm(super_forms.PostFilterForm):
+    class Meta:
+        post_type = settings.POST_TYPE_COSMETICS
     brand = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
     line = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
@@ -113,7 +91,7 @@ class DrugForm(forms.ModelForm):
         self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
         self.fields['components'].widget = forms.CheckboxSelectMultiple(choices=self.fields['components'].widget.choices)
         self.fields['category'].widget = forms.CheckboxSelectMultiple(choices=self.fields['category'].widget.choices)
-        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_fields.SuperImageClearableFileInput(thumb_name='thumb110')
 
 class CosmeticsForm(forms.ModelForm):
     class Meta:
@@ -124,7 +102,7 @@ class CosmeticsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['dosage_forms'].widget = forms.CheckboxSelectMultiple(choices=self.fields['dosage_forms'].widget.choices)
         self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
-        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_fields.SuperImageClearableFileInput(thumb_name='thumb110')
 
 
 class BlogForm(forms.ModelForm):
@@ -134,7 +112,7 @@ class BlogForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_fields.SuperImageClearableFileInput(thumb_name='thumb110')
         self.fields['category'].widget = forms.CheckboxSelectMultiple(choices=self.fields['category'].widget.choices)
 
 

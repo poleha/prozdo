@@ -7,6 +7,7 @@ from django.utils.module_loading import import_string
 from .app_settings import settings
 
 UserProfile = import_string(settings.BASE_USER_PROFILE_CLASS)
+Post = import_string(settings.BASE_POST_CLASS)
 
 
 class SuperSearchForm(SearchForm):
@@ -48,3 +49,22 @@ class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name')
+
+
+class PostFilterForm(forms.Form):
+    alphabet = forms.MultipleChoiceField(choices=(), label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
+    title = forms.CharField(label='Название', required=False)
+
+    def __init__(self, *args, alphabet=True, **kwargs):
+        from string import digits, ascii_lowercase
+        super().__init__(*args, **kwargs)
+        post_type = self.Meta.post_type
+        if alphabet:
+            alph = ()
+            letters = digits + ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыбэюя'
+            for letter in letters:
+                posts = Post.objects.filter(post_type=post_type, title__istartswith=letter)
+                count = posts.count()
+                if count > 0:
+                    alph += ((letter, '{0}({1})'.format(letter, count)), )
+            self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
