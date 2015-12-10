@@ -252,7 +252,7 @@ CACHES = {
 #    }
 #}
 
-THUMBNAIL_BACKEND = 'prozdo_main.backends.SEOThumbnailBackend'
+THUMBNAIL_BACKEND = 'super_model.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
 THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 THUMBNAIL_REDIS_DB = 2
