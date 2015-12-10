@@ -94,7 +94,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'super_model.middleware.SetClientIpMiddleware',
-    'super_model.middleware.SetProzdoKeyMiddleware',
+    'super_model.middleware.SetUserKeyMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -432,3 +432,5 @@ POST_TYPES = (
     (POST_TYPE_DRUG_USAGE_AREA, 'Област применения препарата'),
     (POST_TYPE_CATEGORY, 'Категория'),
 )
+
+SUPER_MODEL_KEY_NAME = 'prozdo_key'

@@ -1,4 +1,5 @@
-from helper.helper import set_and_get_session_key
+from .helper import set_and_get_session_key
+from .app_settings import settings
 
 class SetClientIpMiddleware:
     def process_request(self, request):
@@ -10,9 +11,9 @@ class SetClientIpMiddleware:
         request.client_ip = ip
 
 
-class SetProzdoKeyMiddleware:
+class SetUserKeyMiddleware:
     def process_request(self, request):
-        prozdo_key = request.session.get('prozdo_key', None)
-        if prozdo_key is None and request.user.is_authenticated():
-            prozdo_key = set_and_get_session_key(request.session)
-        request.session.prozdo_key = prozdo_key
+        key = request.session.get(settings.SUPER_MODEL_KEY_NAME, None)
+        if key is None and request.user.is_authenticated():
+            key = set_and_get_session_key(request.session)
+        setattr(request.session, settings.SUPER_MODEL_KEY_NAME, key)

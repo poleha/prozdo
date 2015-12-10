@@ -13,7 +13,8 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from helper.helper import to_int, set_and_get_session_key
+from super_model.helper import set_and_get_session_key
+from helper.helper import to_int
 from django.contrib import messages
 from django.utils.http import http_date
 from calendar import timegm
@@ -181,7 +182,7 @@ class PostDetail(ProzdoListView):
             if user.is_authenticated():
                 hist_exists = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_POST_RATED, user=user, post=self.post, deleted=False).exists()
             else:
-                hist_exists = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_POST_RATED, session_key=request.session.prozdo_key, post=self.post, deleted=False).exists()
+                hist_exists = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_POST_RATED, session_key=getattr(request.session, settings.SUPER_MODEL_KEY_NAME), post=self.post, deleted=False).exists()
             if hist_exists:
                 show_your_mark_block_cls = ''
                 show_make_mark_block_cls = 'hidden'

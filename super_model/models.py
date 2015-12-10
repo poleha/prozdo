@@ -5,7 +5,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from mptt.querysets import TreeQuerySet
 from django.contrib.auth.models import User, AnonymousUser
 from cache.decorators import cached_property
-from django.conf import settings
+from .app_settings import settings
 from django.core.urlresolvers import reverse
 from math import ceil
 from helper import helper
@@ -19,6 +19,7 @@ from django.core.mail.message import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from allauth.account.models import EmailAddress
 from django.db.models.signals import post_save
+from super_model.helper import generate_key
 
 
 class SuperModel(models.Model):
@@ -207,7 +208,7 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
         if self.key:
             return self.key
         else:
-            return helper.generate_key(128)
+            return generate_key(128)
 
     def get_status(self):
         if self.user and self.user.user_profile.can_publish_comment:
@@ -324,7 +325,7 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
             user = request.user
         if request:
             ip = request.client_ip
-            session_key = request.session.prozdo_key
+            session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
         else:
             ip = None
             session_key = None
@@ -889,7 +890,7 @@ def request_with_empty_guest(request):
     if user.is_authenticated():
         return False
 
-    session_key = request.session.prozdo_key
+    session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
 
     if not session_key:
         return True

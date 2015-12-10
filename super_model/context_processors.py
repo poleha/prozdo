@@ -1,4 +1,4 @@
-from django.conf import settings
+from .app_settings import settings
 
 def debug(request):
     ip = request.client_ip

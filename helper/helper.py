@@ -161,18 +161,8 @@ def comment_author_ok(text):
     else:
         return True
 
-
 def myround(x, base):
     return int(base * round(float(x)/base))
-
-
-def generate_key(size=128, upper=False, chars=None):
-    if chars is None:
-        chars = string.ascii_lowercase + string.digits
-        if upper:
-            chars += string.ascii_uppercase
-    return ''.join(random.choice(chars) for _ in range(size))
-
 
 def to_int(val):
     try:
@@ -181,10 +171,3 @@ def to_int(val):
         res = 0
     return res
 
-
-def set_and_get_session_key(session):
-    key = session.get('prozdo_key', None)
-    if key is None:
-        key = generate_key(128)
-        session['prozdo_key'] = key
-    return key

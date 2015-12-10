@@ -39,11 +39,11 @@ class Settings:
             result_special_cases[klass] = val
         self.special_cases = result_special_cases
 
-    def __getattr__(self, item):
+    def __getattribute__(self, item):
         if hasattr(project_settings, item):
             return getattr(project_settings, item)
         else:
-            super().__getattribute__(item)
+            return super().__getattribute__(item)
 
 
 settings = Settings()
