@@ -611,3 +611,5 @@ class Mail(super_models.SuperMail):
     pass
 
 
+User.is_author = property(lambda self: self.user_profile.role == settings.USER_ROLE_AUTHOR)
+User.is_doctor = property(lambda self: self.user_profile.role == settings.USER_ROLE_DOCTOR)

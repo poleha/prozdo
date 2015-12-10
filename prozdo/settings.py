@@ -434,3 +434,16 @@ POST_TYPES = (
 )
 
 SUPER_MODEL_KEY_NAME = 'prozdo_key'
+
+
+USER_ROLE_REGULAR = 1
+USER_ROLE_AUTHOR = 2
+USER_ROLE_DOCTOR = 3
+USER_ROLE_ADMIN = 33
+
+USER_ROLES = (
+        (USER_ROLE_REGULAR, 'Обычный пользователь'),
+        (USER_ROLE_AUTHOR, 'Автор'),
+        (USER_ROLE_DOCTOR, 'Врач'),
+        (USER_ROLE_ADMIN, 'Админ'),
+    )

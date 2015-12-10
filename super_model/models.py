@@ -460,17 +460,7 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
         History = import_string(settings.BASE_HISTORY_CLASS)
         History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
 
-USER_ROLE_REGULAR = 1
-USER_ROLE_AUTHOR = 2
-USER_ROLE_DOCTOR = 3
-USER_ROLE_ADMIN = 33
 
-USER_ROLES = (
-    (USER_ROLE_REGULAR, 'Обычный пользователь'),
-    (USER_ROLE_AUTHOR, 'Автор'),
-    (USER_ROLE_DOCTOR, 'Врач'),
-    (USER_ROLE_ADMIN, 'Админ'),
-)
 
 
 class SuperUserProfile(SuperModel, CachedModelMixin):
@@ -478,7 +468,7 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
         abstract = True
 
     user = models.OneToOneField(User, related_name='user_profile', db_index=True)  # reverse returns single object, not queryset
-    role = models.PositiveIntegerField(choices=USER_ROLES, default=USER_ROLE_REGULAR, blank=True, db_index=True)
+    role = models.PositiveIntegerField(choices=settings.USER_ROLES, default=settings.USER_ROLE_REGULAR, blank=True, db_index=True)
     image = ImageField(verbose_name='Изображение', upload_to='user_profile', blank=True, null=True)
     receive_messages = models.BooleanField(default=True, verbose_name='Получать e-mail сообщения с сайта', blank=True, db_index=True)
 
@@ -504,7 +494,7 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
 
     def save(self, *args, **kwargs):
         if self.user.is_staff:
-            self.role = USER_ROLE_ADMIN
+            self.role = settings.USER_ROLE_ADMIN
 
         super().save(*args, **kwargs)
         #invalidate_obj(self.user)
@@ -512,7 +502,7 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
 
 
 def is_regular(self):
-    if self.user_profile.role == USER_ROLE_REGULAR:
+    if self.user_profile.role == settings.USER_ROLE_REGULAR:
         return True
     else:
         return False
@@ -554,10 +544,8 @@ User.get_absolute_url = lambda self: reverse('user-detail', kwargs={'pk': self.p
 User.activity = get_user_activity
 User.email_confirmed = get_email_confirmed
 
-User.is_admin = property(lambda self: self.user_profile.role == USER_ROLE_ADMIN)
-User.is_author = property(lambda self: self.user_profile.role == USER_ROLE_AUTHOR)
-User.is_regular = property(lambda self: self.user_profile.role == USER_ROLE_REGULAR)
-User.is_doctor = property(lambda self: self.user_profile.role == USER_ROLE_DOCTOR)
+User.is_admin = property(lambda self: self.user_profile.role == settings.USER_ROLE_ADMIN)
+User.is_regular = property(lambda self: self.user_profile.role == settings.USER_ROLE_REGULAR)
 User.thumb100 = property(lambda self: self.user_profile.thumb100)
 User.thumb50 = property(lambda self: self.user_profile.thumb50)
 

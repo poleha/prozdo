@@ -628,7 +628,7 @@ class MainPageView(generic.TemplateView):
         return blogs
 
     def get_recent_consults(self):
-        comments = models.Comment.objects.get_available().filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:12]
+        comments = models.Comment.objects.get_available().filter(user__user_profile__role=settings.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:12]
         return comments
 
     def get_context_data(self, **kwargs):
@@ -832,7 +832,7 @@ class UserActivityView(ProzdoListView):
         context['current_user'] = user
         return context
 
-class PostCreateUpdateMixin(restrict_by_role_mixin(super_models.USER_ROLE_ADMIN), PostViewMixin):
+class PostCreateUpdateMixin(restrict_by_role_mixin(settings.USER_ROLE_ADMIN), PostViewMixin):
     def get_form_class(self):
         if self.model == models.Drug:
             return forms.DrugForm
@@ -929,12 +929,12 @@ class CommentDoctorListView(ProzdoListView):
             queryset = queryset.filter(consult_required=False)
 
         if consult_only:
-            queryset = queryset.filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR)
+            queryset = queryset.filter(user__user_profile__role=settings.USER_ROLE_DOCTOR)
 
         if consult_done == forms.BOOL_CHOICE_YES:
-            queryset = queryset.filter(children__user__user_profile__role=super_models.USER_ROLE_DOCTOR)
+            queryset = queryset.filter(children__user__user_profile__role=settings.USER_ROLE_DOCTOR)
         elif consult_done == forms.BOOL_CHOICE_NO:
-            queryset = queryset.exclude(children__user__user_profile__role=super_models.USER_ROLE_DOCTOR)
+            queryset = queryset.exclude(children__user__user_profile__role=settings.USER_ROLE_DOCTOR)
 
         if start_date:
             queryset = queryset.filter(created__gte=start_date)
