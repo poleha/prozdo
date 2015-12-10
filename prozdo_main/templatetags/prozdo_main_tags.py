@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from prozdo_main.forms import ProzdoSearchForm
+from super_model.forms import SuperSearchForm
 from super_model import models as super_models
 
 register = template.Library()
@@ -129,7 +129,7 @@ def top_menu(context):
     menu_items.append(MenuItem(title='Аптечная косметика', url=reverse_lazy('cosmetics-list'), cls='active' if view_name=='cosmetics-list' else ''))
     menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'), cls='active' if view_name=='blog-list' else ''))
     menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'), cls='active' if view_name=='component-list' else ''))
-    search_form = ProzdoSearchForm(request.GET)
+    search_form = SuperSearchForm(request.GET)
 
     return {'menu_items': menu_items, 'search_form': search_form }
 

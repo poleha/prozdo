@@ -23,6 +23,7 @@ from cache.decorators import cached_view
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When, CharField
 from super_model import models as super_models
+from super_model import forms as super_forms
 
 def convert_date(date):
     return http_date(timegm(date.utctimetuple()))
@@ -995,7 +996,7 @@ from haystack.query import SearchQuerySet
 
 class ProzdoSearchView(SearchView):
     queryset = SearchQuerySet().all()
-    form_class = forms.ProzdoSearchForm
+    form_class = super_forms.SuperSearchForm
 
     def get_queryset(self):
         queryset = super().get_queryset()

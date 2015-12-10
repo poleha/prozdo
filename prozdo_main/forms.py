@@ -1,9 +1,9 @@
 from django import forms
 from . import models
 from allauth.account.forms import SignupForm
-from django.utils.html import conditional_escape
 from django.conf import settings
 from super_model import validators
+from super_model import forms as super_forms
 
 
 class CommentForm(forms.ModelForm):
@@ -59,29 +59,6 @@ COMMENTS_SHOW_TYPE_CHOICES = (
 class CommentsOptionsForm(forms.Form):
     order_by_created = forms.ChoiceField(choices=COMMENTS_ORDER_BY_CREATED_CHOICES, initial=COMMENTS_ORDER_BY_CREATED_DEC, label='Упорядочить по дате добавления', required=False)
     show_type= forms.ChoiceField(choices=COMMENTS_SHOW_TYPE_CHOICES, label='Вид показа отзывов', initial=COMMENTS_SHOW_TYPE_PLAIN, required=False)
-
-
-
-
-class ProzdoImageClearableFileInput(forms.ClearableFileInput):
-    template_with_initial = (
-        '%(initial_text)s: <img src="%(initial_url)s"> '
-        '%(clear_template)s<br />%(input_text)s: %(input)s'
-    )
-
-    def get_template_substitution_values(self, value):
-        """
-        Return value-related substitutions.
-        """
-        return {
-            'initial': conditional_escape(value),
-            'initial_url': conditional_escape(getattr(value.instance, self._thumb_name)),
-        }
-
-
-    def __init__(self, thumb_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._thumb_name = thumb_name
 
 
 class UserNameField(forms.CharField):
@@ -166,10 +143,7 @@ class UserProfileForm(forms.ModelForm):
         model = models.UserProfile
         fields = ('image', 'receive_messages')
 
-    image = forms.ImageField(label='Изображение', widget=ProzdoImageClearableFileInput(thumb_name='thumb100'), required=False)
-
-
-
+    image = forms.ImageField(label='Изображение', widget=super_forms.SuperImageClearableFileInput(thumb_name='thumb100'), required=False)
 
 
 class UserForm(forms.ModelForm):
@@ -190,7 +164,7 @@ class DrugForm(forms.ModelForm):
         self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
         self.fields['components'].widget = forms.CheckboxSelectMultiple(choices=self.fields['components'].widget.choices)
         self.fields['category'].widget = forms.CheckboxSelectMultiple(choices=self.fields['category'].widget.choices)
-        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
 
 class CosmeticsForm(forms.ModelForm):
     class Meta:
@@ -201,7 +175,7 @@ class CosmeticsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['dosage_forms'].widget = forms.CheckboxSelectMultiple(choices=self.fields['dosage_forms'].widget.choices)
         self.fields['usage_areas'].widget = forms.CheckboxSelectMultiple(choices=self.fields['usage_areas'].widget.choices)
-        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
 
 
 class BlogForm(forms.ModelForm):
@@ -211,7 +185,7 @@ class BlogForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['image'].widget = ProzdoImageClearableFileInput(thumb_name='thumb110')
+        self.fields['image'].widget = super_forms.SuperImageClearableFileInput(thumb_name='thumb110')
         self.fields['category'].widget = forms.CheckboxSelectMultiple(choices=self.fields['category'].widget.choices)
 
 
@@ -248,18 +222,3 @@ class CommentDoctorListFilterForm(forms.Form):
     consult_only = forms.BooleanField(label='Только консультации', required=False)
 
 
-
-from haystack.forms import SearchForm
-
-
-class ProzdoSearchForm(SearchForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['q'].widget.attrs['placeholder'] = 'Поиск по сайту'
-        self.fields['q'].widget.attrs['autocomplete'] = 'Off'
-
-    def search(self):
-        # First, store the SearchQuerySet received from other processing.
-        sqs = super().search()
-
-        return sqs
