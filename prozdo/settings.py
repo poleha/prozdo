@@ -399,6 +399,8 @@ BASE_POST_CLASS = 'prozdo_main.models.Post'
 BASE_HISTORY_CLASS = 'prozdo_main.models.History'
 BASE_MAIL_CLASS = 'prozdo_main.models.Mail'
 BASE_USER_PROFILE_CLASS = 'prozdo_main.models.UserProfile'
+BASE_COMMENT_CLASS = 'prozdo_main.models.Comment'
+
 
 SITE_NAME = 'Prozdo.ru'
 

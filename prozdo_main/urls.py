@@ -31,8 +31,6 @@ urlpatterns = [
     url(r'^post/(?P<pk>\d+)/$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-pk'),
     url(r'^post/(?P<pk>\d+)/comment/(?P<comment_pk>\d+)/$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-pk-comment'),
 
-    url(r'^history/ajax_save/$', views.HistoryAjaxSave.as_view(), name='history-ajax-save'),
-
     url(r'^comment/get_tree_ajax/$', views.CommentGetTreeAjax.as_view(), name='get-comment-tree-ajax'),
 
     url(r'^comment/(?P<comment_pk>\d+)/confirm/(?P<key>[a-z0-9_./]{1,})/$', views.CommentConfirm.as_view(), name='comment-confirm'),

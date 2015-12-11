@@ -455,7 +455,7 @@ class Comment(super_models.SuperComment):
 
     @property
     def consult_done(self):
-        return self.available_children.filter(user__user_profile__role=super_models.USER_ROLE_DOCTOR).exists()
+        return self.available_children.filter(user__user_profile__role=settings.USER_ROLE_DOCTOR).exists()
 
     @cached_property
     def comment_mark(self):
