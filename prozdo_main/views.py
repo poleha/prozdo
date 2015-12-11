@@ -13,40 +13,18 @@ from allauth.account.models import EmailAddress
 from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
-from super_model.helper import set_and_get_session_key
 from helper.helper import to_int
 from django.contrib import messages
-from django.utils.http import http_date
-from calendar import timegm
 from django.utils import timezone
 from cache.decorators import cached_view
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When, CharField
 from super_model import models as super_models
 from super_model import forms as super_forms
+from super_model import views as super_views
+from super_model import helper as super_helper
+from super_model import decorators as super_decorators
 
-def convert_date(date):
-    return http_date(timegm(date.utctimetuple()))
-
-def restrict_by_role_mixin(*roles):
-    class RoleOnlyMixin():
-        def dispatch(self, request, *args, **kwargs):
-            user = request.user
-            if not user.is_authenticated():
-                return HttpResponseRedirect(reverse_lazy('login'))
-            elif not user.user_profile.role in roles:
-                return HttpResponseRedirect(reverse_lazy('main-page'))
-            return super().dispatch(request, *args, **kwargs)
-    return RoleOnlyMixin
-
-def login_required(dispatch):
-    def wrapper(self, request, *args, **kwargs):
-        user = request.user
-        if not user.is_authenticated():
-            return HttpResponseRedirect(reverse_lazy('login'))
-        else:
-            return dispatch(self, request, *args, **kwargs)
-    return wrapper
 
 class ProzdoListView(generic.ListView):
     pages_to_show = 10
@@ -116,10 +94,10 @@ class PostDetail(ProzdoListView):
         res = super().get(request, *args, **kwargs)
         last_modified = self.obj.last_modified
         if last_modified:
-            last_modified = convert_date(last_modified)
+            last_modified = super_helper.convert_date_for_last_modified(last_modified)
             expires = timezone.now() + timezone.timedelta(seconds=settings.CACHED_VIEW_DURATION)
             res['Last-Modified'] = last_modified
-            res['Expires'] = convert_date(expires)
+            res['Expires'] = super_helper.convert_date_for_last_modified(expires)
         return res
 
     @staticmethod
@@ -205,7 +183,7 @@ class PostDetail(ProzdoListView):
         comment_form = forms.CommentForm(request.POST, request=request, post=self.post)
         comment_form.instance.post = self.post
         comment_form.instance.ip = request.client_ip
-        comment_form.instance.session_key = set_and_get_session_key(request.session)
+        comment_form.instance.session_key = super_helper.set_and_get_session_key(request.session)
         if user.is_authenticated() and not comment_form.instance.user:
             comment_form.instance.user = user
 
@@ -352,7 +330,7 @@ class HistoryAjaxSave(generic.View):
 
         ip = request.client_ip
         user = request.user
-        session_key = set_and_get_session_key(request.session)
+        session_key = super_helper.set_and_get_session_key(request.session)
 
         if action == 'comment-mark':
             comment = models.Comment.objects.get(pk=pk)
@@ -689,7 +667,7 @@ class ProzdoLoginErrorView(LoginErrorView):
 class ProzdoConnectionsView(ConnectionsView):
     template_name = 'prozdo_main/user/social/connections.html'
 
-    @login_required
+    @super_decorators.login_required()
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -709,7 +687,7 @@ class ProzdoConfirmEmailView(ConfirmEmailView):
 class UserProfileView(generic.TemplateView):
     template_name = 'prozdo_main/user/user_profile.html'
 
-    @login_required
+    @super_decorators.login_required()
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -833,7 +811,7 @@ class UserActivityView(ProzdoListView):
         context['current_user'] = user
         return context
 
-class PostCreateUpdateMixin(restrict_by_role_mixin(settings.USER_ROLE_ADMIN), PostViewMixin):
+class PostCreateUpdateMixin(super_views.restrict_by_role_mixin(settings.USER_ROLE_ADMIN), PostViewMixin):
     def get_form_class(self):
         if self.model == models.Drug:
             return forms.DrugForm
@@ -892,7 +870,7 @@ class CommentUpdate(generic.UpdateView):
             return HttpResponseRedirect(comment.get_absolute_url())
         form = self.form_class(request.POST, instance=comment)
         form.instance.updater = request.user
-        form.instance.session_key = set_and_get_session_key(request.session)
+        form.instance.session_key = super_helper.set_and_get_session_key(request.session)
         comment = form.save()
         return HttpResponseRedirect(comment.get_absolute_url())
 
