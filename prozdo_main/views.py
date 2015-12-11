@@ -511,6 +511,7 @@ class CommentGetConfirmFormAjax(generic.TemplateView):
 
         return self.render_to_response(self.get_context_data(**kwargs))
 
+
 class CommentDoConfirmAjax(generic.TemplateView):
     template_name = 'prozdo_main/comment/_get_confirm_form.html'
     @csrf_exempt
@@ -560,7 +561,6 @@ class CommentGetForAnswerToBlockAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-
 class CommentShowMarkedUsersAjax(generic.TemplateView):
     template_name = 'prozdo_main/comment/_comment_show_marked_users_ajax.html'
 
@@ -591,8 +591,8 @@ class MainPageView(generic.TemplateView):
         res = super().dispatch(request, *args, **kwargs)
         try:
             last_modified = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
-            res['Last-Modified'] = convert_date(last_modified)
-            res['Expires'] = convert_date(last_modified + timezone.timedelta(seconds=60 * 60))
+            res['Last-Modified'] = super_helper.convert_date_for_last_modified(last_modified)
+            res['Expires'] = super_helper.convert_date_for_last_modified(last_modified + timezone.timedelta(seconds=60 * 60))
         except:
             pass
 
