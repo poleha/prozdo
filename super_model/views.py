@@ -182,3 +182,47 @@ class SuperListView(generic.ListView):
             context['show_last_page'] = True
 
         return context
+
+class SuperPostViewMixin(generic.View):
+    def set_model(self):
+        raise NotImplementedError
+
+
+    def dispatch(self, request, *args, **kwargs):
+        self.set_model()
+        return super().dispatch(request, args, **kwargs)
+
+
+class SuperPostListFilterMixin(SuperListView):
+    context_object_name = 'objs'
+    paginate_by = settings.POST_LIST_PAGE_SIZE
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filter_form = self.get_filter_form()
+        if filter_form:
+            filter_form.full_clean()
+            flt = {}
+            for field_name, field_value in filter_form.cleaned_data.items():
+            #usage_areas = drug_filter_form.cleaned_data['usage_areas']
+                if len(field_value) > 0: #не exists() поскольку может быть list для component_type
+                    #TODO Переделать на custom lookup
+                    if field_name == 'alphabet':
+                        ids = ()
+                        for letter in field_value:
+                            cur_ids = self.model.objects.filter(title__istartswith=letter).values_list('id', flat=True)
+                            ids += tuple(cur_ids)
+                        flt['id__in'] = ids
+                    elif isinstance(field_value, str):
+                        flt[field_name + '__icontains'] = field_value
+                    else:
+                        flt[field_name + '__in'] = field_value
+            queryset = queryset.filter(**flt)
+        return queryset
+
+    def get_filter_form(self):
+        raise NotImplementedError

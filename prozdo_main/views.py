@@ -179,7 +179,7 @@ class PostDetail(super_views.SuperListView):
                 return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
 
 
-class PostViewMixin:
+class PostViewMixin(super_views.SuperPostViewMixin):
     def set_model(self):
         if self.kwargs['post_type'] == 'drug':
             self.model =  models.Drug
@@ -191,18 +191,7 @@ class PostViewMixin:
             self.model = models.Component
 
 
-    def dispatch(self, request, *args, **kwargs):
-        self.set_model()
-        return super().dispatch(request, args, **kwargs)
-
-
-class PostListFilterMixin(PostViewMixin, super_views.SuperListView):
-    context_object_name = 'objs'
-    paginate_by = settings.POST_LIST_PAGE_SIZE
-
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+class PostListFilterMixin(super_views.SuperPostListFilterMixin, PostViewMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -216,29 +205,6 @@ class PostListFilterMixin(PostViewMixin, super_views.SuperListView):
             context['post_type'] = 'blog'
         context['list_view_default_template'] = self.model.list_view_default_template()
         return context
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        filter_form = self.get_filter_form()
-        if filter_form:
-            filter_form.full_clean()
-            flt = {}
-            for field_name, field_value in filter_form.cleaned_data.items():
-            #usage_areas = drug_filter_form.cleaned_data['usage_areas']
-                if len(field_value) > 0: #не exists() поскольку может быть list для component_type
-                    #TODO Переделать на custom lookup
-                    if field_name == 'alphabet':
-                        ids = ()
-                        for letter in field_value:
-                            cur_ids = self.model.objects.filter(title__istartswith=letter).values_list('id', flat=True)
-                            ids += tuple(cur_ids)
-                        flt['id__in'] = ids
-                    elif isinstance(field_value, str):
-                        flt[field_name + '__icontains'] = field_value
-                    else:
-                        flt[field_name + '__in'] = field_value
-            queryset = queryset.filter(**flt)
-        return queryset
 
     def get_filter_form(self):
         if self.request.method.lower() == 'post':
@@ -267,8 +233,6 @@ class PostList(PostListFilterMixin):
     @cached_view(timeout=60 * 60 * 12, test=super_models.request_with_empty_guest)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
