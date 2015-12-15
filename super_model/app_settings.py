@@ -11,6 +11,7 @@ class Settings:
             (USER_ROLE_ADMIN, 'Админ'),
         )
 
+    PAGES_TO_SHOW_FOR_LIST_VIEW = 10
 
     def __getattribute__(self, item):
         if hasattr(project_settings, item):

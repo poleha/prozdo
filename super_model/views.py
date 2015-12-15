@@ -150,3 +150,35 @@ class HistoryAjaxSave(generic.View):
                     comment.save()
                     return JsonResponse({'saved': True})
             return JsonResponse({'saved': False})
+
+
+class SuperListView(generic.ListView):
+    pages_to_show = settings.PAGES_TO_SHOW_FOR_LIST_VIEW
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_page = context['page_obj'].number
+        total_pages = context['paginator'].num_pages
+        page_range = context['paginator'].page_range
+        if total_pages <= self.pages_to_show:
+            short_page_range = page_range
+        else:
+            i = j = current_page
+            short_page_range = [current_page]
+            while len(short_page_range) < self.pages_to_show:
+                i += 1
+                j -= 1
+                if i in page_range:
+                    short_page_range.append(i)
+                if j in page_range:
+                    short_page_range.append(j)
+            #_short_page_range = [i for i in range(current_page - self.pages_to_show + 1, current_page + self.pages_to_show + 1) if i > 0]
+            #for i in _short_page_range:
+            short_page_range = sorted(short_page_range)
+        context['short_page_range'] = short_page_range
+        if not 1 in short_page_range:
+            context['show_first_page'] = True
+        if not total_pages in short_page_range:
+            context['show_last_page'] = True
+
+        return context

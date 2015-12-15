@@ -24,39 +24,11 @@ from super_model import forms as super_forms
 from super_model import views as super_views
 from super_model import helper as super_helper
 from super_model import decorators as super_decorators
+from super_model import views as super_views
 
 
-class ProzdoListView(generic.ListView):
-    pages_to_show = 10
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        current_page = context['page_obj'].number
-        total_pages = context['paginator'].num_pages
-        page_range = context['paginator'].page_range
-        if total_pages <= self.pages_to_show:
-            short_page_range = page_range
-        else:
-            i = j = current_page
-            short_page_range = [current_page]
-            while len(short_page_range) < self.pages_to_show:
-                i += 1
-                j -= 1
-                if i in page_range:
-                    short_page_range.append(i)
-                if j in page_range:
-                    short_page_range.append(j)
-            #_short_page_range = [i for i in range(current_page - self.pages_to_show + 1, current_page + self.pages_to_show + 1) if i > 0]
-            #for i in _short_page_range:
-            short_page_range = sorted(short_page_range)
-        context['short_page_range'] = short_page_range
-        if not 1 in short_page_range:
-            context['show_first_page'] = True
-        if not total_pages in short_page_range:
-            context['show_last_page'] = True
 
-        return context
-
-class PostDetail(ProzdoListView):
+class PostDetail(super_views.SuperListView):
     context_object_name = 'comments'
     paginate_by = settings.POST_COMMENTS_PAGE_SIZE
     template_name = 'prozdo_main/post/post_detail.html'
@@ -225,7 +197,7 @@ class PostViewMixin:
         return super().dispatch(request, args, **kwargs)
 
 
-class PostListFilterMixin(PostViewMixin, ProzdoListView):
+class PostListFilterMixin(PostViewMixin, super_views.SuperListView):
     context_object_name = 'objs'
     paginate_by = settings.POST_LIST_PAGE_SIZE
 
@@ -614,7 +586,7 @@ class UserDetailView(generic.TemplateView):
         return context
 
 
-class UserCommentsView(ProzdoListView):
+class UserCommentsView(super_views.SuperListView):
     template_name = 'prozdo_main/user/user_comments.html'
     context_object_name = 'comments'
     paginate_by = 50
@@ -638,7 +610,7 @@ class UserCommentsView(ProzdoListView):
 
 
 
-class UserKarmaView(ProzdoListView):
+class UserKarmaView(super_views.SuperListView):
     template_name = 'prozdo_main/user/user_karma.html'
     context_object_name = 'hists'
     paginate_by = 50
@@ -662,7 +634,7 @@ class UserKarmaView(ProzdoListView):
         return context
 
 
-class UserActivityView(ProzdoListView):
+class UserActivityView(super_views.SuperListView):
     template_name = 'prozdo_main/user/user_activity.html'
     context_object_name = 'hists'
     paginate_by = 50
@@ -749,7 +721,7 @@ class CommentUpdate(generic.UpdateView):
         return HttpResponseRedirect(comment.get_absolute_url())
 
 
-class CommentDoctorListView(ProzdoListView):
+class CommentDoctorListView(super_views.SuperListView):
     template_name = 'prozdo_main/comment/comment_doctor_list_view.html'
     context_object_name = 'comments'
     paginate_by = 50
