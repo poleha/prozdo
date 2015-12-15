@@ -825,6 +825,7 @@ class SuperHistory(SuperModel):
             #invalidate_obj(self.author)
         self.invalidate_exists()
         self.invalidate_exists_by_comment()
+        self.invalidate_full_exists_by_comment()
 
 
     def delete(self, *args, **kwargs):
