@@ -347,7 +347,7 @@
                     var level = $(this).closest('.single-comment').find('.comment-level').val();
                     var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                     var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
-                    var toHide = $(this).closest('.single-comment').find('.comment-mark-button');
+                    var toHide = $(this).closest('.single-comment').find('.comment-mark-button, .comment-complain-button, .comment-uncomplain-button');
                     var toShow = $(this).closest('.single-comment').find('.comment-unmark-button');
                     var data = {'pk': pk, 'action': 'comment-mark'};
                     commentAjaxAction(data, targetSpan, toHide, toShow);
@@ -358,7 +358,7 @@
                     var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                     var targetSpan = $(this).closest('.single-comment').find('.comment-current-mark-span');
                     var toHide = $(this).closest('.single-comment').find('.comment-unmark-button');
-                    var toShow = $(this).closest('.single-comment').find('.comment-mark-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-mark-button, .comment-complain-button');
                     var data = {'pk': pk, 'action': 'comment-unmark'};
                     commentAjaxAction(data, targetSpan, toHide, toShow);
                 });
@@ -368,7 +368,7 @@
                     var level = $(this).closest('.single-comment').find('.comment-level').val();
                     var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                     var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
-                    var toHide = $(this).closest('.single-comment').find('.comment-complain-button');
+                    var toHide = $(this).closest('.single-comment').find('.comment-complain-button, .comment-mark-button, .comment-unmark-button');
                     var toShow = $(this).closest('.single-comment').find('.comment-uncomplain-button');
                     var data = {'pk': pk, 'action': 'comment-complain'};
                     commentAjaxAction(data, targetSpan, toHide, toShow);
@@ -380,7 +380,7 @@
                     var pk = $(this).closest('.single-comment').find('.comment-pk').val();
                     var targetSpan = $(this).closest('.single-comment').find('.comment-current-complain-span');
                     var toHide = $(this).closest('.single-comment').find('.comment-uncomplain-button');
-                    var toShow = $(this).closest('.single-comment').find('.comment-complain-button');
+                    var toShow = $(this).closest('.single-comment').find('.comment-complain-button, .comment-mark-button');
                     var data = {'pk': pk, 'action': 'comment-uncomplain'};
                     commentAjaxAction(data, targetSpan, toHide, toShow);
                 });
@@ -411,12 +411,14 @@
 
                 function commentAjaxAction(actionData, targetSpan, toHide, toShow) {
                     toHide.attr('disabled', 'disabled');
+                    toShow.attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
                             toHide.removeAttr('disabled');
+                            toShow.removeAttr('disabled');
                             if (data.saved) {
                                 if (targetSpan != null) {
                                     targetSpan.html(data.mark);
@@ -431,6 +433,7 @@
                         },
                         error: function (data) {
                         toHide.removeAttr('disabled');
+                        toShow.removeAttr('disabled');
                         }
                     });
 

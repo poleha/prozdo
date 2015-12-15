@@ -81,11 +81,16 @@ def get_comment(context, comment):
     res['comment'] = comment
     #res['is_author'] = comment.is_author(request=request)
 
-    res['can_mark'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
-    res['can_unmark'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
 
-    res['can_complain'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+    res['can_unmark'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
     res['can_uncomplain'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
+
+
+
+    if not res['can_uncomplain']:
+        res['can_mark'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
+    else:
+        res['can_mark'] = False
 
 
     #if show_as_child:

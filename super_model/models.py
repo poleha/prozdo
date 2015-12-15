@@ -22,6 +22,8 @@ from django.db.models.signals import post_save
 from super_model.helper import generate_key
 
 
+
+
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
     updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения', db_index=True)
@@ -43,7 +45,7 @@ class SuperModel(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk and not self.created:
             self.created = timezone.now()
-        if self.pk and not self.updated:
+        if self.pk:
             self.updated = timezone.now()
         super().save(*args, **kwargs)
 
@@ -402,12 +404,19 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
 
     objects = PostManager()
 
-    history_class = None
-
     @cached_property
     def last_modified(self):
+        History = import_string(settings.BASE_HISTORY_CLASS)
         try:
-            return self.history_class.objects.filter(post=self).latest('created').created
+            latest_created = History.objects.filter(post=self).latest('created').created
+            latest_updated = History.objects.filter(post=self).exclude(updated=None).latest('updated').updated
+            latest_updated = latest_updated if latest_updated is not None else latest_created
+
+            if latest_created is None:
+                raise Exception
+
+            return max(latest_created, latest_updated)
+
         except:
             if self.updated:
                 return self.updated
@@ -674,6 +683,7 @@ class SuperHistory(SuperModel):
             #else:
             #    author_points = 0
             if comment.can_do_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
+                History.objects.filter(post=post, user=user, session_key=session_key, comment=comment, history_type__in=[HISTORY_TYPE_COMMENT_RATED, HISTORY_TYPE_COMMENT_COMPLAINT]).delete()
                 h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
                                        user_points=History.get_points(history_type),
                                        author=comment.user, session_key=session_key)
@@ -720,25 +730,62 @@ class SuperHistory(SuperModel):
             key = prefix + self.session_key
             cache.delete(key)
 
+
     #TODO change to cached_method
     @classmethod
-    def exists_by_comment(cls, session_key, comment, history_type):
+    def full_exists_by_comment(cls, session_key, comment):
         if not session_key:
             return False
-        if not settings.CACHE_ENABLED:
-            return cls.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
+        if not settings.CACHE_ENABLED or settings.HISTORY_FULL_EXISTS_BY_COMMENT_DURATION is None:
+            return cls.objects.filter(session_key=session_key, comment=comment, deleted=False).exists()
+        if not cls.exists(session_key):
+            return False
+        template = '_cached_history_full_exists_by_comment_{0}-{1}'
+        key = template.format(session_key, comment.pk)
+        res = cache.get(key)
+        if res is None:
+            res = cls.objects.filter(session_key=session_key, comment=comment, deleted=False).exists()
+            cache.set(key, res, settings.HISTORY_FULL_EXISTS_BY_COMMENT_DURATION)
+        return res
+
+    def invalidate_full_exists_by_comment(self):
+        if settings.CACHE_ENABLED and self.session_key and settings.HISTORY_FULL_EXISTS_BY_COMMENT_DURATION is not None:
+            if self.comment:
+                template = '_cached_history_full_exists_by_comment_{0}-{1}'
+                key = template.format(self.session_key, self.comment.pk)
+                cache.delete(key)
+                res = type(self).objects.filter(session_key=self.session_key, comment=self.comment, deleted=False).exists()
+                cache.set(key, res, settings.HISTORY_FULL_EXISTS_BY_COMMENT_DURATION)
+
+    def delete_full_exists_by_comment(self):
+        if settings.CACHE_ENABLED and self.session_key and settings.HISTORY_FULL_EXISTS_BY_COMMENT_DURATION is not None:
+            if self.comment:
+                template = '_cached_history_full_exists_by_comment_{0}-{1}'
+                key = template.format(self.session_key, self.comment.pk)
+                cache.delete(key)
+
+
+
+    #TODO change to cached_method
+    @classmethod
+    def exists_by_comment(cls, session_key, comment, history_type=None):
+        if not session_key:
+            return False
+        if not settings.CACHE_ENABLED or settings.HISTORY_EXISTS_BY_COMMENT_DURATION is None:
+            q = cls.objects.filter(session_key=session_key, comment=comment, deleted=False, history_type=history_type)
+            return q.exists()
         if not cls.exists(session_key):
             return False
         template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
         key = template.format(session_key, comment.pk, history_type)
         res = cache.get(key)
         if res is None:
-            res = cls.objects.filter(session_key=session_key, comment=comment, history_type=history_type, deleted=False).exists()
+            q = cls.objects.filter(session_key=session_key, comment=comment, deleted=False, history_type=history_type).exists()
             cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
         return res
 
     def invalidate_exists_by_comment(self):
-        if settings.CACHE_ENABLED and self.session_key:
+        if settings.CACHE_ENABLED and self.session_key and settings.HISTORY_EXISTS_BY_COMMENT_DURATION is not None:
             if self.comment:
                 template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
@@ -747,9 +794,9 @@ class SuperHistory(SuperModel):
                 cache.set(key, res, settings.HISTORY_EXISTS_BY_COMMENT_DURATION)
 
     def delete_exists_by_comment(self):
-        if settings.CACHE_ENABLED and self.session_key:
+        if settings.CACHE_ENABLED and self.session_key and settings.HISTORY_EXISTS_BY_COMMENT_DURATION is not None:
             if self.comment:
-                template = '_cached_history_exists_by_comment_{0}-{1}-{2}'
+                template = '_cached_history_exists_by_comment_{0}-{1}'
                 key = template.format(self.session_key, self.comment.pk, self.history_type)
                 cache.delete(key)
 
