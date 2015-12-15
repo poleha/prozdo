@@ -21,7 +21,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When, CharField
 from super_model import models as super_models
 from super_model import forms as super_forms
-from super_model import views as super_views
 from super_model import helper as super_helper
 from super_model import decorators as super_decorators
 from super_model import views as super_views
