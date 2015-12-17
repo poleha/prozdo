@@ -79,6 +79,7 @@ INSTALLED_APPS = (
     'django_mobile',
     'haystack',
     'contact_form',
+    'super_model',
 )
 
 MIDDLEWARE_CLASSES = (

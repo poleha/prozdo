@@ -639,33 +639,6 @@ class PostUpdate(PostCreateUpdateMixin, generic.UpdateView):
     template_name ='prozdo_main/post/post_create.html'
 
 
-class CommentConfirm(generic.TemplateView):
-    template_name = 'prozdo_main/comment/confirm.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            comment_pk = kwargs['comment_pk']
-            key = kwargs['key']
-            comment = models.Comment.objects.get(pk=comment_pk, key=key)
-            if comment.confirmed == False:
-                comment.confirmed = True
-                comment.save()
-                context['saved'] = True
-
-                if comment.user and not comment.user.email_confirmed:
-                    email = EmailAddress.objects.get(user=comment.user, verified=False, email=comment.user.email)
-                    email.verified = True
-                    email.save()
-
-            else:
-                context['not_saved'] = True
-
-        except:
-            context['not_found'] = True
-        return context
-
-
 class CommentUpdate(generic.UpdateView):
     model = models.Comment
     form_class = forms.CommentUpdateForm
@@ -815,3 +788,6 @@ class ProzdoAutocompleteView(generic.View):
             'results': suggestions
         }
         return JsonResponse(data)
+
+class CommentConfirm(super_views.SuperCommentConfirm):
+    template_name = 'prozdo_main/comment/confirm.html'

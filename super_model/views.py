@@ -7,6 +7,7 @@ from . import helper
 from django.utils.module_loading import import_string
 from .app_settings import settings
 from super_model import models
+from allauth.account.models import EmailAddress
 
 Comment = import_string(settings.BASE_COMMENT_CLASS)
 History = import_string(settings.BASE_HISTORY_CLASS)
@@ -226,3 +227,30 @@ class SuperPostListFilterMixin(SuperListView):
 
     def get_filter_form(self):
         raise NotImplementedError
+
+
+class SuperCommentConfirm(generic.TemplateView):
+    template_name = 'super_model/comment/confirm.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            comment_pk = kwargs['comment_pk']
+            key = kwargs['key']
+            comment = Comment.objects.get(pk=comment_pk, key=key)
+            if comment.confirmed == False:
+                comment.confirmed = True
+                comment.save()
+                context['saved'] = True
+
+                if comment.user and not comment.user.email_confirmed:
+                    email = EmailAddress.objects.get(user=comment.user, verified=False, email=comment.user.email)
+                    email.verified = True
+                    email.save()
+
+            else:
+                context['not_saved'] = True
+
+        except:
+            context['not_found'] = True
+        return context
