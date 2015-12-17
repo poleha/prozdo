@@ -10,7 +10,6 @@ from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from allauth.account.models import EmailAddress
-from allauth.account.forms import LoginForm
 from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
 from helper.helper import to_int
@@ -644,28 +643,6 @@ class CommentDoctorListView(super_views.SuperListView):
         return queryset
 
 
-class GetAjaxLoginFormView(generic.TemplateView):
-    template_name = 'prozdo_main/user/_ajax_login.html'
-
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = LoginForm()
-        return context
-
-
-    def post(self, request, *args, **kwargs):
-        return self.render_to_response(self.get_context_data(**kwargs))
-
-
-class AjaxLoginView(LoginView):
-    template_name = 'prozdo_main/user/_ajax_login.html'
-
-
 class UnsubscribeView(generic.View):
 
     def get(self, request, *args, **kwargs):
@@ -736,4 +713,11 @@ class CommentGetConfirmFormAjax(super_views.SuperCommentGetConfirmFormAjax):
 
 
 class CommentDoConfirmAjax(super_views.SuperCommentDoConfirmAjax):
+    pass
+
+class GetAjaxLoginFormView(super_views.SuperGetAjaxLoginFormView):
+    pass
+
+
+class AjaxLoginView(super_views.SuperAjaxLoginView):
     pass

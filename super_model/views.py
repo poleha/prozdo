@@ -8,7 +8,9 @@ from .app_settings import settings
 from super_model import models
 from allauth.account.models import EmailAddress
 from django.http import JsonResponse, HttpResponse
+from allauth.account.forms import LoginForm
 from . import forms
+from allauth.account.views import LoginView
 
 Comment = import_string(settings.BASE_COMMENT_CLASS)
 History = import_string(settings.BASE_HISTORY_CLASS)
@@ -321,3 +323,25 @@ class SuperCommentDoConfirmAjax(generic.TemplateView):
         context = self.get_context_data(**kwargs)
         context['form'] = form
         return self.render_to_response(context)
+
+
+class SuperGetAjaxLoginFormView(generic.TemplateView):
+    template_name = 'super_model/user/_ajax_login.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = LoginForm()
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+class SuperAjaxLoginView(LoginView):
+    template_name = 'super_model/user/_ajax_login.html'
