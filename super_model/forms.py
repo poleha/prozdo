@@ -8,7 +8,7 @@ from .app_settings import settings
 
 UserProfile = import_string(settings.BASE_USER_PROFILE_CLASS)
 Post = import_string(settings.BASE_POST_CLASS)
-
+Comment = import_string(settings.BASE_COMMENT_CLASS)
 
 class SuperSearchForm(SearchForm):
     def __init__(self, *args, **kwargs):
@@ -68,3 +68,8 @@ class PostFilterForm(forms.Form):
                 if count > 0:
                     alph += ((letter, '{0}({1})'.format(letter, count)), )
             self.fields['alphabet'] = forms.MultipleChoiceField(choices=alph, label='Алфавитный указатель', required=False, widget=forms.CheckboxSelectMultiple())
+
+
+class CommentConfirmForm(forms.Form):
+    email = forms.EmailField(label='Электронный адрес')
+    comment = forms.ModelChoiceField(widget=forms.HiddenInput, queryset=Comment.objects.all())

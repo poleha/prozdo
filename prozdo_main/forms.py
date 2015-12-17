@@ -126,9 +126,7 @@ class ComponentForm(forms.ModelForm):
         #self.fields['component_type'].widget = forms.CheckboxSelectMultiple(choices=self.fields['component_type'].widget.choices)
 
 
-class CommentConfirmForm(forms.Form):
-    email = forms.EmailField(label='Электронный адрес')
-    comment = forms.ModelChoiceField(widget=forms.HiddenInput, queryset=models.Comment.objects.all())
+
 
 BOOL_CHOICE_DEFAULT = 0
 BOOL_CHOICE_NO = 1

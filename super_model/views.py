@@ -2,12 +2,13 @@ from django.http.response import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 from . import helper
 from django.utils.module_loading import import_string
 from .app_settings import settings
 from super_model import models
 from allauth.account.models import EmailAddress
+from django.http import JsonResponse, HttpResponse
+from . import forms
 
 Comment = import_string(settings.BASE_COMMENT_CLASS)
 History = import_string(settings.BASE_HISTORY_CLASS)
@@ -254,3 +255,66 @@ class SuperCommentConfirm(generic.TemplateView):
         except:
             context['not_found'] = True
         return context
+
+
+class SuperCommentGetConfirmFormAjax(generic.TemplateView):
+    template_name = 'super_model/comment/_get_confirm_form.html'
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.request.POST['pk']
+        comment = Comment.objects.get(pk=pk)
+        form = forms.CommentConfirmForm(initial={'comment': comment})
+        context['form'] = form
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        pk = self.request.POST['pk']
+        comment = Comment.objects.get(pk=pk)
+        if user.is_authenticated():
+            try:
+                email = EmailAddress.objects.get(user=user)
+            except:
+                email= None
+            if email and email.verified and user.email == comment.email:
+                comment.confirmed = True
+                comment.save()
+                return HttpResponse('Отзыв подтвержден')
+
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+class SuperCommentDoConfirmAjax(generic.TemplateView):
+    template_name = 'super_model/comment/_get_confirm_form.html'
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        form = forms.CommentConfirmForm(request.POST)
+        if form.is_valid():
+            comment = form.cleaned_data['comment']
+
+            if user.is_authenticated():
+                try:
+                    email = EmailAddress.objects.get(user=user)
+                except:
+                    email= None
+                if email and email.verified and user.email == comment.email:
+                    comment.confirmed = True
+                    comment.save()
+                    return HttpResponse('Отзыв подтвержден')
+            email = form.cleaned_data['email']
+            if comment.email == email:
+                comment.send_confirmation_mail(request=request)
+                return HttpResponse('На Ваш адрес электронной почту отправлено сообщение с дальнейшими инструкциями')
+            else:
+                form.add_error('email', 'Адрес электронной почты указан неверно')
+        context = self.get_context_data(**kwargs)
+        context['form'] = form
+        return self.render_to_response(context)
