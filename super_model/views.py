@@ -259,6 +259,7 @@ class SuperCommentConfirm(generic.TemplateView):
 
 class SuperCommentGetConfirmFormAjax(generic.TemplateView):
     template_name = 'super_model/comment/_get_confirm_form.html'
+    confirmation_message = 'Отзыв подтвержден'
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -283,13 +284,15 @@ class SuperCommentGetConfirmFormAjax(generic.TemplateView):
             if email and email.verified and user.email == comment.email:
                 comment.confirmed = True
                 comment.save()
-                return HttpResponse('Отзыв подтвержден')
+                return HttpResponse(self.confirmation_message)
 
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
 class SuperCommentDoConfirmAjax(generic.TemplateView):
     template_name = 'super_model/comment/_get_confirm_form.html'
+    confirmation_message = 'Отзыв подтвержден'
+
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -308,7 +311,7 @@ class SuperCommentDoConfirmAjax(generic.TemplateView):
                 if email and email.verified and user.email == comment.email:
                     comment.confirmed = True
                     comment.save()
-                    return HttpResponse('Отзыв подтвержден')
+                    return HttpResponse(self.confirmation_message)
             email = form.cleaned_data['email']
             if comment.email == email:
                 comment.send_confirmation_mail(request=request)
