@@ -232,7 +232,7 @@ class SuperPostListFilterMixin(SuperListView):
         raise NotImplementedError
 
 
-class SuperCommentConfirm(generic.TemplateView):
+class CommentConfirm(generic.TemplateView):
     template_name = 'super_model/comment/confirm.html'
 
     def get_context_data(self, **kwargs):
@@ -259,7 +259,7 @@ class SuperCommentConfirm(generic.TemplateView):
         return context
 
 
-class SuperCommentGetConfirmFormAjax(generic.TemplateView):
+class CommentGetConfirmFormAjax(generic.TemplateView):
     template_name = 'super_model/comment/_get_confirm_form.html'
     confirmation_message = 'Отзыв подтвержден'
     @csrf_exempt
@@ -291,7 +291,7 @@ class SuperCommentGetConfirmFormAjax(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-class SuperCommentDoConfirmAjax(generic.TemplateView):
+class CommentDoConfirmAjax(generic.TemplateView):
     template_name = 'super_model/comment/_get_confirm_form.html'
     confirmation_message = 'Отзыв подтвержден'
 
@@ -325,7 +325,7 @@ class SuperCommentDoConfirmAjax(generic.TemplateView):
         return self.render_to_response(context)
 
 
-class SuperGetAjaxLoginFormView(generic.TemplateView):
+class GetAjaxLoginFormView(generic.TemplateView):
     template_name = 'super_model/user/_ajax_login.html'
 
     @csrf_exempt
@@ -343,5 +343,5 @@ class SuperGetAjaxLoginFormView(generic.TemplateView):
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
-class SuperAjaxLoginView(LoginView):
+class AjaxLoginView(LoginView):
     template_name = 'super_model/user/_ajax_login.html'

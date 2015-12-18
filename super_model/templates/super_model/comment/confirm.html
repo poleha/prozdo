@@ -1,3 +1,5 @@
+{% extends base_template %}
+{% block content %}
 {% if saved %}
 Отзыв успешно подтвержден
 {% elif not_saved %}
@@ -5,3 +7,4 @@
 {% else %}
 Отзыв не найден
 {% endif %}
+{% endblock content %}

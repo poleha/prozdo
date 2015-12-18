@@ -13,6 +13,8 @@ class Settings:
 
     PAGES_TO_SHOW_FOR_LIST_VIEW = 10
 
+    BASE_TEMPLATE = 'super_model/base/base.html'
+
     def __getattribute__(self, item):
         if hasattr(project_settings, item):
             return getattr(project_settings, item)

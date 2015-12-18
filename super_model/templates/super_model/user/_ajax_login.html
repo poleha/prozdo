@@ -2,7 +2,7 @@
 
 
 <form id="ajax-login-form" class="login-form" method="POST" action="{% url 'ajax-login' %}">
-{% include 'prozdo_main/user/social/_login.html' with process='login' %}
+{% include 'super_model/user/social/_login.html' with process='login' %}
 
   {% csrf_token %}
     <div class="login-form-inner">

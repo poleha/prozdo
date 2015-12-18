@@ -703,21 +703,19 @@ class ProzdoAutocompleteView(generic.View):
         }
         return JsonResponse(data)
 
-class CommentConfirm(super_views.SuperCommentConfirm):
-    template_name = 'prozdo_main/comment/confirm.html'
+#class CommentConfirm(super_views.SuperCommentConfirm):
+#    pass
+
+#class CommentGetConfirmFormAjax(super_views.SuperCommentGetConfirmFormAjax):
+#    pass
 
 
+#class CommentDoConfirmAjax(super_views.SuperCommentDoConfirmAjax):
+#    pass
 
-class CommentGetConfirmFormAjax(super_views.SuperCommentGetConfirmFormAjax):
-    pass
-
-
-class CommentDoConfirmAjax(super_views.SuperCommentDoConfirmAjax):
-    pass
-
-class GetAjaxLoginFormView(super_views.SuperGetAjaxLoginFormView):
-    pass
+#class GetAjaxLoginFormView(super_views.SuperGetAjaxLoginFormView):
+#    pass
 
 
-class AjaxLoginView(super_views.SuperAjaxLoginView):
-    pass
+#class AjaxLoginView(super_views.SuperAjaxLoginView):
+#    pass

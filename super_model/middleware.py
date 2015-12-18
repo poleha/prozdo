@@ -22,7 +22,7 @@ class SetUserKeyMiddleware:
         setattr(request.session, settings.SUPER_MODEL_KEY_NAME, key)
 
 
-class ProzdoUpdateCacheMiddleware(UpdateCacheMiddleware):
+class SuperUpdateCacheMiddleware(UpdateCacheMiddleware):
     def _should_update_cache(self, request, response):
         if not settings.CACHE_ENABLED:
             return False
@@ -32,7 +32,7 @@ class ProzdoUpdateCacheMiddleware(UpdateCacheMiddleware):
             return False
 
 
-class ProzdoFetchFromCacheMiddleware(FetchFromCacheMiddleware):
+class SuperFetchFromCacheMiddleware(FetchFromCacheMiddleware):
     def process_request(self, request):
         if not settings.CACHE_ENABLED:
             request._cache_update_cache = False

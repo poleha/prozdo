@@ -115,10 +115,12 @@ TEMPLATES = [
             'context_processors': [
                 'super_model.context_processors.debug',
                 'super_model.context_processors.show_ad',
+                'super_model.context_processors.base_template',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_mobile.context_processors.flavour',
+
             ],
         },
     },
@@ -450,3 +452,5 @@ USER_ROLES = (
         (USER_ROLE_DOCTOR, 'Врач'),
         (USER_ROLE_ADMIN, 'Админ'),
     )
+
+BASE_TEMPLATE = 'prozdo_main/base/base.html'
