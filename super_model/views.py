@@ -10,7 +10,8 @@ from allauth.account.models import EmailAddress
 from django.http import JsonResponse, HttpResponse
 from allauth.account.forms import LoginForm
 from . import forms
-from allauth.account.views import LoginView
+from allauth.account.views import SignupView, LoginView, LogoutView
+
 
 Comment = import_string(settings.BASE_COMMENT_CLASS)
 History = import_string(settings.BASE_HISTORY_CLASS)
@@ -345,3 +346,14 @@ class GetAjaxLoginFormView(generic.TemplateView):
 
 class AjaxLoginView(LoginView):
     template_name = 'super_model/user/_ajax_login.html'
+
+
+class SuperSignupView(SignupView):
+    template_name = 'super_model/user/signup.html'
+    form_class = forms.SuperSignupForm
+
+class SuperLoginView(LoginView):
+    template_name = 'super_model/user/login.html'
+
+class SuperLogoutView(LogoutView):
+    pass

@@ -2,7 +2,7 @@
 
 {% block content %}
 <p>Вы можете использовать Ваш аккаунт в социальных сетях:</p>
-{% include 'prozdo_main/user/social/_login.html' with process='login' %}
+{% include 'super_model/user/social/_login.html' with process='login' %}
 
 <form class="login auth-form" method="POST" action="{% url 'login' %}">
   {% csrf_token %}

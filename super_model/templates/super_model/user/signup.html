@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% block content %}
 <p>Вы можете использовать Ваш аккаунт в социальных сетях для быстрой регистрации:</p>
-{% include 'prozdo_main/user/social/_login.html' with process='login' %}
+{% include 'super_model/user/social/_login.html' with process='login' %}
 
     <h1>Зарегистрироваться</h1>
  <form class='auth-form form auth-form' action="{% url 'signup' %}" method="post" id="signup-form">

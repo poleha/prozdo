@@ -48,9 +48,6 @@ urlpatterns = [
     url(r'^comment/doctor_list/$', views.CommentDoctorListView.as_view(), name='comment-doctor-list'),
 
 
-    url(r'^signup/$', views.ProzdoSignupView.as_view(), name='signup'),
-    url(r'^login/$', views.ProzdoLoginView.as_view(), name='login'),
-    url(r'^logout/$', views.ProzdoLogoutView.as_view(), name='logout'),
     url(r'^password_change/$', views.ProzdoPasswordChangeView.as_view(), name='password-change'),
     url(r'^password_reset/$', views.ProzdoPasswordResetView.as_view(), name='password-reset'),
     url(r'^password_reset_done/$', views.ProzdoPasswordResetDoneView.as_view(), name='password-reset-done'),

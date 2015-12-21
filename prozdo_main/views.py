@@ -5,7 +5,7 @@ from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, ConfirmEmailView, EmailView
+from allauth.account.views import PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, ConfirmEmailView, EmailView
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
@@ -367,17 +367,7 @@ class MainPageView(generic.TemplateView):
 
 #*********************************<Account
 
-class ProzdoSignupView(SignupView):
-    template_name = 'prozdo_main/user/signup.html'
-    form_class = super_forms.SuperSignupForm
 
-class ProzdoLoginView(LoginView):
-    template_name = 'prozdo_main/user/login.html'
-    #form_class = forms.ProzdoSignupForm
-
-
-class ProzdoLogoutView(LogoutView):
-    pass
 
 
 class ProzdoPasswordChangeView(PasswordChangeView):
