@@ -1,7 +1,5 @@
 from django import template
 from prozdo_main import models
-
-
 from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
 from django.core.urlresolvers import reverse
