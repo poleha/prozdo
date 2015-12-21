@@ -15,6 +15,8 @@ class Settings:
 
     BASE_TEMPLATE = 'super_model/base/base.html'
 
+    BEST_COMMENTS_DAYS = 30
+
     def __getattribute__(self, item):
         if hasattr(project_settings, item):
             return getattr(project_settings, item)

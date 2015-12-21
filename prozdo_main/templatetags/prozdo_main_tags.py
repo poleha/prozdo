@@ -1,84 +1,25 @@
 from django import template
 from prozdo_main import models
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models.aggregates import Count
+
+
 from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
 from django.core.urlresolvers import reverse
-from django.conf import settings
 from super_model.forms import SuperSearchForm
-from super_model import models as super_models
+from super_model.templatetags import super_model as super_tags
 
 register = template.Library()
 
 MenuItem = namedtuple('MenuItem', ['title', 'url', 'cls'])
 
 
-@register.inclusion_tag('prozdo_main/widgets/_get_child_comments.html', takes_context=True)
-def get_child_comments(context):
-    res = {}
-    comment = context['comment']
-    children_list = comment.get_children_tree
-    res['children'] = children_list
-    res['request'] = context['request'] #Поскольку мы будем вызывать get_comment, требующий request, нам нужно,
-    # чтобы request был доступен. Иначе _get_child_comments не получит request тк это inclusion tag, а request
-    # доступен в контексте view
-    res['show_as_child'] = True
-    return res
+get_child_comments = register.inclusion_tag('prozdo_main/widgets/_get_child_comments.html', takes_context=True)(super_tags.get_child_comments)
 
+get_comment = register.inclusion_tag('prozdo_main/widgets/_get_comment.html', takes_context=True)(super_tags.get_comment)
 
-@register.inclusion_tag('prozdo_main/widgets/_get_comment.html', takes_context=True)
-def get_comment(context, comment):
-    res = {}
-    request = context['request']
-    show_as_child = context.get('show_as_child', False)
-    res['show_as_child'] = show_as_child
-    res['show_tree'] = context.get('show_tree', False)
+recent_comments = register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')(super_tags.recent_comments)
 
-    res['comment'] = comment
-    #res['is_author'] = comment.is_author(request=request)
-
-
-    res['can_unmark'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
-    res['can_uncomplain'] = comment.show_undo_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, request=request)
-
-
-
-    if not res['can_uncomplain']:
-        res['can_mark'] = comment.show_do_action_button(history_type=super_models.HISTORY_TYPE_COMMENT_RATED, request=request)
-    else:
-        res['can_mark'] = False
-
-
-    #if show_as_child:
-    res['comment_class'] = 'single-comment-with-level-{0}'.format(comment.get_tree_level)
-    res['user'] = request.user
-    #else:
-    #    res['comment_class'] = 'single-comment-with-level-{0}'.format(0)
-    return res
-
-
-@register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')
-def recent_comments():
-    res = {}
-    comments = models.Comment.objects.get_available().order_by('-created')[:10]
-    res['comments'] = comments
-    res['portlet_type'] = 'recent_comments'
-    res['cache_duration'] = 60 * 60 * 2
-    return res
-
-
-@register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')
-def best_comments():
-    res = {}
-    date = timezone.now() - timedelta(days=settings.BEST_COMMENTS_DAYS)
-    comments = models.Comment.objects.filter(history_comment__history_type=super_models.HISTORY_TYPE_COMMENT_RATED, created__gte=date).annotate(hist_count=Count('history_comment')).order_by('-hist_count')[:10]
-
-    res['comments'] = comments
-    res['portlet_type'] = 'best_comments'
-    res['cache_duration'] = 60 * 60 * 24
-    return res
+best_comments = register.inclusion_tag('prozdo_main/widgets/_comments_portlet.html')(super_tags.best_comments)
 
 
 @register.inclusion_tag('prozdo_main/widgets/_top_menu.html', takes_context=True)
