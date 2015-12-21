@@ -80,6 +80,7 @@ INSTALLED_APPS = (
     'haystack',
     'contact_form',
     'super_model',
+    'helper',
 )
 
 MIDDLEWARE_CLASSES = (

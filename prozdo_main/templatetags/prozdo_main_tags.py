@@ -14,48 +14,6 @@ register = template.Library()
 
 MenuItem = namedtuple('MenuItem', ['title', 'url', 'cls'])
 
-@register.filter(name='cut_text')
-def cut_text(value, length): # Only one argument.
-    """Cuts first length letters from string"""
-    return value[0:length]
-
-
-@register.filter(name='bool_as_yes')
-def bool_as_yes(value):
-    if value:
-        return 'Да'
-    else:
-        return 'Нет'
-
-
-@register.filter(name='get_item')
-def get_item(dct, key):
-    if hasattr(dct, 'get'): #У форм нет метода get
-        res = dct.get(key, None)
-    else:
-        try:
-            res = dct[key]
-        except:
-            res = None
-    return res
-
-
-@register.filter(name='get_attr')
-def get_attr(ob, item):
-    res = getattr(ob, item, None)
-    if callable(res):
-        return res()
-    else:
-        return res
-
-
-@register.simple_tag
-def get_verbose_field_name(instance, field_name):
-    """
-    Returns verbose_name for a field.
-    """
-    return instance._meta.get_field(field_name).verbose_name.title()
-
 
 @register.inclusion_tag('prozdo_main/widgets/_get_child_comments.html', takes_context=True)
 def get_child_comments(context):
@@ -155,35 +113,10 @@ def bottom_menu(context):
     res['signup'] = reverse_lazy('signup')
     return res
 
-@register.simple_tag(takes_context=True)
-def get_get_parameters_exclude(context, exclude=('page', ), page=None):
-    request = context['request']
-    params = ''
-    for key in request.GET:
-        if key in exclude:
-            continue
-        if params == '':
-            params = '?'
-        lst = request.GET.getlist(key)
-        if len(lst) == 1:
-            params +="&{0}={1}".format(key, request.GET[key])
-        else:
-            for item in lst:
-                params +="&{0}={1}".format(key, item)
-    if page is not None and page > 1:
-        if params == '':
-            params += '?page=' + str(page)
-        elif params == '?':
-            params += 'page=' + str(page)
-        else:
-            params += '&page=' + str(page)
-    return params
-
 
 @register.inclusion_tag('prozdo_main/widgets/_user_detail.html')
 def user_detail(user):
     return {'user': user}
-
 
 
 Breadcrumb = namedtuple('Breadcrumb', ['title', 'href'])
@@ -260,8 +193,6 @@ def metatags(context):
     url_name = request.resolver_match.url_name
     #kwargs = request.resolver_match.kwargs
 
-
-
     metatags_dict = {}
     metatags_dict['title'] = 'Про здоровье'
     metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства, аптечная косметика"
@@ -332,21 +263,6 @@ def metatags(context):
 
     return metatags_dict
 
-@register.filter(name='bool_as_text')
-def bool_as_text(value):
-    if value:
-        return 'Да'
-    else:
-        return 'Нет'
-
-
-@register.filter(name='none_as_empty')
-def none_as_empty(value):
-    if value:
-        return value
-    else:
-        return ''
-
 
 @register.inclusion_tag('prozdo_main/widgets/_user_menu.html', takes_context=True)
 def user_menu(context):
@@ -362,9 +278,3 @@ def user_menu(context):
         menu_items.append(MenuItem(title='Создать косметику', url=reverse('cosmetics-create'), cls=''))
         menu_items.append(MenuItem(title='Создать компонент', url=reverse('component-create'), cls=''))
     return {'menu_items': menu_items}
-
-
-
-
-
-
