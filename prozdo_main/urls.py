@@ -40,22 +40,9 @@ urlpatterns = [
 
     url(r'^comment/show_marked_users_ajax/$', views.CommentShowMarkedUsersAjax.as_view(), name='comment-show-marked-users-ajax'),
 
-
-
     url(r'^comment/update/(?P<pk>\d+)/$', views.CommentUpdate.as_view(), name='comment-update'),
 
-
     url(r'^comment/doctor_list/$', views.CommentDoctorListView.as_view(), name='comment-doctor-list'),
-
-
-    url(r'^password_change/$', views.ProzdoPasswordChangeView.as_view(), name='password-change'),
-    url(r'^password_reset/$', views.ProzdoPasswordResetView.as_view(), name='password-reset'),
-    url(r'^password_reset_done/$', views.ProzdoPasswordResetDoneView.as_view(), name='password-reset-done'),
-    url(r"^password_reset_from_key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$",
-        views.ProzdoPasswordResetFromKeyView.as_view(),
-        name="password-reset-from-key"),
-    url(r"^password_reset_from_key_done/$", views.ProzdoPasswordResetFromKeyDoneView.as_view(),
-        name="password-reset-from-key-done"),
 
     url(r'^user_profile/$', views.UserProfileView.as_view(), name='user-profile'),
     url(r'^user/(?P<pk>\d+)/$', views.UserDetailView.as_view(), name='user-detail'),
@@ -63,18 +50,6 @@ urlpatterns = [
     url(r'^user/karma/(?P<pk>\d+)/$', views.UserKarmaView.as_view(), name='user-karma'),
     url(r'^user/activity/(?P<pk>\d+)/$', views.UserActivityView.as_view(), name='user-activity'),
     url(r'^unsubscribe/(?P<email>[0-9a-zA-Z.\-_@]+)/(?P<key>[0-9A-Za-z]+)/$', views.UnsubscribeView.as_view(), name='unsubscribe'),
-
-
-
-    url(r"^email/$", views.ProzdoEmailView.as_view(), name="account_email"),
-    url(r"^confirm-email/(?P<key>\w+)/$", views.ProzdoConfirmEmailView.as_view(), name="account_confirm_email"),
-    #social
-    url(r'^social_login/$', views.ProzdoSocialSignupView.as_view(), name='socialaccount_signup'), #Перекрываем их url. Иначе не получилось.
-    url(r'^login_cancelled/$', views.ProzdoLoginCancelledView.as_view(),
-        name='socialaccount_login_cancelled'),
-    url(r'^login_error/$', views.ProzdoLoginErrorView.as_view(), name='socialaccount_login_error'),
-    url(r'^connections/$', views.ProzdoConnectionsView.as_view(), name='socialaccount_connections'),
-
 
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 

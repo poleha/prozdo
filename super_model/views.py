@@ -10,8 +10,10 @@ from allauth.account.models import EmailAddress
 from django.http import JsonResponse, HttpResponse
 from allauth.account.forms import LoginForm
 from . import forms
-from allauth.account.views import SignupView, LoginView, LogoutView
-
+from allauth.account.views import SignupView, LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, ConfirmEmailView, EmailView
+from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
+from .decorators import login_required
+ 
 
 Comment = import_string(settings.BASE_COMMENT_CLASS)
 History = import_string(settings.BASE_HISTORY_CLASS)
@@ -357,3 +359,50 @@ class SuperLoginView(LoginView):
 
 class SuperLogoutView(LogoutView):
     pass
+
+class SuperPasswordChangeView(PasswordChangeView):
+    template_name = 'super_model/user/password_change.html'
+    success_url = reverse_lazy("user-profile")
+
+class SuperPasswordResetView(PasswordResetView):
+    template_name = 'super_model/user/password_reset.html'
+    success_url = reverse_lazy("password-reset-done")
+
+class SuperPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'super_model/user/password_reset_done.html'
+
+class SuperPasswordResetFromKeyView(PasswordResetFromKeyView):
+    template_name = 'super_model/user/password_reset_from_key.html'
+    success_url = reverse_lazy('password-reset-from-key-done')
+
+
+class SuperPasswordResetFromKeyDoneView(PasswordResetFromKeyDoneView):
+    template_name = 'super_model/user/password_reset_from_key_done.html'
+
+
+class SuperSocialSignupView(SocialSignupView):
+    template_name = 'super_model/user/social/signup.html'
+
+class SuperLoginCancelledView(LoginCancelledView):
+    template_name = 'super_model/user/social/login_cancelled.html'
+
+class SuperLoginErrorView(LoginErrorView):
+    template_name = 'super_model/user/social/authentication_error.html'
+
+class SuperConnectionsView(ConnectionsView):
+    template_name = 'super_model/user/social/connections.html'
+
+    @login_required()
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+class SuperEmailView(EmailView):
+    template_name = 'super_model/user/email.html'
+
+
+class SuperConfirmEmailView(ConfirmEmailView):
+    def get_template_names(self):
+        if self.request.method == 'POST':
+            return ["main/user/email_confirmed.html"]
+        else:
+            return ["main/user/email_confirm.html"]

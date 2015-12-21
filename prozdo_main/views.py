@@ -5,12 +5,10 @@ from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from allauth.account.views import PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, ConfirmEmailView, EmailView
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from allauth.account.models import EmailAddress
-from allauth.socialaccount.views import SignupView as SocialSignupView, LoginCancelledView, LoginErrorView, ConnectionsView
 from . import models, forms
 from helper.helper import to_int
 from django.contrib import messages
@@ -369,53 +367,6 @@ class MainPageView(generic.TemplateView):
 
 
 
-
-class ProzdoPasswordChangeView(PasswordChangeView):
-    template_name = 'prozdo_main/user/password_change.html'
-    success_url = reverse_lazy("user-profile")
-
-class ProzdoPasswordResetView(PasswordResetView):
-    template_name = 'prozdo_main/user/password_reset.html'
-    success_url = reverse_lazy("password-reset-done")
-
-class ProzdoPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'prozdo_main/user/password_reset_done.html'
-
-class ProzdoPasswordResetFromKeyView(PasswordResetFromKeyView):
-    template_name = 'prozdo_main/user/password_reset_from_key.html'
-    success_url = reverse_lazy('password-reset-from-key-done')
-
-
-class ProzdoPasswordResetFromKeyDoneView(PasswordResetFromKeyDoneView):
-    template_name = 'prozdo_main/user/password_reset_from_key_done.html'
-
-
-class ProzdoSocialSignupView(SocialSignupView):
-    template_name = 'prozdo_main/user/social/signup.html'
-
-class ProzdoLoginCancelledView(LoginCancelledView):
-    template_name = 'prozdo_main/user/social/login_cancelled.html'
-
-class ProzdoLoginErrorView(LoginErrorView):
-    template_name = 'prozdo_main/user/social/authentication_error.html'
-
-class ProzdoConnectionsView(ConnectionsView):
-    template_name = 'prozdo_main/user/social/connections.html'
-
-    @super_decorators.login_required()
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-class ProzdoEmailView(EmailView):
-    template_name = 'prozdo_main/user/email.html'
-
-
-class ProzdoConfirmEmailView(ConfirmEmailView):
-    def get_template_names(self):
-        if self.request.method == 'POST':
-            return ["prozdo_main/user/email_confirmed.html"]
-        else:
-            return ["prozdo_main/user/email_confirm.html"]
 
 #*********************************Account>
 
