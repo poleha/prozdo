@@ -624,3 +624,23 @@ class CommentShowMarkedUsersAjax(generic.TemplateView):
 
     def post(self, request, *args, **kwargs):
         return self.render_to_response(self.get_context_data(**kwargs))
+
+
+class UnsubscribeView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+        email = kwargs['email']
+        key_from_request = kwargs['key']
+        email_address = EmailAddress.objects.get(email=email)
+        try:
+            key = email_address.emailconfirmation_set.latest('created').key
+        except:
+            key = None
+
+        if key is not None and key == key_from_request:
+            user = email_address.user
+            user_profile = user.user_profile
+            user_profile.receive_messages = False
+            user_profile.save()
+            #messages.add_message(request, messages.INFO, 'Вы больше не будете получать сообщения с сайта Prozdo.ru')
+            return HttpResponseRedirect(reverse_lazy('main-page'))

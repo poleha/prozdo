@@ -45,7 +45,7 @@ urlpatterns = [
     url(r'^user/comments/(?P<pk>\d+)/$', views.UserCommentsView.as_view(), name='user-comments'),
     url(r'^user/karma/(?P<pk>\d+)/$', views.UserKarmaView.as_view(), name='user-karma'),
     url(r'^user/activity/(?P<pk>\d+)/$', views.UserActivityView.as_view(), name='user-activity'),
-    url(r'^unsubscribe/(?P<email>[0-9a-zA-Z.\-_@]+)/(?P<key>[0-9A-Za-z]+)/$', views.UnsubscribeView.as_view(), name='unsubscribe'),
+
 
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
