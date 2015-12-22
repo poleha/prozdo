@@ -18,6 +18,7 @@ from super_model import helper as super_helper
 from super_model import decorators as super_decorators
 from super_model import views as super_views
 from django.db import transaction
+from django.utils import timezone
 
 
 class PostDetail(super_views.SuperPostDetail):
