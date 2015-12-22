@@ -431,3 +431,8 @@ class ProzdoAutocompleteView(generic.View):
 
 #class AjaxLoginView(super_views.SuperAjaxLoginView):
 #    pass
+
+class CommentGetTreeAjax(super_views.SuperCommentGetTreeAjax):
+    template_name = 'prozdo_main/widgets/_get_child_comments.html'
+
+

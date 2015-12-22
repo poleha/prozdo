@@ -33,6 +33,7 @@ urlpatterns = [
 
 
     url(r'^comment/get_for_answer_block_ajax/$', views.CommentGetForAnswerToBlockAjax.as_view(), name='comment-get-for-answer-block-ajax'),
+    url(r'^comment/get_tree_ajax/$', views.CommentGetTreeAjax.as_view(), name='get-comment-tree-ajax'),
 
 
 
