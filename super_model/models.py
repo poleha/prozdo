@@ -22,8 +22,6 @@ from django.db.models.signals import post_save
 from super_model.helper import generate_key
 
 
-
-
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
     updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения', db_index=True)
@@ -401,8 +399,26 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
     post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True )
 
+    can_be_rated = False
 
     objects = PostManager()
+
+
+    def get_mark_by_request(self, request):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        user = request.user
+        if user.is_authenticated():
+            try:
+                mark = History.objects.filter(user=user, history_type=HISTORY_TYPE_POST_RATED, post=self, deleted=False).count()
+            except:
+                mark = 0
+        else:
+            try:
+                mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_POST_RATED, user=None, deleted=False).filter(session_key=getattr(request.session, settings.SUPER_MODEL_KEY_NAME)).count()
+            except:
+                mark = 0
+
+        return mark
 
     @cached_property
     def last_modified(self):

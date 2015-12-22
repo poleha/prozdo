@@ -506,8 +506,8 @@ class SuperPostDetail(SuperListView):
         context['comments_options_form'] = comments_options_form
         context['mark'] = self.post.obj.get_mark_by_request(request)
 
-        if self.obj.is_blog:
-            user_mark = self.obj.get_mark_blog_by_request(request)
+        if self.obj.can_be_rated:
+            user_mark = self.obj.get_mark_by_request(request)
             if user_mark == 0:
                 context['can_mark_blog'] = True
             else:

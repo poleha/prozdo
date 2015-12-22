@@ -41,6 +41,8 @@ class Post(super_models.SuperPost):
         ('prozdo_main.views.PostDetail', 'get'),
     )
 
+    can_be_rated = False
+
     @classmethod
     def get_post_type(cls):
         if cls == Drug:
@@ -368,6 +370,9 @@ class Blog(Post):
     category = TreeManyToManyField(Category, verbose_name='Категория', db_index=True)
     objects = super_models.PostManager()
 
+
+    can_be_rated = True
+
     def type_str(self):
         return 'Запись блога'
 
@@ -416,20 +421,7 @@ class Blog(Post):
             mark = 0
         return mark
 
-    def get_mark_blog_by_request(self, request):
-        user = request.user
-        if user.is_authenticated():
-            try:
-                mark = History.objects.filter(user=user, history_type=super_models.HISTORY_TYPE_POST_RATED, post=self, deleted=False).count()
-            except:
-                mark = 0
-        else:
-            try:
-                mark = History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED, user=None, deleted=False).filter(session_key=getattr(request.session, settings.SUPER_MODEL_KEY_NAME)).count()
-            except:
-                mark = 0
 
-        return mark
 
 
 class Comment(super_models.SuperComment):
