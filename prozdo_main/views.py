@@ -5,8 +5,6 @@ from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
-from django.db.models import Q
-from allauth.account.models import EmailAddress
 from . import models, forms
 from helper.helper import to_int
 from django.contrib import messages
