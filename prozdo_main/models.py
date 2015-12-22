@@ -12,7 +12,7 @@ from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from cache.models import CachedModelMixin
-from cache.decorators import cached_property, cached_method
+from cache.decorators import cached_property
 from super_model import models as super_models
 
 
@@ -436,102 +436,9 @@ class Comment(super_models.SuperComment):
     confirm_comment_text_template_name = 'prozdo_main/comment/email/confirm_comment_html_template.html'
     confirm_comment_html_template_name = 'prozdo_main/comment/email/confirm_comment_text_template.txt'
 
-    def __str__(self):
-        return self.short_body
-
-    def type_str(self):
-        return 'Сообщение'
-
-    def get_confirm_url(self):
-        return reverse('comment-confirm', kwargs={'comment_pk': self.pk, 'key': self.key})
-
-    @property
-    def consult_done(self):
-        return self.available_children.filter(user__user_profile__role=settings.USER_ROLE_DOCTOR).exists()
-
-    @cached_property
-    def comment_mark(self):
-        try:
-            mark = History.objects.filter(comment=self, history_type=super_models.HISTORY_TYPE_COMMENT_RATED, deleted=False).aggregate(Count('pk'))['pk__count']
-            if mark is None:
-                mark = 0
-        except:
-            mark = 0
-        return mark
-
-    @cached_property
-    def complain_count(self):
-        try:
-            count = History.objects.filter(comment=self, history_type=super_models.HISTORY_TYPE_COMMENT_COMPLAINT, deleted=False).aggregate(Count('pk'))['pk__count']
-            if count is None:
-                count = 0
-        except:
-            count = 0
-        return count
-
-    @cached_method()
-    def hist_exists_by_comment_and_user(self, history_type, user):
-        return History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
-
-    def hist_exists_by_request(self, history_type, request):
-        if super_models.request_with_empty_guest(request):
-            return False
-        user = request.user
-        if user and user.is_authenticated():
-            hist_exists = self.hist_exists_by_comment_and_user(history_type, user)
-        else:
-            session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
-            if session_key is None:
-                return False
-            hist_exists = History.exists_by_comment(session_key, self, history_type)
-        return hist_exists
-
-    def show_do_action_button(self, history_type, request):
-        if super_models.request_with_empty_guest(request):
-            return True
-        return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
-
-    def show_undo_action_button(self, history_type, request):
-        if super_models.request_with_empty_guest(request):
-            return False
-        return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
-
-    def is_author_for_show_buttons(self, request):
-        if super_models.request_with_empty_guest(request):
-            return False
-        user = request.user
-        if user and user.is_authenticated():
-            return user == self.user
-        else:
-            session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
-            if session_key is None:
-                return False
-            else:
-                return self.session_key == session_key
 
 
-    def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
-        if user and user.is_authenticated():
-            hist_exists = History.objects.filter(history_type=history_type, comment=self, user=user, deleted=False).exists()
-        elif not History.exists(session_key):
-            return False
-        else:
-            if session_key:
-                hist_exists_by_key = History.objects.filter(history_type=history_type, comment=self, session_key=session_key, deleted=False).exists()
-            else:
-                hist_exists_by_key = False
-            if ip:
-                hist_exists_by_ip = History.objects.filter(history_type=history_type, comment=self, ip=ip, deleted=False).exists()
-            else:
-                hist_exists_by_ip = False
-            hist_exists = hist_exists_by_key or hist_exists_by_ip
 
-        return hist_exists
-
-    def can_do_action(self, history_type, user, ip, session_key):
-        if user and not user.is_authenticated():
-            return True
-        return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
 
 
 class UserProfile(super_models.SuperUserProfile):
