@@ -603,3 +603,24 @@ class CommentGetTinyAjax(generic.View):
         else:
             res = comment.short_body
         return HttpResponse(res)
+
+class CommentShowMarkedUsersAjax(generic.TemplateView):
+    template_name = 'super_model/comment/_comment_show_marked_users_ajax.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request = self.request
+        pk = request.POST['pk']
+        comment = Comment.objects.get(pk=pk)
+
+        user_pks = History.objects.filter(~Q(user=None), history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).values_list('user', flat=True)
+        context['users'] = models.User.objects.filter(pk__in=user_pks)
+        context['guest_count'] = History.objects.filter(user=None, history_type=models.HISTORY_TYPE_COMMENT_RATED, comment=comment, deleted=False).count()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
