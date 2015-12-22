@@ -100,47 +100,6 @@ class PostListAjax(PostListFilterMixin):
         self.object_list = self.get_queryset()
         return self.render_to_response(self.get_context_data(**kwargs))
 
-
-class CommentGetTreeAjax(generic.TemplateView):
-    template_name = 'prozdo_main/widgets/_get_child_comments.html'
-
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        pk = self.request.POST['pk']
-        comment = models.Comment.objects.get(pk=pk)
-        action = self.request.POST['action']
-
-        if action == 'comment-tree-show':
-            context['show_as_child'] = True
-            context['children'] = comment.get_children_tree
-        return context
-
-    def post(self, request, *args, **kwargs):
-        return self.render_to_response(self.get_context_data(**kwargs))
-
-
-class CommentGetTinyAjax(generic.View):
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-
-    def post(self, request, *args, **kwargs):
-        pk = self.request.POST['pk']
-        action = self.request.POST['action']
-        comment = models.Comment.objects.get(pk=pk)
-        if action == 'show':
-            res = comment.body
-        else:
-            res = comment.short_body
-        return HttpResponse(res)
-
-
 class CommentGetForAnswerToBlockAjax(generic.TemplateView):
     template_name =  'prozdo_main/comment/_comment_for_answer_block.html'
 

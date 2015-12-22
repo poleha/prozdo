@@ -31,10 +31,8 @@ urlpatterns = [
     url(r'^post/(?P<pk>\d+)/$', views.PostDetail.as_view(), kwargs={'action': 'normal'}, name='post-detail-pk'),
     url(r'^post/(?P<pk>\d+)/comment/(?P<comment_pk>\d+)/$', views.PostDetail.as_view(), kwargs={'action': 'comment'}, name='post-detail-pk-comment'),
 
-    url(r'^comment/get_tree_ajax/$', views.CommentGetTreeAjax.as_view(), name='get-comment-tree-ajax'),
 
 
-    url(r'^comment/get_tiny_ajax/$', views.CommentGetTinyAjax.as_view(), name='comment-get-tiny-ajax'),
 
     url(r'^comment/get_for_answer_block_ajax/$', views.CommentGetForAnswerToBlockAjax.as_view(), name='comment-get-for-answer-block-ajax'),
 

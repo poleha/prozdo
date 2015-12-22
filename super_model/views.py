@@ -564,3 +564,42 @@ class SuperPostDetail(SuperListView):
                 return JsonResponse({'comment_form': comment_form.as_p(), 'status': 2})
             else:
                 return self.render_to_response(self.get_context_data(comment_form=comment_form, **kwargs))
+
+class CommentGetTreeAjax(generic.TemplateView):
+    template_name = 'super_model/widgets/_get_child_comments.html'
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.request.POST['pk']
+        comment = Comment.objects.get(pk=pk)
+        action = self.request.POST['action']
+
+        if action == 'comment-tree-show':
+            context['show_as_child'] = True
+            context['children'] = comment.get_children_tree
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(**kwargs))
+
+
+class CommentGetTinyAjax(generic.View):
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def post(self, request, *args, **kwargs):
+        pk = self.request.POST['pk']
+        action = self.request.POST['action']
+        comment = Comment.objects.get(pk=pk)
+        if action == 'show':
+            res = comment.body
+        else:
+            res = comment.short_body
+        return HttpResponse(res)
