@@ -1,21 +1,18 @@
 from django.views import generic
 from django.http.response import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.conf import settings
 from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
 from . import models, forms
 from helper.helper import to_int
-from django.contrib import messages
 from cache.decorators import cached_view
 from django.db.models import Case, Value, When, CharField
 from super_model import models as super_models
 from super_model import forms as super_forms
 from super_model import helper as super_helper
-from super_model import decorators as super_decorators
 from super_model import views as super_views
-from django.db import transaction
 from django.utils import timezone
 
 
