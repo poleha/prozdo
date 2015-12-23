@@ -119,7 +119,7 @@ class MainPageView(generic.TemplateView):
     def dispatch(self, request, *args, **kwargs):
         res = super().dispatch(request, *args, **kwargs)
         try:
-            last_modified = models.History.objects.filter(history_type=models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
+            last_modified = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
             res['Last-Modified'] = super_helper.convert_date_for_last_modified(last_modified)
             res['Expires'] = super_helper.convert_date_for_last_modified(last_modified + timezone.timedelta(seconds=60 * 60))
         except:
