@@ -41,13 +41,6 @@ urlpatterns = [
 
     url(r'^comment/doctor_list/$', views.CommentDoctorListView.as_view(), name='comment-doctor-list'),
 
-    url(r'^user_profile/$', views.UserProfileView.as_view(), name='user-profile'),
-    url(r'^user/(?P<pk>\d+)/$', views.UserDetailView.as_view(), name='user-detail'),
-    url(r'^user/comments/(?P<pk>\d+)/$', views.UserCommentsView.as_view(), name='user-comments'),
-    url(r'^user/karma/(?P<pk>\d+)/$', views.UserKarmaView.as_view(), name='user-karma'),
-    url(r'^user/activity/(?P<pk>\d+)/$', views.UserActivityView.as_view(), name='user-activity'),
-
-
     url(r'^$', views.MainPageView.as_view(), name='main-page'),
 
 
