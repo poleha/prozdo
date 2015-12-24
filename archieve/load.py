@@ -9,13 +9,13 @@ if __name__ == "__main__":
 
     execute_from_command_line(sys.argv)
 
-from prozdo_main import models
+from main import models
 import pymysql
 from allauth.account.models import EmailAddress, EmailConfirmation
 import datetime
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
-from prozdo_main.helper import make_alias
+from main.helper import make_alias
 from django.contrib.redirects.models import Redirect
 from django.db.models import Q
 from django.utils.html import strip_tags
@@ -695,7 +695,7 @@ if load_images:
 if fix_news_images:
     print('fix_news_images')
     for blog in models.Blog.objects.filter(body__contains='images/news'):
-        blog.body = blog.body.replace('images/news', 'static/prozdo_main/images/news')
+        blog.body = blog.body.replace('images/news', 'static/main/images/news')
         blog.save()
     models.History.objects.all().delete()
 

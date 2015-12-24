@@ -68,7 +68,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-    'prozdo_main',
+    'main',
     'sorl.thumbnail',
     'django.contrib.redirects',
     'compressor',
@@ -110,7 +110,7 @@ ROOT_URLCONF = 'prozdo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'prozdo_main/templates/prozdo_main')],
+        'DIRS': [os.path.join(BASE_DIR, 'main/templates/main')],
         #'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -231,7 +231,7 @@ AUTHENTICATION_BACKENDS = (
 
 #CACHES = {
 #    'default': {
-#        'BACKEND': 'prozdo_main.backends.ProzdoMemcachedCacheCacheBackend',
+#        'BACKEND': 'main.backends.ProzdoMemcachedCacheCacheBackend',
 #        'LOCATION': '127.0.0.1:11211',
 #    }
 #}
@@ -239,7 +239,7 @@ AUTHENTICATION_BACKENDS = (
 
 CACHES = {
     "default": {
-        'BACKEND': 'prozdo_main.backends.ProzdoRedisCacheBackend',
+        'BACKEND': 'main.backends.ProzdoRedisCacheBackend',
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             'DB': 2,
@@ -251,7 +251,7 @@ CACHES = {
 
 #CACHES = {
 #    "default": {
-#        "BACKEND": "prozdo_main.backends.ProzdoRedisCacheBackend",
+#        "BACKEND": "main.backends.ProzdoRedisCacheBackend",
 #        "LOCATION": "redis://127.0.0.1:6379/2",
 #    }
 #}
@@ -399,11 +399,11 @@ HISTORY_EXISTS_DURATION = 60 * 60 * 24 * 7
 HISTORY_EXISTS_BY_COMMENT_DURATION = 60 * 60 * 24
 HISTORY_FULL_EXISTS_BY_COMMENT_DURATION = None
 
-BASE_POST_CLASS = 'prozdo_main.models.Post'
-BASE_HISTORY_CLASS = 'prozdo_main.models.History'
-BASE_MAIL_CLASS = 'prozdo_main.models.Mail'
-BASE_USER_PROFILE_CLASS = 'prozdo_main.models.UserProfile'
-BASE_COMMENT_CLASS = 'prozdo_main.models.Comment'
+BASE_POST_CLASS = 'main.models.Post'
+BASE_HISTORY_CLASS = 'main.models.History'
+BASE_MAIL_CLASS = 'main.models.Mail'
+BASE_USER_PROFILE_CLASS = 'main.models.UserProfile'
+BASE_COMMENT_CLASS = 'main.models.Comment'
 
 
 SITE_NAME = 'Prozdo.ru'
@@ -454,4 +454,4 @@ USER_ROLES = (
         (USER_ROLE_ADMIN, 'Админ'),
     )
 
-BASE_TEMPLATE = 'prozdo_main/base/base.html'
+BASE_TEMPLATE = 'main/base/base.html'

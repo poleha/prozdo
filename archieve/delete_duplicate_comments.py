@@ -9,14 +9,14 @@ if __name__ == "__main__":
 
     execute_from_command_line(sys.argv)
 
-from prozdo_main import models
+from main import models
 
 from django.db import connection
 
 cursor = connection.cursor()
 
 
-cursor.execute("SELECT c.body, COUNT(c.id) FROM prozdo_main_comment c GROUP BY c.body, c.post_id, c.user_id, c.session_key HAVING COUNT(c.id) > 1")
+cursor.execute("SELECT c.body, COUNT(c.id) FROM main_comment c GROUP BY c.body, c.post_id, c.user_id, c.session_key HAVING COUNT(c.id) > 1")
 rows = cursor.fetchall()
 for row in rows:
     print(row[1])
