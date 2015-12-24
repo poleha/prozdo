@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0004_auto_20151106_1222'),
+        ('prozdo_main', '0004_auto_20151106_1222'),
     ]
 
     operations = [
@@ -58,6 +58,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='image',
-            field=models.ImageField(blank=True, verbose_name='Изображение', upload_to='user_profile', null=True),
+            field=models.ImageField(null=True, verbose_name='Изображение', upload_to='user_profile', blank=True),
         ),
     ]
