@@ -269,7 +269,7 @@ class ProzdoAutocompleteView(generic.View):
     def post(self, request, *args, **kwargs):
         q = request.POST.get('q', '').strip()
         if len(q) > 2:
-            queryset = models.Post.objects.filter(title__icontains=q).annotate(
+            queryset = models.Post.objects.get_available().filter(title__icontains=q).annotate(
         entry_type=Case(
          When(post_type=settings.POST_TYPE_DRUG, then=Value(1)),
          When(post_type=settings.POST_TYPE_BLOG, then=Value(2)),
