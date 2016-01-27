@@ -53,7 +53,7 @@ class Post(super_models.SuperPost):
             return settings.POST_TYPE_COMPONENT
         elif cls == Cosmetics:
             return settings.POST_TYPE_COSMETICS
-        elif cls == Brand:
+        elif cls == BrandModel:
             return settings.POST_TYPE_BRAND
         elif cls == DrugDosageForm:
             return settings.POST_TYPE_DRUG_DOSAGE_FORM
@@ -197,7 +197,7 @@ class Post(super_models.SuperPost):
         return History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED, deleted=False).count()
 
 
-class Brand(Post):
+class BrandModel(Post):
     def get_absolute_url(self):
         return "{0}?brands={1}".format(reverse('cosmetics-list'), self.pk)
 
@@ -313,7 +313,7 @@ class Cosmetics(Post):
     body = RichTextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True, max_length=300)
 
-    brand = models.ForeignKey(Brand, verbose_name='Бренд', db_index=True)
+    brand = models.ForeignKey(BrandModel, verbose_name='Бренд', db_index=True)
     line = models.ForeignKey(CosmeticsLine, verbose_name='Линейка', null=True, blank=True, db_index=True)
     dosage_forms = models.ManyToManyField(CosmeticsDosageForm, verbose_name='Формы выпуска')
     usage_areas = models.ManyToManyField(CosmeticsUsageArea, verbose_name='Область применения')

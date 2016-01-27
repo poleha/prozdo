@@ -44,7 +44,7 @@ class ComponentFilterForm(super_forms.PostFilterForm):
 class CosmeticsFilterForm(super_forms.PostFilterForm):
     class Meta:
         post_type = settings.POST_TYPE_COSMETICS
-    brand = forms.ModelMultipleChoiceField(queryset=models.Brand.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
+    brand = forms.ModelMultipleChoiceField(queryset=models.BrandModel.objects.all(), label='Бренд', widget=forms.CheckboxSelectMultiple(), required=False)
     line = forms.ModelMultipleChoiceField(queryset=models.CosmeticsLine.objects.all(), label='Линия', widget=forms.CheckboxSelectMultiple(), required=False)
     usage_areas = forms.ModelMultipleChoiceField(queryset=models.CosmeticsUsageArea.objects.all(), label='Область применения', widget=forms.CheckboxSelectMultiple(), required=False)
     dosage_forms = forms.ModelMultipleChoiceField(queryset=models.CosmeticsDosageForm.objects.all(), label='Форма выпуска', widget=forms.CheckboxSelectMultiple(), required=False)

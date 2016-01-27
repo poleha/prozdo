@@ -69,7 +69,7 @@ class BaseTest(WebTest):
 
         )
 
-        self.brand = models.Brand.objects.create(
+        self.brand = models.BrandModel.objects.create(
             title='title_brand',
             status=super_models.POST_STATUS_PUBLISHED,
 
