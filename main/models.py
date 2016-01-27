@@ -157,7 +157,7 @@ class Post(super_models.SuperPost):
         elif self.post_type == settings.POST_TYPE_COSMETICS:
             return self.cosmetics
         elif self.post_type == settings.POST_TYPE_BRAND:
-            return self.brand
+            return self.brandmodel
         elif self.post_type == settings.POST_TYPE_DRUG_DOSAGE_FORM:
             return self.drugdosageform
         elif self.post_type == settings.POST_TYPE_COSMETICS_DOSAGE_FORM:
