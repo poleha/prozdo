@@ -88,7 +88,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     'django_mobile.middleware.MobileDetectionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-
     'django.middleware.gzip.GZipMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.middleware.common.CommonMiddleware',
