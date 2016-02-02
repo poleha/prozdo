@@ -273,26 +273,6 @@ BEST_COMMENTS_DAYS = 100
 
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
-#CACHE_MIDDLEWARE_SECONDS = 60 * 60
-
-
-
-CACHEOPS_REDIS = {
-    'host': 'localhost', # redis-server is on same machine
-    'port': 6379,        # default redis port
-    'db': 1,             # SELECT non-default redis database
-                         # using separate redis db or redis instance
-                         # is highly recommended
-
-}
-
-
-
-#CACHEOPS_DEFAULTS = {
-#    'timeout': CACHEOPS_DURATION
-#}
-
-
 if DEBUG_TOOLBAR:
 
     MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
