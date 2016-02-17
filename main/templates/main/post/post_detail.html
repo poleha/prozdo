@@ -553,11 +553,14 @@
                     var frm = $('#comment-form');
                     var innerForm = frm.find('#comment-form-inner');
                     var button = frm.find('.btn');
+                    var formData = frm.serialize();
+                    var inputs = frm.find('input, textarea');
                     button.attr('disabled', 'disabled');
+                    inputs.attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: frm.attr('action'),
-                        data: frm.serialize(),
+                        data: formData,
                         success: function (data) {
 
                             if (data.status == 1) {
@@ -569,11 +572,13 @@
                             else {
                                 innerForm.html(data.comment_form);
                                 button.removeAttr('disabled');
+                                inputs.removeAttr('disabled');
                             }
 
                         },
                         error: function (data) {
                             button.removeAttr('disabled');
+                            inputs.removeAttr('disabled');
                         }
                     });
 
