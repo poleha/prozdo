@@ -1407,42 +1407,41 @@ class PostTests(BaseTest):
         self.assertEqual(drug.post_ptr.average_mark, 5)
 
     # TODO change to new mode
-    """
     def test_marks_count_works_as_expected_for_blog_detail(self):
         blog = self.blog
         params= {
-                'action': 'post-mark',
+                'action': 'user-post-mark',
                 'pk': blog.pk,
             }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
-        self.assertIn('<span class="blog-current-mark-span">1</span>', page)
-        self.assertEqual(blog.marks_count, 1)
-        self.assertEqual(blog.post_ptr.marks_count, 1)
+        self.assertIn('<span class="post-current-mark-span" id="post-current-mark-span">1</span>', page)
+        self.assertEqual(blog.user_marks_count, 1)
+        self.assertEqual(blog.post_ptr.user_marks_count, 1)
 
         self.renew_app()
         params = {
-                'action': 'post-mark',
+                'action': 'user-post-mark',
                 'pk': blog.pk,
             }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
-        self.assertIn('<span class="blog-current-mark-span">2</span>', page)
-        self.assertEqual(blog.marks_count, 2)
-        self.assertEqual(blog.marks_count, 2)
+        self.assertIn('<span class="post-current-mark-span" id="post-current-mark-span">2</span>', page)
+        self.assertEqual(blog.user_marks_count, 2)
+        self.assertEqual(blog.post_ptr.user_marks_count, 2)
 
         params= {
-                'action': 'post-unmark',
+                'action': 'user-post-unmark',
                 'pk': blog.pk,
             }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
-        self.assertIn('<span class="blog-current-mark-span">1</span>', page)
-        self.assertEqual(blog.marks_count, 1)
-        self.assertEqual(blog.post_ptr.marks_count, 1)
-    """
+        self.assertIn('<span class="post-current-mark-span" id="post-current-mark-span">1</span>', page)
+        self.assertEqual(blog.user_marks_count, 1)
+        self.assertEqual(blog.post_ptr.user_marks_count, 1)
+
 
 class SearchTests(BaseTest):
     def test_published_drug_is_found_by_title_body_indications(self):
