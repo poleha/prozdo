@@ -23,6 +23,23 @@ from super_model.helper import generate_key
 from django.db.models.aggregates import Count, Sum
 from . import fix
 
+
+HISTORY_TYPE_COMMENT_CREATED = settings.HISTORY_TYPE_COMMENT_CREATED
+HISTORY_TYPE_COMMENT_SAVED = settings.HISTORY_TYPE_COMMENT_SAVED
+HISTORY_TYPE_COMMENT_RATED = settings.HISTORY_TYPE_COMMENT_RATED
+HISTORY_TYPE_POST_CREATED = settings.HISTORY_TYPE_POST_CREATED
+HISTORY_TYPE_POST_SAVED = settings.HISTORY_TYPE_POST_SAVED
+HISTORY_TYPE_POST_RATED = settings.HISTORY_TYPE_POST_RATED
+HISTORY_TYPE_COMMENT_COMPLAINT = settings.HISTORY_TYPE_COMMENT_COMPLAINT
+HISTORY_TYPE_USER_POST_RATED = settings.HISTORY_TYPE_USER_POST_RATED
+HISTORY_TYPE_USER_POST_COMPLAINT = settings.HISTORY_TYPE_USER_POST_COMPLAINT
+
+
+HISTORY_TYPES = settings.HISTORY_TYPES
+
+HISTORY_TYPES_POINTS = settings.HISTORY_TYPES_POINTS
+
+
 class SuperModel(models.Model):
     created = models.DateTimeField(blank=True, verbose_name='Время создания', db_index=True)
     updated = models.DateTimeField(blank=True, null=True, verbose_name='Время изменения', db_index=True)
@@ -93,8 +110,15 @@ POST_MARKS_FOR_COMMENT = (
     (5, '5'),
 )
 
+class ModelPublishedByUser(models.Model):
+    class Meta:
+        abstract = True
 
-class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
+    ip = models.CharField(max_length=300, db_index=True, null=True, blank=True)
+    session_key = models.TextField(blank=True, null=True, db_index=True)
+
+
+class SuperComment(SuperModel, CachedModelMixin, MPTTModel, ModelPublishedByUser, class_with_published_mixin(COMMENT_STATUS_PUBLISHED)):
     class Meta:
         abstract = True
 
@@ -103,8 +127,6 @@ class SuperComment(SuperModel, CachedModelMixin, MPTTModel, class_with_published
                               blank=not settings.EMAIL_IS_REQUIRED_FOR_COMMENT)
     body = models.TextField(verbose_name='Сообщение')
     user = models.ForeignKey(User, null=True, blank=True, related_name='comments', db_index=True)
-    ip = models.CharField(max_length=300, db_index=True)
-    session_key = models.TextField(blank=True, null=True, db_index=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     status = models.IntegerField(choices=COMMENT_STATUSES, verbose_name='Статус', db_index=True)
     updater = models.ForeignKey(User, null=True, blank=True, related_name='updated_comments')
@@ -501,18 +523,22 @@ class PostManager(models.manager.BaseManager.from_queryset(PostQueryset)):
         queryset = super().get_queryset()
         return queryset
 
-class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)):
+class SuperPost(AbstractModel, ModelPublishedByUser, class_with_published_mixin(POST_STATUS_PUBLISHED)):
     class Meta:
         abstract = True
 
     # TODO create my own meta SuperMeta
-    can_be_rated = False
+    can_be_rated = True
     use_alias = True
     alter_alias = False
 
+    rate_type = 'stars'
+    #rate_type = 'votes'
+
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
-    post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True )
+    post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='posts', db_index=True)
 
 
     objects = PostManager()
@@ -583,6 +609,102 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
                     k += 1
         return alias
 
+    #**************************
+
+    @cached_property
+    def user_marks_count(self):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        try:
+            mark = History.objects.filter(post=self, history_type=HISTORY_TYPE_USER_POST_RATED, deleted=False).aggregate(Count('pk'))['pk__count']
+            if mark is None:
+                mark = 0
+        except:
+            mark = 0
+        return mark
+
+    @cached_property
+    def complain_count(self):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        try:
+            count = History.objects.filter(post=self, history_type=HISTORY_TYPE_USER_POST_COMPLAINT, deleted=False).aggregate(Count('pk'))['pk__count']
+            if count is None:
+                count = 0
+        except:
+            count = 0
+        return count
+
+    @cached_method()
+    def hist_exists_by_post_and_user(self, history_type, user):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        return History.objects.filter(history_type=history_type, post=self, user=user, deleted=False).exists()
+
+    def hist_exists_by_request(self, history_type, request):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        if request_with_empty_guest(request):
+            return False
+        user = request.user
+        if user and user.is_authenticated():
+            hist_exists = self.hist_exists_by_post_and_user(history_type, user)
+        else:
+            session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
+            if session_key is None:
+                return False
+            hist_exists = History.objects.filter(session_key=session_key, post=self, deleted=False, history_type=history_type).exists()
+        return hist_exists
+
+    def show_do_action_button(self, history_type, request):
+        if request_with_empty_guest(request):
+            return True
+        return not self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
+
+    def show_undo_action_button(self, history_type, request):
+        if request_with_empty_guest(request):
+            return False
+        return self.hist_exists_by_request(history_type, request) and not self.is_author_for_show_buttons(request)
+
+    def is_author_for_show_buttons(self, request):
+        if request_with_empty_guest(request):
+            return False
+        user = request.user
+        if user and user.is_authenticated():
+            return user == self.user
+        else:
+            session_key = getattr(request.session, settings.SUPER_MODEL_KEY_NAME, None)
+            if session_key is None:
+                return False
+            else:
+                return self.session_key == session_key
+
+    def hist_exists_by_data(self, history_type, user=None, ip=None, session_key=None):
+        History = import_string(settings.BASE_HISTORY_CLASS)
+        if user and user.is_authenticated():
+            hist_exists = History.objects.filter(history_type=history_type, post=self, user=user, deleted=False).exists()
+        elif not History.exists(session_key):
+            return False
+        else:
+            if session_key:
+                hist_exists_by_key = History.objects.filter(history_type=history_type, post=self, session_key=session_key, deleted=False).exists()
+            else:
+                hist_exists_by_key = False
+            if ip:
+                hist_exists_by_ip = History.objects.filter(history_type=history_type, post=self, ip=ip, deleted=False).exists()
+            else:
+                hist_exists_by_ip = False
+            hist_exists = hist_exists_by_key or hist_exists_by_ip
+
+        return hist_exists
+
+    def is_author_for_save_history(self, user=None, ip=None, session_key=None):
+        if user and user.is_authenticated():
+            return user == self.user
+        else:
+            return self.session_key == session_key or self.ip == ip
+
+    def can_do_action(self, history_type, user, ip, session_key):
+        if user and not user.is_authenticated():
+            return True
+        return not self.hist_exists_by_data(history_type, user, ip, session_key) and not self.is_author_for_save_history(user, ip, session_key)
+    #**************************
 
     def clean(self):
         if self.alias:
@@ -612,8 +734,6 @@ class SuperPost(AbstractModel, class_with_published_mixin(POST_STATUS_PUBLISHED)
         super().save(*args, **kwargs)
         History = import_string(settings.BASE_HISTORY_CLASS)
         History.save_history(history_type=HISTORY_TYPE_POST_CREATED, post=self)
-
-
 
 
 class SuperUserProfile(SuperModel, CachedModelMixin):
@@ -663,13 +783,13 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
 
     def _karm_history(self):
         History = import_string(settings.BASE_HISTORY_CLASS)
-        hists = History.objects.filter(author=self.user, history_type=HISTORY_TYPE_COMMENT_RATED, deleted=False)
+        hists = History.objects.filter(author=self.user, history_type=HISTORY_TYPE_COMMENT_RATED, deleted=False, post__status=POST_STATUS_PUBLISHED)
         return hists
 
 
     def _activity_history(self):
         History = import_string(settings.BASE_HISTORY_CLASS)
-        return History.objects.filter(user=self.user, user_points__gt=0, deleted=False)
+        return History.objects.filter(user=self.user, user_points__gt=0, deleted=False, post__status=POST_STATUS_PUBLISHED)
 
     @cached_property
     def activity_history(self):
@@ -691,7 +811,6 @@ class SuperUserProfile(SuperModel, CachedModelMixin):
         except:
             karm = 0
         return karm if karm is not None else 0
-
 
 
 def is_regular(self):
@@ -752,42 +871,6 @@ AnonymousUser.image = None
 AnonymousUser.email_confirmed = False
 AnonymousUser.karm = 0
 AnonymousUser.activity = 0
-
-
-HISTORY_TYPE_COMMENT_CREATED = 1
-HISTORY_TYPE_COMMENT_SAVED = 2
-HISTORY_TYPE_COMMENT_RATED = 3
-HISTORY_TYPE_POST_CREATED = 4
-HISTORY_TYPE_POST_SAVED = 5
-HISTORY_TYPE_POST_RATED = 6
-HISTORY_TYPE_COMMENT_COMPLAINT = 7
-#HISTORY_TYPE_POST_COMPLAINT = 8
-#HISTORY_TYPE_BLOG_RATED = 8
-
-HISTORY_TYPES = (
-    (HISTORY_TYPE_COMMENT_CREATED, 'Комментарий создан'),
-    (HISTORY_TYPE_COMMENT_SAVED, 'Комментарий сохранен'),
-    (HISTORY_TYPE_COMMENT_RATED, 'Комментарий оценен'),
-    (HISTORY_TYPE_POST_CREATED, 'Материал создан'),
-    (HISTORY_TYPE_POST_SAVED, 'Материал сохранен'),
-    (HISTORY_TYPE_POST_RATED, 'Материал оценен'),
-    (HISTORY_TYPE_COMMENT_COMPLAINT, 'Жалоба на комментарий'),
-    #(HISTORY_TYPE_POST_COMPLAINT, 'Жалоба на материал'),
-    #(HISTORY_TYPE_BLOG_RATED, 'Запись блога оценена'),
-
-)
-
-HISTORY_TYPES_POINTS = {
-HISTORY_TYPE_COMMENT_CREATED: 3,
-HISTORY_TYPE_COMMENT_SAVED: 0,
-HISTORY_TYPE_COMMENT_RATED: 1,
-HISTORY_TYPE_POST_CREATED: 0,
-HISTORY_TYPE_POST_SAVED: 0,
-HISTORY_TYPE_POST_RATED: 1,
-HISTORY_TYPE_COMMENT_COMPLAINT: 0,
-#HISTORY_TYPE_BLOG_RATED: 0,
-}
-
 
 
 class SuperHistory(SuperModel):
@@ -886,6 +969,14 @@ class SuperHistory(SuperModel):
             if not hist_exists:
                 h = History.objects.create(history_type=history_type, post=post, user=user, ip=ip, comment=comment,
                                    user_points=History.get_points(history_type), author=post_author, mark=mark, session_key=session_key)
+                return h
+
+        elif history_type in [HISTORY_TYPE_USER_POST_RATED, HISTORY_TYPE_USER_POST_COMPLAINT]:
+            if post.can_do_action(history_type=history_type, user=user, session_key=session_key, ip=ip):
+                History.objects.filter(post=post, user=user, session_key=session_key, comment=comment, history_type__in=[HISTORY_TYPE_USER_POST_RATED, HISTORY_TYPE_USER_POST_COMPLAINT]).delete()
+                h = History.objects.create(history_type=history_type, post=post, user=user, comment=comment, ip=ip,
+                                       user_points=History.get_points(history_type),
+                                       author=post.user, session_key=session_key)
                 return h
 
 
@@ -1002,6 +1093,7 @@ class SuperHistory(SuperModel):
 
         if self.post:
             self.post.obj.full_invalidate_cache()
+            self.post.full_invalidate_cache()
             #invalidate_obj(self.post.obj)
 
 
@@ -1036,7 +1128,7 @@ class SuperHistory(SuperModel):
 
         if post:
             post.obj.full_invalidate_cache()
-            #invalidate_obj(post.obj)
+            post.full_invalidate_cache()
 
         if user:
             user.user_profile.full_invalidate_cache()

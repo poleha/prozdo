@@ -75,20 +75,35 @@
             <div class="col-xs-12">
             {% if obj.is_blog %}
             {% if user.is_regular %}
-  <div id="blog-full-mark-block">
-             <div class="blog-mark-block">
-        <span class="blog-current-mark">Материал сочли полезным: <span class="blog-current-mark-span">{{ obj.mark }}</span></span>
+  <div id="blog-full-mark-block"> {% if can_mark %}
+         <input class="user-post-unmark-button btn btn-cancel hidden" type="button" id="user-post-unmark-button" value='Отозвать оценку'>
+         <input class="user-post-mark-button btn btn-success" type="button" id="user-post-mark-button" value='Материал полезен'>
+        {% elif can_unmark %}
+        <input class="user-post-unmark-button btn btn-cancel" type="button" id="user-post-unmark-button" value='Отозвать оценку'>
+        <input class="user-post-mark-button btn btn-success hidden" type="button" id="user-post-mark-button" value='Материал полезен'>
 
 
-    </div>   
-                
-        {% if can_mark_blog %}
-         <input class="blog-unmark-button btn btn-cancel hidden" type="button" value='Отозвать оценку'>
-         <input class="blog-mark-button btn btn-success" type="button" value='Материал полезен'>
-        {% else %}
-        <input class="blog-unmark-button btn btn-cancel" type="button" value='Отозвать оценку'>
-        <input class="blog-mark-button btn btn-success hidden" type="button" value='Материал полезен'>
+
+
         {% endif %}
+<div class="post-all-marks-block">
+
+
+        <div class="post-mark-block">
+        <span class="post-current-mark" id="post-current-mark">Материал сочли полезным: <span class="post-current-mark-span" id="post-current-mark-span">{{ obj.user_marks_count }}</span></span>
+{% if obj.user_marks_count %}
+    <span class="post-show-marked-buttons">
+<input type="button" value="?" class="post-show-marked-users btn">
+<input type="button" value="x" class="post-hide-marked-users btn hidden">
+</span>
+
+{% endif %}
+<div class="post-show-marked"></div>
+    </div>
+
+</div>
+
+
                 
       </div>
       {% endif %}
@@ -653,20 +668,27 @@
                 });
 
 
-                $(document).on('click', '.blog-mark-button', function (e) {
+                $(document).on('click', '#user-post-mark-button', function (e) {
                     var pk = $('#post-pk').val();
-                    var actionData = {'action': 'post-mark', 'mark': 0, 'pk': pk};
-                    $('.blog-mark-button').attr('disabled', 'disabled');
+                    var actionData = {'action': 'user-post-mark', 'pk': pk};
+                    $('#user-post-mark-button').attr('disabled', 'disabled');
+                        $('#user-post-complain-button').attr('disabled', 'disabled');
+                        $('#user-post-unmark-button').attr('disabled', 'disabled');
+                        $('#user-post-uncomplain-button').attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
-                         $('.blog-mark-button').removeAttr('disabled');
+                        $('#user-post-mark-button').removeAttr('disabled');
+                        $('#user-post-complain-button').removeAttr('disabled');
+                        $('#user-post-unmark-button').removeAttr('disabled');
+                        $('#user-post-uncomplain-button').removeAttr('disabled');
                          if (data.saved) {
-                            $('.blog-current-mark-span').html(data['marks_count']);
-                            $('.blog-mark-button').addClass('hidden');
-                            $('.blog-unmark-button').removeClass('hidden');
+                            $('#post-current-mark-span').html(data['marks_count']);
+                            $('#user-post-mark-button').addClass('hidden');
+                            $('#user-post-complain-button').addClass('hidden');
+                            $('#user-post-unmark-button').removeClass('hidden');
                         }
                             else {
                                 alert('Действие не засчитано');
@@ -674,7 +696,10 @@
 
                         },
                         error: function (data) {
-                        $('.blog-mark-button').removeAttr('disabled');
+                        $('#user-post-mark-button').removeAttr('disabled');
+                        $('#user-post-complain-button').removeAttr('disabled');
+                        $('#user-post-unmark-button').removeAttr('disabled');
+                        $('#user-post-uncomplain-button').removeAttr('disabled');
 
                         }
                     });
@@ -682,28 +707,39 @@
                 });
 
 
-                $(document).on('click', '.blog-unmark-button', function (e) {
+                $(document).on('click', '#user-post-unmark-button', function (e) {
                     var pk = $('#post-pk').val();
-                    var actionData = {'action': 'post-unmark', 'mark': 0, 'pk': pk};
-                    $('.blog-unmark-button').attr('disabled', 'disabled');
+                    var actionData = {'action': 'user-post-unmark', 'pk': pk};
+                    $('#user-post-mark-button').attr('disabled', 'disabled');
+                        $('#user-post-complain-button').attr('disabled', 'disabled');
+                        $('#user-post-unmark-button').attr('disabled', 'disabled');
+                        $('#user-post-uncomplain-button').attr('disabled', 'disabled');
                     $.ajax({
                         type: 'POST',
                         url: '{% url 'history-ajax-save' %}',
                         data: actionData,
                         success: function (data) {
-                            $('.blog-unmark-button').removeAttr('disabled');
-                            if (data.saved) {
-                                $('.blog-current-mark-span').html(data['marks_count']);
-                                $('.blog-mark-button').removeClass('hidden');
-                                $('.blog-unmark-button').addClass('hidden');
-                            }
+                        $('#user-post-mark-button').removeAttr('disabled');
+                        $('#user-post-complain-button').removeAttr('disabled');
+                        $('#user-post-unmark-button').removeAttr('disabled');
+                        $('#user-post-uncomplain-button').removeAttr('disabled');
+                         if (data.saved) {
+                            $('#post-current-mark-span').html(data['marks_count']);
+                            $('#user-post-mark-button').removeClass('hidden');
+                            $('#user-post-complain-button').removeClass('hidden');
+                            $('#user-post-unmark-button').addClass('hidden');
+                        }
                             else {
                                 alert('Действие не засчитано');
                             }
 
                         },
                         error: function (data) {
-                        $('.blog-unmark-button').removeAttr('disabled');
+                       $('#user-post-mark-button').removeAttr('disabled');
+                        $('#user-post-complain-button').removeAttr('disabled');
+                        $('#user-post-unmark-button').removeAttr('disabled');
+                        $('#user-post-uncomplain-button').removeAttr('disabled');
+
                         }
                     });
 
@@ -726,6 +762,44 @@
                         $.ajax({
                             type: 'POST',
                             url: '{% url 'comment-show-marked-users-ajax' %}',
+                            data: {'pk': pk},
+                            success: function (data) {
+                                resultBlock.html(data);
+                                showButton.addClass('hidden');
+                                hideButton.removeClass('hidden');
+                                markBlock.addClass('on-top');
+                            },
+                            error: function (data) {
+
+                            }
+                        });
+
+                    }
+                    else {
+                        resultBlock.html('');
+                        showButton.removeClass('hidden');
+                        hideButton.addClass('hidden');
+                        markBlock.removeClass('on-top');
+                    }
+
+                });
+
+                   $(document).on('click', '.post-show-marked-users, .post-hide-marked-users', function (e) {
+
+                    var postBlock = $(this).closest('#full-post');
+                    //var cls = $(this).attr('class');
+                    var pk = postBlock.find('#post-pk').val();
+                    var resultBlock = postBlock.find('.post-show-marked');
+                    var showButton = postBlock.find('.post-show-marked-users')
+                    var hideButton = postBlock.find('.post-hide-marked-users')
+                    var markBlock = postBlock.find('.post-mark-block');
+
+
+                    if ($(this).hasClass('post-show-marked-users')) {
+
+                        $.ajax({
+                            type: 'POST',
+                            url: '{% url 'post-show-marked-users-ajax' %}',
                             data: {'pk': pk},
                             success: function (data) {
                                 resultBlock.html(data);

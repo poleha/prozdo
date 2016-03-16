@@ -41,7 +41,7 @@ class Post(super_models.SuperPost):
         ('main.views.PostDetail', 'get'),
     )
 
-    can_be_rated = False
+    #can_be_rated = False
 
     @classmethod
     def get_post_type(cls):
@@ -353,8 +353,8 @@ class Blog(Post):
     category = TreeManyToManyField(Category, verbose_name='Категория', db_index=True)
     objects = super_models.PostManager()
 
-
-    can_be_rated = True
+    rate_type = 'votes'
+    #can_be_rated = True
 
     def type_str(self):
         return 'Запись блога'
