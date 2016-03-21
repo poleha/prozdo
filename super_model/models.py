@@ -531,13 +531,14 @@ class SuperPost(AbstractModel, ModelPublishedByUser, class_with_published_mixin(
     can_be_rated = True
     use_alias = True
     alter_alias = False
+    recreate_alias_on_save = False
 
     rate_type = 'stars'
     #rate_type = 'votes'
 
     alias = models.CharField(max_length=800, blank=True, verbose_name='Синоним', db_index=True)
     status = models.IntegerField(choices=POST_STATUSES, verbose_name='Статус', default=POST_STATUS_PROJECT, db_index=True)
-    post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True)
+    post_type = models.IntegerField(choices=settings.POST_TYPES, verbose_name='Вид записи', db_index=True, blank=True)
     user = models.ForeignKey(User, null=True, blank=True, related_name='posts', db_index=True)
 
 
@@ -736,7 +737,7 @@ class SuperPost(AbstractModel, ModelPublishedByUser, class_with_published_mixin(
         self.title = helper.trim_title(self.title)
         #saved_version = self.saved_version
         if self.use_alias:
-            if hasattr(self, 'title') and self.title and not self.alias:
+            if hasattr(self, 'title') and self.title and (self.recreate_alias_on_save or not self.alias):
                 self.alias = self.make_alias()
             if self.alias:
                 BASE_POST_CLASS = import_string(settings.BASE_POST_CLASS)
