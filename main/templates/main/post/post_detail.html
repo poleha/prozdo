@@ -265,28 +265,8 @@
                     {% endif %}
                 </div>
                 {% if not obj.is_component %}
-                    {% if show_ad and comments.count > 20 %}
-                    <!-- Яндекс.Директ -->
-                    <script type="text/javascript">
-                    yandex_partner_id = 75763;
-                    yandex_site_bg_color = 'FFFFFF';
-                    yandex_stat_id = 8;
-                    yandex_ad_format = 'direct';
-                    yandex_font_size = 1;
-                    yandex_direct_type = 'horizontal';
-                    yandex_direct_limit = 3;
-                    yandex_direct_title_font_size = 2;
-                    yandex_direct_links_underline = true;
-                    yandex_direct_header_bg_color = 'FEEAC7';
-                    yandex_direct_title_color = '0000CC';
-                    yandex_direct_url_color = '006600';
-                    yandex_direct_text_color = '000000';
-                    yandex_direct_hover_color = '0066FF';
-                    yandex_direct_sitelinks_color = '0000CC';
-                    yandex_direct_favicon = true;
-                    yandex_no_sitelinks = false;
-                    document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
-                    </script>
+                    {% if show_ad %}
+        <div id="SC_TBlock_59536" class="SC_TBlock"></div>
                     {% endif %}
 
                     <div id="comment-filter-form">
@@ -826,7 +806,14 @@
 
         </script>
 
+
         {% include 'super_model/scripts/comment_confirmation_scripts.html' %}
 
     {% endcompress %}
+
+    {% if show_ad %}
+        <script type="text/javascript">var SC_CId = "59536",SC_Domain="n.lc2ads.ru";SC_Start_59536=(new Date).getTime();</script>
+        <script type="text/javascript" src="http://st.n.lc2ads.ru/js/adv_out.js"></script>
+        {% endif %}
+
 {% endblock bottom_scripts %}
