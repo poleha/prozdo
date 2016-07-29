@@ -105,3 +105,7 @@ prozdo/__pycache__/
 static/
 super_model/__pycache__/
 super_model/templatetags/__pycache__/
+Would skip repository cache/
+Would skip repository contact_form/
+Would skip repository helper/
+Would skip repository super_model/
