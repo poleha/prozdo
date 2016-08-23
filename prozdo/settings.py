@@ -37,7 +37,7 @@ except:
 
 if HOSTNAME in ['ubuntu', 'kulik']:
     DEBUG = True
-    COMPRESS_ENABLED = False
+    COMPRESS_ENABLED = True
     HTML_MINIFY = True
     CACHE_ENABLED = True
     DEBUG_TOOLBAR = False
@@ -100,8 +100,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'htmlmin.middleware.HtmlMinifyMiddleware',
-    'htmlmin.middleware.MarkRequestMiddleware',
+    #'htmlmin.middleware.HtmlMinifyMiddleware',
+    #'htmlmin.middleware.MarkRequestMiddleware',
 )
 
 ROOT_URLCONF = 'prozdo.urls'
