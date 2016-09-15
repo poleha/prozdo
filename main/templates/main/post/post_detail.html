@@ -5,10 +5,10 @@
 {% block content %}
 
 
-    <div id="full-post">
+    <div id="full-post" itemscope itemtype="http://schema.org/Product">
         <input id="post-pk" type="hidden" value="{{ obj.pk }}">
 
-        <h1><a class="post-title" href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
+        <h1><span itemprop="name" class="post-title">{{ obj }}</span></h1>
         {% if user.is_admin or user.is_author %}
             <a href="{{ obj.update_url }}">Редактировать</a>
 
@@ -18,7 +18,7 @@
             <div class="col-md-6">
 
 
-                <div>
+                <div itemscope="" itemtype="http://schema.org/ImageObject" itemprop="image">
                     <a href="{{ obj.get_absolute_url }}">
                         <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
                     </a>
@@ -48,13 +48,21 @@
 
                     </div>
 {% endif %}
-
+                    <div itemtype="http://schema.org/AggregateRating" itemscope itemprop="aggregateRating">
                     <div>
-                        <label>Средняя оценка: </label><span id="post-average-mark">{{ obj.average_mark }}</span>(количество оценок: <span id="post-marks-count">{{ obj.marks_count }})</span>
+                        <label>Средняя оценка: </label>
+                        <span itemprop="ratingValue" id="post-average-mark">{{ obj.average_mark }}</span>(количество оценок: <span itemprop="ratingCount" id="post-marks-count">{{ obj.marks_count }})</span>
                     </div>
 
+
+
+
                     <div>
-                        <label>Количество отзывов: </label><span>{{ obj.published_comments_count }}</span>
+                        <label>Количество отзывов: </label><span itemprop="reviewCount">{{ obj.published_comments_count }}</span>
+                    </div>
+                    <meta itemprop="worstRating" content="1">
+                    <meta itemprop="bestRating" content="5">
+
                     </div>
                     {% if obj.last_comment_date %}
                         <div>
@@ -107,14 +115,16 @@
                 
       </div>
       {% endif %}
-            <a id="blog-image" href="{{ obj.get_absolute_url }}">
+                <span itemscope itemtype="http://schema.org/ImageObject" itemprop="image">
+            <a itemprop="contentUrl" id="blog-image" href="{{ obj.get_absolute_url }}">
                         <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
-                    </a>
-
+            <meta itemprop="description" content="{{ obj }}">
+            </a>
+</span>
         {% endif %}
                 <div id="post-block">
                     {% if obj.body %}
-                        <div>
+                        <div itemprop="description">
                             {% if obj.show_body_label %}
                                 <h4>{% get_verbose_field_name obj 'body' %}:</h4>
                             {% endif %}

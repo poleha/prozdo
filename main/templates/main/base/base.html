@@ -31,7 +31,7 @@
 
 <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
 
-<body>
+<body itemscope itemtype="http://schema.org/WebPage">
 <div class="container-fluid">
 
 {% block header  %}
@@ -180,9 +180,10 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
 {% endblock %}
 
 
-
+<div itemprop="mainContentOfPage">
     {% block content %}
 {% endblock content %}
+</div>
 </div>
 
 <div class="col-lg-2 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
