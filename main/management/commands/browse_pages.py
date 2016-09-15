@@ -9,6 +9,7 @@ from django.core.mail import mail_admins
 from cache.decorators import construct_cached_view_key
 from django.core.cache import cache
 from main.views import PostDetail
+from random import shuffle
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -66,7 +67,9 @@ class Command(BaseCommand):
             except:
                 errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
 
-        for post in models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED):
+        posts = list(models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED))
+        shuffle(posts)
+        for post in posts:
             if not (post.is_blog or post.is_drug or post.is_component or post.is_cosmetics):
                 continue
             count += 1
