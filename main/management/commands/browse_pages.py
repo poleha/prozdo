@@ -19,6 +19,18 @@ class Command(BaseCommand):
             default=False,
             help='Browse all pages')
 
+        parser.add_argument('--show',
+                            action='store_true',
+                            dest='show',
+                            default=False,
+                            help='Show visited pages')
+
+        parser.add_argument('--no_sleep',
+                            action='store_true',
+                            dest='no_sleep',
+                            default=False,
+                            help='Sleep after each visit')
+
 
     def handle(self, *args, **options):
         count = 0
@@ -42,13 +54,18 @@ class Command(BaseCommand):
         urls += tuple(post_urls)
         errors = []
 
+        urls_len = len(urls)
+
         for url in urls:
             count += 1
             absolute_url = 'http://prozdo.ru{0}'.format(url)
             res = urlopen(absolute_url)
             if not res.code == 200:
                 errors.append('{0}-{1}'.format(url, res.code))
-            time.sleep(1)
+            if not options['no_sleep']:
+                time.sleep(1)
+            if options['show']:
+                print('Visited url {}, {} of {}. Response code: {}'.format(absolute_url, count, urls_len, res.code))
 
         if len(errors) > 0:
             mail_admins('Errors during crawling', '\n'.join(errors))
