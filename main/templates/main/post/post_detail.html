@@ -116,10 +116,12 @@
       </div>
       {% endif %}
                 <span itemscope itemtype="http://schema.org/ImageObject" itemprop="image">
-            <a itemprop="contentUrl" id="blog-image" href="{{ obj.get_absolute_url }}">
+            <a id="blog-image" href="{{ obj.get_absolute_url }}">
                         <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
-            <meta itemprop="description" content="{{ obj }}">
+
             </a>
+                 <meta itemprop="description" content="{{ obj }}">
+                 <meta itemprop="contentUrl" content="{{ obj.thumb220 }}" />
 </span>
         {% endif %}
                 <div id="post-block">
