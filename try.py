@@ -38,21 +38,9 @@ def handle(**options):
 
     urls_len = len(urls) + models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED).count()
 
-    for url in urls:
-        count += 1
-        absolute_url = '{}{}'.format(settings.SITE_URL, url)
-        try:
-            res = requests.get(absolute_url)
-            if not res.status_code == 200:
-                errors.append('{0}-{1}'.format(url, res.status_code))
-            if not options['no_sleep']:
-                time.sleep(0.5)
-            if options['show']:
-                print('Visited url {}, {} of {}. Response code: {}'.format(absolute_url, count, urls_len, res.status_code))
-        except:
-            errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
 
-    for post in models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED):
+
+    for post in models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED, title='Редуксин'):
         if not(post.is_blog or post.is_drug or post.is_component or post.is_cosmetics):
             continue
         count += 1
