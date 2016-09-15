@@ -41,12 +41,14 @@ if HOSTNAME in ['ubuntu', 'kulik']:
     HTML_MINIFY = True
     CACHE_ENABLED = True
     DEBUG_TOOLBAR = False
+    SITE_URL = 'http://127.0.0.1:8000'
 else:
     DEBUG = False
     DEBUG_TOOLBAR = False
     CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
+    SITE_URL = 'http://prozdo.ru'
 
 EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
@@ -172,7 +174,7 @@ USE_L10N = True
 USE_TZ = True
 
 SITE_ID = '1'
-SITE_URL = 'http://prozdo.ru'
+
 DEFAULT_FROM_EMAIL = 'Prozdo.ru <info@prozdo.ru>'
 SERVER_EMAIL = 'info@prozdo.ru'
 INTERNAL_IPS = ['127.0.0.1']
