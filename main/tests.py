@@ -1262,6 +1262,41 @@ class CacheTests(BaseTest):
     def test_post_detail_is_cached_for_passive_guest_and_reset_on_post_save(self):
         cache.clear()
         self.renew_app()
+
+        drug1 = self.drug
+        drug2 = models.Drug.objects.create(
+            title='title_drug2',
+            body='body2',
+            status=super_models.POST_STATUS_PUBLISHED,
+
+        )
+
+        page = self.app.get(drug1.get_absolute_url())
+        self.assertNotEqual(page.context, None)
+
+        page = self.app.get(drug1.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+        page = self.app.get(drug2.get_absolute_url())
+        self.assertNotEqual(page.context, None)
+
+        page = self.app.get(drug2.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+        drug1.save()
+
+        page = self.app.get(drug1.get_absolute_url())
+        self.assertNotEqual(page.context, None)
+
+        page = self.app.get(drug1.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+        page = self.app.get(drug2.get_absolute_url())
+        self.assertEqual(page.context, None)
+
+    def test_post_detail_is_cached_for_passive_guest_not_reset_another_post_on_save(self):
+        cache.clear()
+        self.renew_app()
         page = self.app.get(self.drug.get_absolute_url())
         self.assertNotEqual(page.context, None)
 
