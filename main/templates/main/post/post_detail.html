@@ -20,10 +20,10 @@
 
                 <div itemscope itemtype="http://schema.org/ImageObject" itemprop="image">
                     <a href="{{ obj.get_absolute_url }}">
-                        <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
+                        <img itemprop="contentUrl" alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
                     </a>
-    <meta itemprop="description" content="{{ obj }}">
-    <meta itemprop="contentUrl" content="{{ obj.thumb220 }}" />
+                <meta itemprop="name" content="{{ obj.title }}">
+                 <meta itemprop="description" content="{{ obj.title }}">
                 </div>
             </div>
             <div class="col-md-6 post-right-block">
@@ -118,11 +118,11 @@
       {% endif %}
                 <span itemscope itemtype="http://schema.org/ImageObject" itemprop="image">
             <a id="blog-image" href="{{ obj.get_absolute_url }}">
-                        <img alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
+                        <img itemprop="contentUrl" alt="{{ obj.title }}" class="img-rounded" src="{{ obj.thumb220 }}">
 
             </a>
-                 <meta itemprop="description" content="{{ obj }}">
-                 <meta itemprop="contentUrl" content="{{ obj.thumb220 }}" />
+                 <meta itemprop="name" content="{{ obj.title }}">
+                 <meta itemprop="description" content="{{ obj.title }}">
 </span>
         {% endif %}
                 <div id="post-block">
