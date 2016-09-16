@@ -30,6 +30,13 @@ class Command(BaseCommand):
                             default=False,
                             help='Show visited pages')
 
+        parser.add_argument('--posts_only',
+                            action='store_true',
+                            dest='posts_only',
+                            default=False,
+                            help='Visit only posts')
+
+
         parser.add_argument('--sleep_time',
                             dest='sleep_time',
                             type=float,
@@ -48,14 +55,17 @@ class Command(BaseCommand):
         count = 0
         sleep_time = options['sleep_time']
         exec_time = options['exec_time']
+        posts_only = options['posts_only']
 
         urls = tuple()
-        urls += (reverse('blog-list'),)
-        urls += (reverse('component-list'),)
-        urls += (reverse('drug-list'),)
-        urls += (reverse('cosmetics-list'),)
-        urls += (reverse('main-page'),)
-        urls += ('/sitemap.xml',)
+
+        if not posts_only:
+            urls += (reverse('blog-list'),)
+            urls += (reverse('component-list'),)
+            urls += (reverse('drug-list'),)
+            urls += (reverse('cosmetics-list'),)
+            urls += (reverse('main-page'),)
+            urls += ('/sitemap.xml',)
 
         errors = []
 
