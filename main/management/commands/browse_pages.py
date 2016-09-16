@@ -72,6 +72,9 @@ class Command(BaseCommand):
         urls_len = len(urls) + models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED).count()
 
         for url in urls:
+            cur_time = time.time()
+            if cur_time - start_time > exec_time:
+                break
             count += 1
             absolute_url = '{}{}'.format(settings.SITE_URL, url)
             try:
