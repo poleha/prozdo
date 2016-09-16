@@ -30,9 +30,21 @@ class Command(BaseCommand):
                             default=False,
                             help='Show visited pages')
 
-        parser.add_argument('--posts_only',
+        parser.add_argument('--posts',
                             action='store_true',
-                            dest='posts_only',
+                            dest='posts',
+                            default=False,
+                            help='Visit only posts')
+
+        parser.add_argument('--head',
+                            action='store_true',
+                            dest='head',
+                            default=False,
+                            help='Visit only posts')
+
+        parser.add_argument('--all',
+                            action='store_true',
+                            dest='all',
                             default=False,
                             help='Visit only posts')
 
@@ -55,11 +67,13 @@ class Command(BaseCommand):
         count = 0
         sleep_time = options['sleep_time']
         exec_time = options['exec_time']
-        posts_only = options['posts_only']
+        visit_posts = options['posts']
+        visit_head = options['head']
+        visit_all = options['all']
 
         urls = tuple()
 
-        if not posts_only:
+        if visit_head or visit_all:
             urls += (reverse('blog-list'),)
             urls += (reverse('component-list'),)
             urls += (reverse('drug-list'),)
@@ -69,7 +83,9 @@ class Command(BaseCommand):
 
         errors = []
 
-        urls_len = len(urls) + models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED).count()
+        urls_len = len(urls)
+        if visit_posts or visit_all:
+            urls_len += models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED).count()
 
         for url in urls:
             cur_time = time.time()
@@ -90,44 +106,45 @@ class Command(BaseCommand):
             except:
                 errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
 
-        posts = list(models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED))
-        shuffle(posts)
-        for post in posts:
-            cur_time = time.time()
-            if cur_time - start_time > exec_time:
-                break
-            if not (post.is_blog or post.is_drug or post.is_component or post.is_cosmetics):
-                continue
-            count += 1
-            absolute_url = url = '{}{}'.format(settings.SITE_URL, post.get_absolute_url())
-            alias = getattr(post, 'alias', None)
-            if alias:
-                original_key = construct_cached_view_key(PostDetail.get, url=absolute_url, model_class=Post, kwarg='alias',
-                                            alias=post.alias)
-            else:
-                original_key = construct_cached_view_key(PostDetail.get, url=absolute_url, model_class=Post, kwarg='pk',
-                                                pk=post.pk)
-            mobile_key = original_key.replace('flavour_None', 'flavour_mobile')
-            full_key = original_key.replace('flavour_None', 'flavour_full')
-            for key in (full_key, mobile_key):
-                resp = cache.get(key)
-                if resp is None or options['full']:
-                    headers = {}
-                    if key == mobile_key:
-                        headers['user-agent'] = 'mobile'
-                    try:
-                        res = requests.get(absolute_url, headers=headers)
-                        if res.status_code != 200:
-                            errors.append('{0}-{1}'.format(url, res.status_code))
+        if visit_posts or visit_all:
+            posts = list(models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED))
+            shuffle(posts)
+            for post in posts:
+                cur_time = time.time()
+                if cur_time - start_time > exec_time:
+                    break
+                if not (post.is_blog or post.is_drug or post.is_component or post.is_cosmetics):
+                    continue
+                count += 1
+                absolute_url = url = '{}{}'.format(settings.SITE_URL, post.get_absolute_url())
+                alias = getattr(post, 'alias', None)
+                if alias:
+                    original_key = construct_cached_view_key(PostDetail.get, url=absolute_url, model_class=Post, kwarg='alias',
+                                                alias=post.alias)
+                else:
+                    original_key = construct_cached_view_key(PostDetail.get, url=absolute_url, model_class=Post, kwarg='pk',
+                                                    pk=post.pk)
+                mobile_key = original_key.replace('flavour_None', 'flavour_mobile')
+                full_key = original_key.replace('flavour_None', 'flavour_full')
+                for key in (full_key, mobile_key):
+                    resp = cache.get(key)
+                    if resp is None or options['full']:
+                        headers = {}
+                        if key == mobile_key:
+                            headers['user-agent'] = 'mobile'
+                        try:
+                            res = requests.get(absolute_url, headers=headers)
+                            if res.status_code != 200:
+                                errors.append('{0}-{1}'.format(url, res.status_code))
 
-                        if sleep_time:
-                            time.sleep(sleep_time)
-                        if options['show']:
-                            print(
-                                'Visited url {}, {} of {}. Response code: {}'.format(absolute_url, count, urls_len,
-                                                                                     res.status_code))
-                    except:
-                        errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
+                            if sleep_time:
+                                time.sleep(sleep_time)
+                            if options['show']:
+                                print(
+                                    'Visited url {}, {} of {}. Response code: {}'.format(absolute_url, count, urls_len,
+                                                                                         res.status_code))
+                        except:
+                            errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
 
         if len(errors) > 0:
             mail_admins('Errors during crawling', '\n'.join(errors))
