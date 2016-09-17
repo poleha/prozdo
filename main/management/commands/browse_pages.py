@@ -9,8 +9,9 @@ from django.core.mail import mail_admins
 from cache.decorators import construct_cached_view_key
 from django.core.cache import cache
 from main.views import PostDetail
-from random import shuffle
 from main.models import Post
+from django.db.models.aggregates import Count
+
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -107,8 +108,7 @@ class Command(BaseCommand):
                 errors.append('{0}-{1}'.format(url, 'EXCEPTION'))
 
         if visit_posts or visit_all:
-            posts = list(models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED))
-            shuffle(posts)
+            posts = models.Post.objects.filter(status=super_models.POST_STATUS_PUBLISHED).annotate(comment_count=Count('comments')).order_by('-comment_count')
             for post in posts:
                 cur_time = time.time()
                 if cur_time - start_time > exec_time:
