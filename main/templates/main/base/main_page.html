@@ -2,18 +2,13 @@
 
 {% block content %}
     <div class="row">
-<h1>Популярные препараты</h1>
-   {% include 'main/post/_post_list_grid.html' with objs=popular_drugs %}
+        <h1>Популярные препараты</h1>
+        {% include 'main/post/_post_list_grid.html' with objs=popular_drugs %}
     </div>
 
     <div class="row">
-<h1>Новые статьи о здоровье</h1>
-   {% include 'main/post/_recent_blogs.html' with objs=recent_blogs main_recent_blog=main_recent_blog %}
+        <h1>Новые статьи о здоровье</h1>
+        {% include 'main/post/_recent_blogs.html' with objs=recent_blogs main_recent_blog=main_recent_blog %}
     </div>
-
-        <div class="row">
-{% include 'main/comment/_recent_consults.html' %}
-    </div>
-
 
 {% endblock content %}

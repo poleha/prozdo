@@ -135,10 +135,6 @@ class MainPageView(generic.TemplateView):
         blogs = models.Blog.objects.get_available().order_by('-created')[:4]
         return blogs
 
-    def get_recent_consults(self):
-        comments = models.Comment.objects.get_available().filter(user__user_profile__role=settings.USER_ROLE_DOCTOR, parent__consult_required=True).order_by('-created')[:12]
-        return comments
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_drugs'] = self.get_popular_drugs()
@@ -146,7 +142,6 @@ class MainPageView(generic.TemplateView):
         if recent_blogs.exists():
             context['recent_blogs'] = recent_blogs[1:4]
             context['main_recent_blog'] = recent_blogs[0]
-        context['recent_consults'] = self.get_recent_consults()
         return context
 
 #*********************************<Account

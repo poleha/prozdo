@@ -8,14 +8,14 @@ from super_model import fields as super_fields
 class CommentForm(super_forms.SuperCommentForm):
     class Meta:
         model = models.Comment
-        fields = ('username', 'email', 'body','post_mark', 'consult_required', 'parent' )
+        fields = ('username', 'email', 'body','post_mark', 'parent' )
 
     def __init__(self, *args, request=None, post=None, **kwargs):
         super().__init__(*args, request=request, post=post, **kwargs)
         user = request.user
 
-        if not user.is_regular:
-            del self.fields['consult_required']
+        #if not user.is_regular:
+        #    del self.fields['consult_required']
 
         if post.get_mark_by_request(request):
             del self.fields['post_mark']
