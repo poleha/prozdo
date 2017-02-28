@@ -12,5 +12,5 @@ User-agent: *
 #Crawl-delay: 10
 Disallow: /admin
 Disallow: /search*?
-Sitemap: http://prozdo.ru/sitemap.xml
+Sitemap: https://prozdo.ru/sitemap.xml
 Host: prozdo.ru

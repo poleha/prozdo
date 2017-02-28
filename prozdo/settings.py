@@ -16,7 +16,6 @@ import socket
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -27,7 +26,7 @@ SECRET_KEY = '1b%%&2h^(f%4u%1bw64n_x$vhb-b5#t(5fn%x+gkic169rm=t7'
 
 ALLOWED_HOSTS = ['127.0.0.1', 'prozdo.ru']
 
-#DATETIME_FORMAT = 'd.m.Y H:i' not required since we use l10n
+# DATETIME_FORMAT = 'd.m.Y H:i' not required since we use l10n
 
 
 try:
@@ -48,7 +47,7 @@ else:
     CACHE_ENABLED = True
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
-    SITE_URL = 'http://prozdo.ru'
+    SITE_URL = 'https://prozdo.ru'
 
 EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
@@ -59,7 +58,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    #'django.contrib.messages',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
@@ -102,8 +101,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    #'htmlmin.middleware.HtmlMinifyMiddleware',
-    #'htmlmin.middleware.MarkRequestMiddleware',
+    # 'htmlmin.middleware.HtmlMinifyMiddleware',
+    # 'htmlmin.middleware.MarkRequestMiddleware',
 )
 
 ROOT_URLCONF = 'prozdo.urls'
@@ -112,7 +111,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'main/templates/main')],
-        #'APP_DIRS': True,
+        # 'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'super_model.context_processors.debug',
@@ -127,7 +126,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'prozdo.wsgi.application'
 """
@@ -145,18 +143,16 @@ DATABASES = {
 }
 """
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'prozdo',
         'USER': 'kulik',
         'PASSWORD': 'ZaX369Exn',
-       'HOST': '127.0.0.1',
-       'PORT': '5432',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
         'CONN_MAX_AGE': 500,
-        },
-
+    },
 
 }
 
@@ -186,24 +182,23 @@ MEDIA_URL = '/media/'  # URL для медии в шаблонах
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
-#SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+# SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_CACHE_ALIAS = "default"
 SESSION_SAVE_EVERY_REQUEST = False
-#SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
-#**************<<<<<
+# **************<<<<<
 POST_COMMENTS_PAGE_SIZE = 30
 POST_LIST_PAGE_SIZE = 48
 
 APPEND_SLASH = True
 
-#**************>>>>>>>>>>
+# **************>>>>>>>>>>
 
 
-#allauth
+# allauth
 LOGIN_REDIRECT_URLNAME = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_ON_GET = True
@@ -218,12 +213,10 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_USERNAME_REQUIRED = True
-SOCIALACCOUNT_ADAPTER  = "super_model.adapter.SuperSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "super_model.adapter.SuperSocialAccountAdapter"
 ACCOUNT_ADAPTER = "super_model.adapter.SuperAccountAdapter"
 EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/'
 EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/'
-
-
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
@@ -233,12 +226,12 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-#CACHES = {
+# CACHES = {
 #    'default': {
 #        'BACKEND': 'main.backends.ProzdoMemcachedCacheCacheBackend',
 #        'LOCATION': '127.0.0.1:11211',
 #    }
-#}
+# }
 
 
 CACHES = {
@@ -252,20 +245,17 @@ CACHES = {
     }
 }
 
-
-#CACHES = {
+# CACHES = {
 #    "default": {
 #        "BACKEND": "main.backends.ProzdoRedisCacheBackend",
 #        "LOCATION": "redis://127.0.0.1:6379/2",
 #    }
-#}
+# }
 
 THUMBNAIL_BACKEND = 'super_model.backends.SEOThumbnailBackend'
 THUMBNAIL_PREFIX = 'images/'
 THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 THUMBNAIL_REDIS_DB = 2
-
-
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -279,7 +269,6 @@ BEST_COMMENTS_DAYS = 100
 CKEDITOR_UPLOAD_PATH = "ckeditor_uploads/"
 
 if DEBUG_TOOLBAR:
-
     MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
     MIDDLEWARE_CLASSES.remove('django.middleware.gzip.GZipMiddleware')
     MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
@@ -301,32 +290,29 @@ if DEBUG_TOOLBAR:
         'debug_toolbar.panels.redirects.RedirectsPanel',
     ]
 
-
-
     MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
 
     DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-}
-
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    }
 
 if CACHE_ENABLED and not DEBUG:
 
     TEMPLATES[0]['OPTIONS']['loaders'] = [
-            #'django_mobile.loader.Loader',
-            ('django.template.loaders.cached.Loader',
-                  [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-            ],
-                ),
-        ]
+        # 'django_mobile.loader.Loader',
+        ('django.template.loaders.cached.Loader',
+         [
+             'django.template.loaders.filesystem.Loader',
+             'django.template.loaders.app_directories.Loader',
+         ],
+         ),
+    ]
 else:
-       TEMPLATES[0]['OPTIONS']['loaders'] = [
-                    #'django_mobile.loader.Loader',
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-        ]
+    TEMPLATES[0]['OPTIONS']['loaders'] = [
+        # 'django_mobile.loader.Loader',
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    ]
 
 """
 LOGGING = {
@@ -357,7 +343,6 @@ ADMINS = (('Alex Poleha', 'info@prozdo.ru'),)
 
 PUBLISH_COMMENT_WITHOUT_APPROVE_KARM = 20
 
-
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
@@ -366,11 +351,7 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-
 DEFAULT_THUMBNAIL_QUALITY = 75
-
-
-
 
 CACHED_METHOD_SPECIAL_CASES = {
     'django.core.handlers.wsgi.WSGIRequest': ('user.pk', 'session.prozdo_key', 'client_ip')
@@ -389,10 +370,7 @@ BASE_MAIL_CLASS = 'main.models.Mail'
 BASE_USER_PROFILE_CLASS = 'main.models.UserProfile'
 BASE_COMMENT_CLASS = 'main.models.Comment'
 
-
 SITE_NAME = 'Prozdo.ru'
-
-
 
 POST_TYPE_DRUG = 1
 POST_TYPE_BLOG = 2
@@ -406,7 +384,6 @@ POST_TYPE_COSMETICS_LINE = 9
 POST_TYPE_COSMETICS_USAGE_AREA = 10
 POST_TYPE_DRUG_USAGE_AREA = 11
 POST_TYPE_CATEGORY = 12
-
 
 POST_TYPES = (
     (POST_TYPE_DRUG, 'Препарат'),
@@ -425,17 +402,16 @@ POST_TYPES = (
 
 SUPER_MODEL_KEY_NAME = 'prozdo_key'
 
-
 USER_ROLE_REGULAR = 1
 USER_ROLE_AUTHOR = 2
 USER_ROLE_DOCTOR = 3
 USER_ROLE_ADMIN = 33
 
 USER_ROLES = (
-        (USER_ROLE_REGULAR, 'Обычный пользователь'),
-        (USER_ROLE_AUTHOR, 'Автор'),
-        (USER_ROLE_DOCTOR, 'Врач'),
-        (USER_ROLE_ADMIN, 'Админ'),
-    )
+    (USER_ROLE_REGULAR, 'Обычный пользователь'),
+    (USER_ROLE_AUTHOR, 'Автор'),
+    (USER_ROLE_DOCTOR, 'Врач'),
+    (USER_ROLE_ADMIN, 'Админ'),
+)
 
 BASE_TEMPLATE = 'main/base/base.html'
