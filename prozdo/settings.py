@@ -48,6 +48,7 @@ else:
     COMPRESS_ENABLED = True
     HTML_MINIFY = True
     SITE_URL = 'https://prozdo.ru'
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 EXCLUDE_FROM_MINIFYING = ('^admin/',)
 
