@@ -1,8 +1,14 @@
 from django.contrib.sitemaps import Sitemap
-from .models import Drug, Cosmetics, Blog, Component
 from django.core.urlresolvers import reverse_lazy
 
-class PostSitemap(Sitemap):
+from .models import Drug, Cosmetics, Blog, Component
+
+
+class BaseSitemap(Sitemap):
+    protocol = 'https'
+
+
+class PostSitemap(BaseSitemap):
     changefreq = "daily"
     priority = 1.0
 
@@ -19,6 +25,7 @@ class CosmeticsSitemap(PostSitemap):
     def items(self):
         return Cosmetics.objects.get_available()
 
+
 class BlogSitemap(PostSitemap):
     def items(self):
         return Blog.objects.get_available()
@@ -32,7 +39,7 @@ class ComponentSitemap(PostSitemap):
         return Component.objects.get_available()
 
 
-class DrugListSitemap(Sitemap):
+class DrugListSitemap(BaseSitemap):
     def items(self):
         return [self]
 
@@ -40,7 +47,8 @@ class DrugListSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.7
 
-class ComponentListSitemap(Sitemap):
+
+class ComponentListSitemap(BaseSitemap):
     def items(self):
         return [self]
 
@@ -49,7 +57,7 @@ class ComponentListSitemap(Sitemap):
     priority = 0.7
 
 
-class BlogListSitemap(Sitemap):
+class BlogListSitemap(BaseSitemap):
     def items(self):
         return [self]
 
@@ -58,7 +66,7 @@ class BlogListSitemap(Sitemap):
     priority = 0.7
 
 
-class CosmeticsListSitemap(Sitemap):
+class CosmeticsListSitemap(BaseSitemap):
     def items(self):
         return [self]
 
@@ -67,13 +75,14 @@ class CosmeticsListSitemap(Sitemap):
     priority = 0.7
 
 
-class MainPageSitemap(Sitemap):
+class MainPageSitemap(BaseSitemap):
     def items(self):
         return [self]
 
     location = reverse_lazy('main-page')
     changefreq = "daily"
     priority = 1.0
+
 
 sitemaps = {
     'drud-detail': DrugSitemap,
@@ -84,5 +93,5 @@ sitemaps = {
     'cosmetics-list': CosmeticsListSitemap,
     'blog-list': BlogListSitemap,
     'component-list': ComponentListSitemap,
-    'main-page' : MainPageSitemap,
+    'main-page': MainPageSitemap,
 }

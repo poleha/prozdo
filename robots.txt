@@ -13,4 +13,4 @@ User-agent: *
 Disallow: /admin
 Disallow: /search*?
 Sitemap: https://prozdo.ru/sitemap.xml
-Host: prozdo.ru
+Host: https://prozdo.ru
