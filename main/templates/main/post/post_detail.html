@@ -833,8 +833,13 @@
     {% endcompress %}
 
     {% if show_ad %}
-        <script type="text/javascript">var SC_CId = "59536",SC_Domain="ad.lcads.ru";SC_Start_59536=(new Date).getTime();</script>
-        <script src="https://st.ad.lcads.ru/js/adv_out.js"></script>
+        <script type="text/javascript">
+            (sc_adv_out = window.sc_adv_out || []).push({
+                id: '59536',
+                domain: "ad.lcads.ru"
+            });
+        </script>
+        <script type="text/javascript" src="//st.ad.lcads.ru/js/adv_out.js"></script>
     {% endif %}
 
 {% endblock bottom_scripts %}
