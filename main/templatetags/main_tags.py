@@ -1,8 +1,10 @@
-from django import template
-from main import models
-from django.core.urlresolvers import reverse_lazy
 from collections import namedtuple
+
+from django import template
 from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy
+
+from main import models
 from super_model.forms import SuperSearchForm
 from super_model.templatetags import super_model as super_tags
 
@@ -10,8 +12,8 @@ register = template.Library()
 
 MenuItem = namedtuple('MenuItem', ['title', 'url', 'cls'])
 
-
-get_child_comments = register.inclusion_tag('main/widgets/_get_child_comments.html', takes_context=True)(super_tags.get_child_comments)
+get_child_comments = register.inclusion_tag('main/widgets/_get_child_comments.html', takes_context=True)(
+    super_tags.get_child_comments)
 
 get_comment = register.inclusion_tag('main/widgets/_get_comment.html', takes_context=True)(super_tags.get_comment)
 
@@ -22,18 +24,22 @@ best_comments = register.inclusion_tag('main/widgets/_comments_portlet.html')(su
 
 @register.inclusion_tag('main/widgets/_top_menu.html', takes_context=True)
 def top_menu(context):
-
     request = context['request']
     menu_items = []
     view_name = request.resolver_match.view_name
-    menu_items.append(MenuItem(title='Главная', url=reverse_lazy('main-page'), cls='active' if view_name=='main-page' else ''))
-    menu_items.append(MenuItem(title='Отзывы о лекарствах', url=reverse_lazy('drug-list'), cls='active' if view_name=='drug-list' else ''))
-    menu_items.append(MenuItem(title='Аптечная косметика', url=reverse_lazy('cosmetics-list'), cls='active' if view_name=='cosmetics-list' else ''))
-    menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'), cls='active' if view_name=='blog-list' else ''))
-    menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'), cls='active' if view_name=='component-list' else ''))
+    menu_items.append(
+        MenuItem(title='Главная', url=reverse_lazy('main-page'), cls='active' if view_name == 'main-page' else ''))
+    menu_items.append(MenuItem(title='Отзывы о лекарствах', url=reverse_lazy('drug-list'),
+                               cls='active' if view_name == 'drug-list' else ''))
+    menu_items.append(MenuItem(title='Аптечная косметика', url=reverse_lazy('cosmetics-list'),
+                               cls='active' if view_name == 'cosmetics-list' else ''))
+    menu_items.append(MenuItem(title='Здоровый блог', url=reverse_lazy('blog-list'),
+                               cls='active' if view_name == 'blog-list' else ''))
+    menu_items.append(MenuItem(title='Состав препаратов', url=reverse_lazy('component-list'),
+                               cls='active' if view_name == 'component-list' else ''))
     search_form = SuperSearchForm(request.GET)
 
-    return {'menu_items': menu_items, 'search_form': search_form }
+    return {'menu_items': menu_items, 'search_form': search_form}
 
 
 @register.inclusion_tag('main/widgets/_bottom_menu.html', takes_context=True)
@@ -60,12 +66,12 @@ def user_detail(user):
 
 Breadcrumb = namedtuple('Breadcrumb', ['title', 'href'])
 
+
 @register.inclusion_tag('main/widgets/_breadcrumbs.html', takes_context=True)
 def breadcrumbs(context):
-
     request = context['request']
     url_name = request.resolver_match.url_name
-    #kwargs = request.resolver_match.kwargs
+    # kwargs = request.resolver_match.kwargs
 
     if url_name == 'main-page':
         return
@@ -109,28 +115,34 @@ def breadcrumbs(context):
 
     elif url_name == 'user-detail':
         user = context['current_user']
-        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user),
+                                           href=reverse('user-detail', kwargs={'pk': user.pk})))
 
     elif url_name in ('user-comments', 'user-karma', 'user-activity'):
         user = context['current_user']
-        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user), href=reverse('user-detail', kwargs={'pk': user.pk})))
+        breadcrumbs_list.append(Breadcrumb(title='Информация о пользователе {0}'.format(user),
+                                           href=reverse('user-detail', kwargs={'pk': user.pk})))
         if url_name == 'user-comments':
-            breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user), href=reverse('user-comments', kwargs={'pk': user.pk})))
+            breadcrumbs_list.append(Breadcrumb(title='Сообщения пользователя {0}'.format(user),
+                                               href=reverse('user-comments', kwargs={'pk': user.pk})))
         elif url_name == 'user-karma':
-            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user), href=reverse('user-karma', kwargs={'pk': user.pk})))
+            breadcrumbs_list.append(Breadcrumb(title='Карма пользователя {0}'.format(user),
+                                               href=reverse('user-karma', kwargs={'pk': user.pk})))
         elif url_name == 'user-activity':
-            breadcrumbs_list.append(Breadcrumb(title='Действия пользователя {0}'.format(user), href=reverse('user-activity', kwargs={'pk': user.pk})))
+            breadcrumbs_list.append(Breadcrumb(title='Действия пользователя {0}'.format(user),
+                                               href=reverse('user-activity', kwargs={'pk': user.pk})))
 
     elif url_name == 'search':
         breadcrumbs_list.append(Breadcrumb(title="Поиск по сайту", href=reverse('search')))
 
     return {'breadcrumbs_list': breadcrumbs_list}
 
+
 @register.inclusion_tag('main/widgets/_metatags.html', takes_context=True)
 def metatags(context):
     request = context['request']
     url_name = request.resolver_match.url_name
-    #kwargs = request.resolver_match.kwargs
+    # kwargs = request.resolver_match.kwargs
 
     metatags_dict = {}
     metatags_dict['title'] = 'Про здоровье'
@@ -161,11 +173,13 @@ def metatags(context):
         metatags_dict['keywords'] = "отзывы, лекарственные препараты, лекарства, состав препаратов"
         metatags_dict['description'] = "Состав препаратов."
 
-    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment', 'post-detail-pk-comment']:
+    elif url_name in ['post-detail-alias', 'post-detail-alias-comment', 'post-detail-pk', 'post-detail-pk-comment',
+                      'post-detail-pk-comment']:
         obj = context['obj']
         if isinstance(obj, models.Drug):
             metatags_dict['title'] = '{0} - отзывы | Про здоровье'.format(obj.title)
-            metatags_dict['keywords'] = "{0} - отзывы, лекарственные препараты, лекарства, отзывы, {1}".format(obj.title, obj.title)
+            metatags_dict['keywords'] = "{0} - отзывы, лекарственные препараты, лекарства, отзывы, {1}".format(
+                obj.title, obj.title)
             metatags_dict['description'] = "Отзывы о препарате {0}.".format(obj.title)
         elif isinstance(obj, models.Blog):
             metatags_dict['title'] = '{0} | Про здоровье'.format(obj.title)

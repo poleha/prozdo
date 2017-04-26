@@ -1,16 +1,19 @@
 <div class="clearfix">
-<table class="table">
-<thead>
-<tr><th>Компонент</th><th>Тип компонента</th></tr>
-</thead>
-<tbody>
-   {% for obj in objs %}
-     <tr>
-       <th><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></th>
-        <th>{{ obj.component_type_text }}</th>
-</tr>
- {% endfor %}
-</tbody>
-</table>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Компонент</th>
+            <th>Тип компонента</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for obj in objs %}
+            <tr>
+                <th><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></th>
+                <th>{{ obj.component_type_text }}</th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
- {% include 'super_model/base/_pager.html' %}
+{% include 'super_model/base/_pager.html' %}

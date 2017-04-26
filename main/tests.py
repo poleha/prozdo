@@ -1,17 +1,20 @@
-from django_webtest import WebTest
-from . import models
-from django.core.urlresolvers import reverse
-from django.conf import settings
 from allauth.account.models import EmailAddress, EmailConfirmation
+from django.conf import settings
 from django.core.cache import cache
-from super_model import models as super_models
+from django.core.urlresolvers import reverse
+from django_webtest import WebTest
 from haystack.management.commands import rebuild_index, update_index
+
 from helper import app_settings
+from super_model import models as super_models
+from . import models
+
 
 class BaseTest(WebTest):
     def setUp(self):
         cache.clear()
-        self.user = models.User.objects.create(username='asdgsdfhhfgdjfh', password='1234567', email='sdfgsdfg@sdfsdg.ru')
+        self.user = models.User.objects.create(username='asdgsdfhhfgdjfh', password='1234567',
+                                               email='sdfgsdfg@sdfsdg.ru')
 
         self.email_adress = EmailAddress.objects.create(
             user=self.user,
@@ -22,38 +25,32 @@ class BaseTest(WebTest):
 
         self.email_confirmation = EmailConfirmation.create(self.email_adress)
 
+        self.user2 = models.User.objects.create(username='asssdfdsgdfg', password='1234567',
+                                                email='dsgdfsgsdfg@dsfgsdg.ru')
 
-
-        self.user2 = models.User.objects.create(username='asssdfdsgdfg', password='1234567', email='dsgdfsgsdfg@dsfgsdg.ru')
-
-        self.email_adress2= EmailAddress.objects.create(
+        self.email_adress2 = EmailAddress.objects.create(
             user=self.user2,
             email=self.user2.email,
             verified=False,
             primary=True,
         )
 
-
-
         self.component = models.Component.objects.create(
             body='body',
-            title = 'title_component',
-            component_type = models.COMPONENT_TYPE_MINERAL,
+            title='title_component',
+            component_type=models.COMPONENT_TYPE_MINERAL,
             status=super_models.POST_STATUS_PUBLISHED,
         )
-
 
         self.drug_dosage_form = models.DrugDosageForm.objects.create(
-            title = 'title_drug_dosage_form',
+            title='title_drug_dosage_form',
             status=super_models.POST_STATUS_PUBLISHED,
         )
-
 
         self.drug_usage_area = models.DrugUsageArea.objects.create(
-            title = 'title_drug_usage_area',
+            title='title_drug_usage_area',
             status=super_models.POST_STATUS_PUBLISHED,
         )
-
 
         self.drug = models.Drug.objects.create(
             title='title_drug',
@@ -248,7 +245,6 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
 
-
     def test_comment_antispan_comment_with_errors_published_for_user_with_karm_above_9(self):
         drug = self.drug
         u = self.user
@@ -270,7 +266,9 @@ class CommentAntispanTests(BaseTest):
         comment.status = super_models.COMMENT_STATUS_PUBLISHED
         comment.save()
         for k in range(settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM):
-            models.History.save_history(post=comment.post, comment=comment, history_type=super_models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k), session_key='fsdfsdfsdfsd34{0}'.format(k))
+            models.History.save_history(post=comment.post, comment=comment,
+                                        history_type=super_models.HISTORY_TYPE_COMMENT_RATED, ip='1.2.3.{0}'.format(k),
+                                        session_key='fsdfsdfsdfsd34{0}'.format(k))
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
         form = page.forms['comment-form']
@@ -297,15 +295,15 @@ class CommentAntispanTests(BaseTest):
         form = page.forms['comment-form']
         body = 'zzzzzzzz1111'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
-        #username = app_settings.BAD_WORDS[0]
+        # username = app_settings.BAD_WORDS[0]
         form['email'] = email
-        #form['username'] = username
+        # form['username'] = username
         form['body'] = body
         page = form.submit()
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         self.assertEqual(comment.body, body)
-        #self.assertEqual(comment.username, username)
+        # self.assertEqual(comment.username, username)
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
@@ -333,12 +331,10 @@ class HistoryTests(BaseTest):
         self.assertEqual(comment.post_mark, None)
         self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_CREATED)
 
-
     def test_comment_create_and_save_and_post_mark_for_drug(self):
         drug = self.drug
         user = self.user
         start_hist_count = models.History.objects.filter(deleted=False).count()
-
 
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=user)
         form = page.forms['comment-form']
@@ -360,7 +356,6 @@ class HistoryTests(BaseTest):
         self.assertEqual(h.history_type, super_models.HISTORY_TYPE_COMMENT_CREATED)
 
 
-
 class HistoryAjaxSaveTests(BaseTest):
     def setUp(self):
         super().setUp()
@@ -375,7 +370,6 @@ class HistoryAjaxSaveTests(BaseTest):
             ('comment-complain', 'comment-uncomplain', super_models.HISTORY_TYPE_COMMENT_COMPLAINT)
         )
 
-
     def test_user_and_guest_cannot_mark_or_complain_own_comment(self):
         comment = self.comment
 
@@ -383,7 +377,7 @@ class HistoryAjaxSaveTests(BaseTest):
         for user in users:
             self.renew_app()
             for action, cancel, history_type in self.comment_actions:
-                params= {
+                params = {
                     'action': action,
                     'pk': comment.pk,
                 }
@@ -401,7 +395,7 @@ class HistoryAjaxSaveTests(BaseTest):
             for action, cancel, history_type in self.comment_actions:
                 start_hist_count = models.History.objects.filter(deleted=False).count()
 
-                params= {
+                params = {
                     'action': action,
                     'pk': comment.pk,
                 }
@@ -413,7 +407,7 @@ class HistoryAjaxSaveTests(BaseTest):
                 result_hist_count = models.History.objects.filter(deleted=False).count()
                 self.assertEqual(start_hist_count + 1, result_hist_count)
 
-                params= {
+                params = {
                     'action': cancel,
                     'pk': comment.pk,
                 }
@@ -428,7 +422,7 @@ class HistoryAjaxSaveTests(BaseTest):
         for action, cancel, history_type in self.comment_actions:
             start_hist_count = models.History.objects.filter(deleted=False).count()
 
-            params= {
+            params = {
                 'action': action,
                 'pk': comment.pk,
             }
@@ -440,7 +434,7 @@ class HistoryAjaxSaveTests(BaseTest):
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
-            params= {
+            params = {
                 'action': cancel,
                 'pk': comment.pk,
             }
@@ -458,7 +452,7 @@ class HistoryAjaxSaveTests(BaseTest):
         for action, cancel, history_type in self.comment_actions:
             start_hist_count = models.History.objects.filter(deleted=False).count()
 
-            params= {
+            params = {
                 'action': action,
                 'pk': comment.pk,
             }
@@ -470,7 +464,7 @@ class HistoryAjaxSaveTests(BaseTest):
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
-            params= {
+            params = {
                 'action': cancel,
                 'pk': comment.pk,
             }
@@ -478,8 +472,6 @@ class HistoryAjaxSaveTests(BaseTest):
             page = self.app.post(reverse('history-ajax-save'), params=params)
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
-
-
 
     def test_user_and_guest_can_mark_and_unmark_drug(self):
         drug = self.drug
@@ -490,7 +482,7 @@ class HistoryAjaxSaveTests(BaseTest):
             self.renew_app()
             start_hist_count = models.History.objects.filter(deleted=False).count()
 
-            params= {
+            params = {
                 'action': 'post-mark',
                 'pk': drug.pk,
                 'mark': 5,
@@ -504,14 +496,13 @@ class HistoryAjaxSaveTests(BaseTest):
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count + 1, result_hist_count)
 
-            params= {
+            params = {
                 'action': 'post-unmark',
                 'pk': drug.pk,
             }
             page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
             result_hist_count = models.History.objects.filter(deleted=False).count()
             self.assertEqual(start_hist_count, result_hist_count)
-
 
     def test_doctor_can_mark_and_unmark_comment_for_delete(self):
         start_hist_count = models.History.objects.filter(deleted=False).count()
@@ -520,10 +511,10 @@ class HistoryAjaxSaveTests(BaseTest):
         up = user.user_profile
         up.role = settings.USER_ROLE_DOCTOR
         up.save()
-        params= {
-                'action': 'comment-delete',
-                'pk': comment.pk,
-            }
+        params = {
+            'action': 'comment-delete',
+            'pk': comment.pk,
+        }
         page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
         h = models.History.objects.latest('created')
         self.assertEqual(h.post, comment.post)
@@ -535,7 +526,7 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = comment.saved_version
         self.assertEqual(comment.delete_mark, True)
 
-        params= {
+        params = {
             'action': 'comment-undelete',
             'pk': comment.pk,
         }
@@ -545,19 +536,17 @@ class HistoryAjaxSaveTests(BaseTest):
         comment = comment.saved_version
         self.assertEqual(comment.delete_mark, False)
 
-
     def test_guest_and_regular_user_cant_mark_for_delete(self):
-
 
         comment = self.comment
         user = self.user2
 
         for user in (user, None):
             self.renew_app()
-            params= {
-                    'action': 'comment-delete',
-                    'pk': comment.pk,
-                }
+            params = {
+                'action': 'comment-delete',
+                'pk': comment.pk,
+            }
             comment.delete_mark = False
             comment.save()
             start_hist_count = models.History.objects.filter(deleted=False).count()
@@ -574,7 +563,7 @@ class HistoryAjaxSaveTests(BaseTest):
             comment.delete_mark = True
             comment.save()
             start_hist_count = models.History.objects.filter(deleted=False).count()
-            params= {
+            params = {
                 'action': 'comment-undelete',
                 'pk': comment.pk,
             }
@@ -585,7 +574,7 @@ class HistoryAjaxSaveTests(BaseTest):
     def test_session_key_is_applied_to_comment_without_session_key_on_comment_delete(self):
         comment = self.comment
         type(comment).objects.filter(pk=comment.pk).update(session_key=None, delete_mark=False)
-        #comment.session_key = None
+        # comment.session_key = None
         comment = comment.saved_version
         user = self.user
         up = user.user_profile
@@ -593,10 +582,10 @@ class HistoryAjaxSaveTests(BaseTest):
         up.save()
         self.assertEqual(comment.session_key, None)
 
-        params= {
-                'action': 'comment-delete',
-                'pk': comment.pk,
-            }
+        params = {
+            'action': 'comment-delete',
+            'pk': comment.pk,
+        }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=user)
         comment = comment.saved_version
@@ -609,7 +598,6 @@ class HistoryAjaxSaveTests(BaseTest):
         self.assertEqual(page.status_code, 200)
 
 
-
 class PostPagesTest(BaseTest):
     def setUp(self):
         super().setUp()
@@ -619,7 +607,6 @@ class PostPagesTest(BaseTest):
         self.drug.alias = 'fsdsdfgsdfgshgfd'
         self.drug.save()
         for k in range(settings.POST_COMMENTS_PAGE_SIZE * 2 + 1):
-
             comment = models.Comment.objects.create(
                 post=self.drug,
                 username='gdfsgsdfgsdfg',
@@ -661,32 +648,39 @@ class PostPagesTest(BaseTest):
         for k in range(settings.POST_COMMENTS_PAGE_SIZE * 2 + 1):
             self.renew_app()
             comment = self.comments0[k]
-            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            page = self.app.get(
+                reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level0-{0}'.format(k), page)
 
             comment = self.comments1[k]
-            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            page = self.app.get(
+                reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level1-{0}'.format(k), page)
 
             comment = self.comments2[k]
-            page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
+            page = self.app.get(
+                reverse('post-detail-pk-comment', kwargs={'pk': comment.post.pk, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
 
             comment = self.comments0[k]
-            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            page = self.app.get(reverse('post-detail-alias-comment',
+                                        kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level0-{0}'.format(k), page)
 
             comment = self.comments1[k]
-            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            page = self.app.get(reverse('post-detail-alias-comment',
+                                        kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level1-{0}'.format(k), page)
 
             comment = self.comments2[k]
-            page = self.app.get(reverse('post-detail-alias-comment', kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
+            page = self.app.get(reverse('post-detail-alias-comment',
+                                        kwargs={'alias': comment.post.drug.alias, 'comment_pk': comment.pk}))
             self.assertIn('авырлпоырваыпиорвполривапрва-level2-{0}'.format(k), page)
 
     def test_post_detail_pk_comment_view_works_fine_when_comment_not_found(self):
         self.assertEqual(models.Comment.objects.filter(pk=111111111111111111111111).exists(), False)
-        page = self.app.get(reverse('post-detail-pk-comment', kwargs={'pk': self.drug.pk, 'comment_pk': 111111111111111111111111}))
+        page = self.app.get(
+            reverse('post-detail-pk-comment', kwargs={'pk': self.drug.pk, 'comment_pk': 111111111111111111111111}))
         self.assertEqual(page.status_code, 200)
 
 
@@ -734,12 +728,12 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         self.assertIn(comment.get_confirm_url(), mail.body_html)
-        url = settings.SITE_URL + reverse('comment-confirm', kwargs={'comment_pk': comment.pk, 'key': comment.key + 'z'})
+        url = settings.SITE_URL + reverse('comment-confirm',
+                                          kwargs={'comment_pk': comment.pk, 'key': comment.key + 'z'})
         page = self.app.get(url)
         comment = comment.saved_version
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
-
 
     def test_guest_comment_can_confirm_own_comment_by_link(self):
         mail_count_0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
@@ -765,7 +759,6 @@ class CommentConfirmationTests(BaseTest):
         mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1 + 1, mail_count_2)
 
-
     def test_user_comment_with_approved_mail_is_approved(self):
         user = self.user
         mail_count_start = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
@@ -779,7 +772,6 @@ class CommentConfirmationTests(BaseTest):
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, True)
-
 
     def test_user_comment_with_unapproved_mail_is_unapproved_but_approves_on_user_mail_approve(self):
         user = self.user2
@@ -841,10 +833,10 @@ class CommentConfirmationTests(BaseTest):
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
         page = self.app.post(reverse('comment-get-confirm-form-ajax'), {'pk': comment.pk}, user=user)
-        #form = page.form
-        #form['email'] = email
-        #form['pk'] = comment.pk
-        #page = form.submit()
+        # form = page.form
+        # form['email'] = email
+        # form['pk'] = comment.pk
+        # page = form.submit()
         comment = comment.saved_version
         mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1, mail_count_2)
@@ -911,12 +903,12 @@ class CommentConfirmationTests(BaseTest):
 class PublishedModelMixinTests(BaseTest):
     def test_comment_takes_publish_time_on_publish_only(self):
         comment = models.Comment.objects.create(
-                post=self.drug,
-                username='gdfsgsdfgsdfg',
-                email='fdsfsd@sdgdfgdfg.ru',
-                body='авырлпоырваыпdsgdsfgиорвполривапрва-dsfgsdfffffffffffffffffglevelsdfgfsd',
-                status=super_models.COMMENT_STATUS_PENDING_APPROVAL,
-            )
+            post=self.drug,
+            username='gdfsgsdfgsdfg',
+            email='fdsfsd@sdgdfgdfg.ru',
+            body='авырлпоырваыпdsgdsfgиорвполривапрва-dsfgsdfffffffffffffffffglevelsdfgfsd',
+            status=super_models.COMMENT_STATUS_PENDING_APPROVAL,
+        )
 
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
         self.assertEqual(comment.published, None)
@@ -933,13 +925,12 @@ class PublishedModelMixinTests(BaseTest):
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.published, published)
 
-
     def test_drug_takes_publish_time_on_publish_only(self):
         drug = models.Drug.objects.create(
             title='title_dfgdsfgdrug',
             body='bodsfgdfgdy',
 
-          )
+        )
 
         self.assertEqual(drug.status, super_models.POST_STATUS_PROJECT)
         self.assertEqual(drug.published, None)
@@ -955,6 +946,7 @@ class PublishedModelMixinTests(BaseTest):
 
         self.assertEqual(drug.status, super_models.POST_STATUS_PUBLISHED)
         self.assertEqual(drug.published, published)
+
 
 class CommentMessagesTest(BaseTest):
     def setUp(self):
@@ -998,8 +990,6 @@ class CommentMessagesTest(BaseTest):
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         mails_count2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1 + 1, mails_count2)
-
-
 
     def test_user_doesnt_get_email_when_his_unapproved_comment_is_answered(self):
         mails_count0 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
@@ -1074,6 +1064,7 @@ class CommentMessagesTest(BaseTest):
         mails_count2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_ANSWER_TO_COMMENT).count()
         self.assertEqual(mails_count1, mails_count2)
 
+
 class CommentInterfaceTests(BaseTest):
     def setUp(self):
         super().setUp()
@@ -1128,7 +1119,6 @@ class GeneralCommentTests(BaseTest):
         self.assertEqual(page.status_code, 200)
         self.assertEqual(mails_count1, mails_count2)
 
-
     def test_session_key_is_changed_on_comment_update_and_udater_is_applied(self):
         u = self.user
         d = self.drug
@@ -1156,39 +1146,38 @@ class GeneralCommentTests(BaseTest):
         self.assertEqual(c.updater, u)
 
 
-
 class CacheTests(BaseTest):
     def test_deleted_comment_isnt_visible_as_parent_and_child_on_post_detail(self):
         page = self.app.get(self.drug.get_absolute_url())
 
         parent = models.Comment.objects.create(
-                post=self.drug,
-                username='gdfsgsdfgsdfg',
-                email='fdsfsd@sdgdfgdfg.ru',
-                body='алоуоац4ай34аглвырпилвыапилоывапиавапыв',
-                status=super_models.COMMENT_STATUS_PUBLISHED,
-                session_key='sdkfngsdfjgndfsjgnsdfg',
-            )
+            post=self.drug,
+            username='gdfsgsdfgsdfg',
+            email='fdsfsd@sdgdfgdfg.ru',
+            body='алоуоац4ай34аглвырпилвыапилоывапиавапыв',
+            status=super_models.COMMENT_STATUS_PUBLISHED,
+            session_key='sdkfngsdfjgndfsjgnsdfg',
+        )
 
         comment = models.Comment.objects.create(
-                post=self.drug,
-                username='gdfsgsdfgsdfg',
-                email='fdsfsd@sdgdfgdfg.ru',
-                body='ваыпоуд4прышгукпргвынпргывапвыап',
-                status=super_models.COMMENT_STATUS_PUBLISHED,
-                parent=parent,
-                session_key='sdkfngsdfjgndfsjgnsdfg',
-            )
+            post=self.drug,
+            username='gdfsgsdfgsdfg',
+            email='fdsfsd@sdgdfgdfg.ru',
+            body='ваыпоуд4прышгукпргвынпргывапвыап',
+            status=super_models.COMMENT_STATUS_PUBLISHED,
+            parent=parent,
+            session_key='sdkfngsdfjgndfsjgnsdfg',
+        )
 
         child = models.Comment.objects.create(
-                post=self.drug,
-                username='gdfsgsdfgsdfg',
-                email='fdsfsd@sdgdfgdfg.ru',
-                body='авпрволыдапывдалпрывдлапрлывадпргушкпршва',
-                status=super_models.COMMENT_STATUS_PUBLISHED,
-                parent=comment,
-                session_key='sdkfngsdfjgndfsjgnsdfg',
-            )
+            post=self.drug,
+            username='gdfsgsdfgsdfg',
+            email='fdsfsd@sdgdfgdfg.ru',
+            body='авпрволыдапывдалпрывдлапрлывадпргушкпршва',
+            status=super_models.COMMENT_STATUS_PUBLISHED,
+            parent=comment,
+            session_key='sdkfngsdfjgndfsjgnsdfg',
+        )
 
         page = self.app.get(self.drug.get_absolute_url())
         self.assertEqual(page.status_code, 200)
@@ -1207,7 +1196,7 @@ class CacheTests(BaseTest):
         self.assertNotIn(comment_body, page)
         self.assertNotIn(child_body, page)
 
-    #Not cache tests anymore, but let it be
+    # Not cache tests anymore, but let it be
     def test_cached_method_works_for_hist_exists_by_request(self):
         page = self.app.get(self.drug.get_absolute_url())
         form = page.forms['comment-form']
@@ -1221,12 +1210,14 @@ class CacheTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         page = self.app.get(self.drug.get_absolute_url())
-        self.assertEqual(comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
+        self.assertEqual(
+            comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), True)
         self.renew_app()
         page = self.app.get(comment.get_absolute_url())
-        self.assertEqual(comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
+        self.assertEqual(
+            comment.hist_exists_by_request(super_models.HISTORY_TYPE_COMMENT_CREATED, page.context['request']), False)
 
-    #Not cache tests anymore, but let it be
+    # Not cache tests anymore, but let it be
     def test_cached_method_works_for_show_do_action_button(self):
         page = self.app.get(self.drug.get_absolute_url())
         form = page.forms['comment-form']
@@ -1240,24 +1231,28 @@ class CacheTests(BaseTest):
         self.assertEqual(page.status_code, 302)
         comment = models.Comment.objects.all().latest('created')
         page = self.app.get(self.drug.get_absolute_url())
-        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(
+            comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
         history = models.History.objects.latest('created')
         type(history).objects.filter(pk=history.pk).update(ip='123.235.345.567')
         type(comment).objects.filter(pk=comment.pk).update(ip='534.345.456.467')
-        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(
+            comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
         self.renew_app()
         page = self.app.get(comment.get_absolute_url())
         history = models.History.objects.latest('created')
         type(history).objects.filter(pk=history.pk).update(ip='103.331.145.527')
-        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)
+        self.assertEqual(
+            comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), True)
 
-        params= {
-                'action': 'comment-mark',
-                'pk': comment.pk,
-            }
+        params = {
+            'action': 'comment-mark',
+            'pk': comment.pk,
+        }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         page = self.app.get(comment.get_absolute_url())
-        self.assertEqual(comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
+        self.assertEqual(
+            comment.show_do_action_button(super_models.HISTORY_TYPE_COMMENT_RATED, page.context['request']), False)
 
     def test_post_detail_is_cached_for_passive_guest_and_reset_on_post_save(self):
         cache.clear()
@@ -1315,11 +1310,11 @@ class CacheTests(BaseTest):
         cache.clear()
         self.renew_app()
 
-        params= {
-                'action': 'post-mark',
-                'mark': 5,
-                'pk': self.drug.pk,
-            }
+        params = {
+            'action': 'post-mark',
+            'mark': 5,
+            'pk': self.drug.pk,
+        }
         page = self.app.post(reverse('history-ajax-save'), params=params)
 
         page = self.app.get(self.drug.get_absolute_url())
@@ -1378,16 +1373,17 @@ class AccountMailTests(BaseTest):
         mail_count_end = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_EMAIL_CONFIRMATION).count()
         self.assertEqual(mail_count_start + 1, mail_count_end)
 
+
 class PostTests(BaseTest):
     def test_marks_count_and_average_mark_works_as_expected_for_drug_detail(self):
         drug = self.drug
         self.assertEqual(drug.marks_count, 0)
         self.assertEqual(drug.average_mark, 0)
-        params= {
-                'action': 'post-mark',
-                'mark': 5,
-                'pk': drug.pk,
-            }
+        params = {
+            'action': 'post-mark',
+            'mark': 5,
+            'pk': drug.pk,
+        }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         h1 = models.History.objects.latest('created')
         self.assertEqual(h1.history_type, super_models.HISTORY_TYPE_POST_RATED)
@@ -1402,10 +1398,10 @@ class PostTests(BaseTest):
 
         self.renew_app()
         params = {
-                'action': 'post-mark',
-                'mark': 4,
-                'pk': drug.pk,
-            }
+            'action': 'post-mark',
+            'mark': 4,
+            'pk': drug.pk,
+        }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         h2 = models.History.objects.latest('created')
@@ -1422,10 +1418,10 @@ class PostTests(BaseTest):
         self.assertEqual(drug.post_ptr.marks_count, 2)
         self.assertEqual(drug.post_ptr.average_mark, 4.5)
 
-        params= {
-                'action': 'post-unmark',
-                'pk': drug.pk,
-            }
+        params = {
+            'action': 'post-unmark',
+            'pk': drug.pk,
+        }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         h3 = models.History.objects.latest('created')
@@ -1444,10 +1440,10 @@ class PostTests(BaseTest):
     # TODO change to new mode
     def test_marks_count_works_as_expected_for_blog_detail(self):
         blog = self.blog
-        params= {
-                'action': 'user-post-mark',
-                'pk': blog.pk,
-            }
+        params = {
+            'action': 'user-post-mark',
+            'pk': blog.pk,
+        }
         page = self.app.post(reverse('history-ajax-save'), params=params)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
         self.assertIn('<span class="post-current-mark-span" id="post-current-mark-span">1</span>', page)
@@ -1456,9 +1452,9 @@ class PostTests(BaseTest):
 
         self.renew_app()
         params = {
-                'action': 'user-post-mark',
-                'pk': blog.pk,
-            }
+            'action': 'user-post-mark',
+            'pk': blog.pk,
+        }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
@@ -1466,10 +1462,10 @@ class PostTests(BaseTest):
         self.assertEqual(blog.user_marks_count, 2)
         self.assertEqual(blog.post_ptr.user_marks_count, 2)
 
-        params= {
-                'action': 'user-post-unmark',
-                'pk': blog.pk,
-            }
+        params = {
+            'action': 'user-post-unmark',
+            'pk': blog.pk,
+        }
 
         page = self.app.post(reverse('history-ajax-save'), params=params, user=self.user)
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': blog.pk}))
@@ -1507,7 +1503,6 @@ class SearchTests(BaseTest):
         self.assertNotIn('Ничего не найдено', page)
         self.assertIn(drug.get_absolute_url(), page)
 
-
         page = self.app.get(reverse('main-page'))
         form = page.forms['search-form']
         form['q'] = drug.body
@@ -1528,12 +1523,12 @@ class SearchTests(BaseTest):
         rebuild_index.Command().handle(interactive=False)
 
         comment = models.Comment.objects.create(
-                post=self.drug,
-                username='аывпывапварварвар',
-                email='fdsfsd@sdgdfgdfg.ru',
-                body='варвварправрвар',
-                status=super_models.COMMENT_STATUS_PUBLISHED,
-            )
+            post=self.drug,
+            username='аывпывапварварвар',
+            email='fdsfsd@sdgdfgdfg.ru',
+            body='варвварправрвар',
+            status=super_models.COMMENT_STATUS_PUBLISHED,
+        )
 
         page = self.app.get(reverse('main-page'))
         form = page.forms['search-form']
@@ -1577,7 +1572,6 @@ class SearchTests(BaseTest):
         self.assertNotIn(title, page)
 
 
-
 """
 class ProzdoMiddlewareTests(BaseTest):
     def test_set_ip_middleware_works_as_expected(self):
@@ -1607,9 +1601,9 @@ class PageTests(BaseTest):
 
         for k in range(10):
             drug = models.Drug.objects.create(
-            title='title_drug{0}'.format(k),
-            body='body',
-            status=super_models.POST_STATUS_PUBLISHED,
+                title='title_drug{0}'.format(k),
+                body='body',
+                status=super_models.POST_STATUS_PUBLISHED,
             )
             self.posts.append(drug)
 

@@ -342,7 +342,7 @@ AUTO_DONT_APPROVE_EMAILS = ['dont-approve@dont-approve.me']
 
 ADMINS = (('Alex Poleha', 'info@prozdo.ru'),)
 
-PUBLISH_COMMENT_WITHOUT_APPROVE_KARM = 20
+PUBLISH_COMMENT_WITHOUT_APPROVE_KARM = 120
 
 HAYSTACK_CONNECTIONS = {
     'default': {

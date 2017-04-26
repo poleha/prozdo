@@ -2,61 +2,71 @@
 {% load helper_tags %}
 {% block content %}
     <form method="get" id="comment-doctor-filter-form">
-    {{ form }}
-    <input type="submit" value="Применить фильтр">
+        {{ form }}
+        <input type="submit" value="Применить фильтр">
     </form>
     <div class="table-responsive">
-    <table class="table table-bordered">
-    <thead>
-    <tr><th>Сообщение</th><th>Время создания</th><th>Время публикации</th><th>Нужна консультация</th><th>Консультация оказана</th><th>Материал</th><th>Пользователь</th><th>Жалобы</th><th>Метка удаления</th></tr>
-    </thead>
-<tbody>
-        {% for comment in comments %}
-    <tr>
-    <td class="col-md-2">
-      <a href="{{ comment.get_absolute_url }}">{{ comment.body }}</a>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Сообщение</th>
+                <th>Время создания</th>
+                <th>Время публикации</th>
+                <th>Нужна консультация</th>
+                <th>Консультация оказана</th>
+                <th>Материал</th>
+                <th>Пользователь</th>
+                <th>Жалобы</th>
+                <th>Метка удаления</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for comment in comments %}
+                <tr>
+                    <td class="col-md-2">
+                        <a href="{{ comment.get_absolute_url }}">{{ comment.body }}</a>
 
-    </td>
+                    </td>
 
-     <td class="col-md-1">
-     {{ comment.created }}
-    </td>
+                    <td class="col-md-1">
+                        {{ comment.created }}
+                    </td>
 
-    <td class="col-md-1">
-     {{ comment.published }}
-    </td>
+                    <td class="col-md-1">
+                        {{ comment.published }}
+                    </td>
 
-    <td class="col-md-1">
-     {{ comment.consult_required|bool_as_text }}
-    </td>
+                    <td class="col-md-1">
+                        {{ comment.consult_required|bool_as_text }}
+                    </td>
 
-    <td class="col-md-1">
-     {{ comment.consult_done|bool_as_text }}
-    </td>
+                    <td class="col-md-1">
+                        {{ comment.consult_done|bool_as_text }}
+                    </td>
 
-    <td class="col-md-1">
-     <a href="{{ comment.post.obj.get_absolute_url }}">{{ comment.post }}</a>
-    </td>
+                    <td class="col-md-1">
+                        <a href="{{ comment.post.obj.get_absolute_url }}">{{ comment.post }}</a>
+                    </td>
 
-    <td class="col-md-1">
-     {% if comment.user %}
-        <a href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
-        {% else %}
-         {{ comment.username }}
-        {% endif %}
-    </td>
+                    <td class="col-md-1">
+                        {% if comment.user %}
+                            <a href="{{ comment.user.get_absolute_url }}">{{ comment.user }}</a>
+                        {% else %}
+                            {{ comment.username }}
+                        {% endif %}
+                    </td>
 
-    <td class="col-md-1">
-     {{ comment.complain_count }}
-    </td>
+                    <td class="col-md-1">
+                        {{ comment.complain_count }}
+                    </td>
 
-<td class="col-md-1">
-     {{ comment.delete_mark|bool_as_text }}
-    </td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
+                    <td class="col-md-1">
+                        {{ comment.delete_mark|bool_as_text }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% include 'super_model/base/_pager.html' %}
 
@@ -64,14 +74,14 @@
 {% endblock content %}
 
 {% block bottom_scripts %}
-{{ block.super }}
+    {{ block.super }}
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
     <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-        <script>
-            $(function () {
-                $(".date-input").datepicker({
-                    dateFormat: "dd.mm.yy"
-                });
+    <script>
+        $(function () {
+            $(".date-input").datepicker({
+                dateFormat: "dd.mm.yy"
             });
-        </script>
+        });
+    </script>
 {% endblock bottom_scripts %}

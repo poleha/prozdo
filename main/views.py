@@ -1,19 +1,20 @@
-from django.views import generic
-from django.http.response import HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 from django.conf import settings
-from django.db.models.aggregates import Count
 from django.core.urlresolvers import reverse_lazy
-from . import models, forms
-from helper.helper import to_int
-from cache.decorators import cached_view
 from django.db.models import Case, Value, When, CharField
-from super_model import models as super_models
+from django.db.models.aggregates import Count
+from django.http import JsonResponse
+from django.http.response import HttpResponseRedirect
+from django.utils import timezone
+from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
+
+from cache.decorators import cached_view
+from helper.helper import to_int
 from super_model import forms as super_forms
 from super_model import helper as super_helper
+from super_model import models as super_models
 from super_model import views as super_views
-from django.utils import timezone
+from . import models, forms
 
 
 class PostDetail(super_views.SuperPostDetail):
@@ -25,10 +26,11 @@ class PostDetail(super_views.SuperPostDetail):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
+
 class PostViewMixin(super_views.SuperPostViewMixin):
     def set_model(self):
         if self.kwargs['post_type'] == 'drug':
-            self.model =  models.Drug
+            self.model = models.Drug
         elif self.kwargs['post_type'] == 'cosmetics':
             self.model = models.Cosmetics
         elif self.kwargs['post_type'] == 'blog':
@@ -38,7 +40,6 @@ class PostViewMixin(super_views.SuperPostViewMixin):
 
 
 class PostListFilterMixin(super_views.SuperPostListFilterMixin, PostViewMixin):
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.model == models.Drug:
@@ -95,8 +96,9 @@ class PostListAjax(PostListFilterMixin):
         self.object_list = self.get_queryset()
         return self.render_to_response(self.get_context_data(**kwargs))
 
+
 class CommentGetForAnswerToBlockAjax(generic.TemplateView):
-    template_name =  'main/comment/_comment_for_answer_block.html'
+    template_name = 'main/comment/_comment_for_answer_block.html'
 
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
@@ -119,16 +121,19 @@ class MainPageView(generic.TemplateView):
     def dispatch(self, request, *args, **kwargs):
         res = super().dispatch(request, *args, **kwargs)
         try:
-            last_modified = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_CREATED, deleted=False).latest('created').created
+            last_modified = models.History.objects.filter(history_type=super_models.HISTORY_TYPE_COMMENT_CREATED,
+                                                          deleted=False).latest('created').created
             res['Last-Modified'] = super_helper.convert_date_for_last_modified(last_modified)
-            res['Expires'] = super_helper.convert_date_for_last_modified(last_modified + timezone.timedelta(seconds=60 * 60))
+            res['Expires'] = super_helper.convert_date_for_last_modified(
+                last_modified + timezone.timedelta(seconds=60 * 60))
         except:
             pass
 
         return res
 
     def get_popular_drugs(self):
-        drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by('-comment_count')[:16]
+        drugs = models.Drug.objects.get_available().annotate(comment_count=Count('comments')).order_by(
+            '-comment_count')[:16]
         return drugs
 
     def get_recent_blogs(self):
@@ -144,12 +149,13 @@ class MainPageView(generic.TemplateView):
             context['main_recent_blog'] = recent_blogs[0]
         return context
 
-#*********************************<Account
+
+# *********************************<Account
 
 
 
 
-#*********************************Account>
+# *********************************Account>
 
 
 class PostCreateUpdateMixin(super_views.restrict_by_role_mixin(settings.USER_ROLE_ADMIN), PostViewMixin):
@@ -163,12 +169,13 @@ class PostCreateUpdateMixin(super_views.restrict_by_role_mixin(settings.USER_ROL
         elif self.model == models.Component:
             return forms.ComponentForm
 
+
 class PostCreate(PostCreateUpdateMixin, generic.CreateView):
-    template_name ='main/post/post_create.html'
+    template_name = 'main/post/post_create.html'
 
 
 class PostUpdate(PostCreateUpdateMixin, generic.UpdateView):
-    template_name ='main/post/post_create.html'
+    template_name = 'main/post/post_create.html'
 
 
 class CommentUpdate(generic.UpdateView):
@@ -235,11 +242,7 @@ class CommentDoctorListView(super_views.SuperListView):
         if end_date:
             queryset = queryset.filter(created__lte=end_date)
 
-
         return queryset
-
-
-
 
 
 from haystack.generic_views import SearchView
@@ -265,14 +268,14 @@ class ProzdoAutocompleteView(generic.View):
         q = request.POST.get('q', '').strip()
         if len(q) > 2:
             queryset = models.Post.objects.get_available().filter(title__icontains=q).annotate(
-        entry_type=Case(
-         When(post_type=settings.POST_TYPE_DRUG, then=Value(1)),
-         When(post_type=settings.POST_TYPE_BLOG, then=Value(2)),
-         When(post_type=settings.POST_TYPE_COSMETICS, then=Value(3)),
-         When(post_type=settings.POST_TYPE_COMPONENT, then=Value(4)),
-         default=Value(5),
-         output_field=CharField(),
-     )).annotate(comment_count=Count('comments')).order_by('-comment_count', 'entry_type')[:5]
+                entry_type=Case(
+                    When(post_type=settings.POST_TYPE_DRUG, then=Value(1)),
+                    When(post_type=settings.POST_TYPE_BLOG, then=Value(2)),
+                    When(post_type=settings.POST_TYPE_COSMETICS, then=Value(3)),
+                    When(post_type=settings.POST_TYPE_COMPONENT, then=Value(4)),
+                    default=Value(5),
+                    output_field=CharField(),
+                )).annotate(comment_count=Count('comments')).order_by('-comment_count', 'entry_type')[:5]
             suggestions = [post.title for post in queryset]
         else:
             suggestions = []
@@ -281,24 +284,23 @@ class ProzdoAutocompleteView(generic.View):
         }
         return JsonResponse(data)
 
-#class CommentConfirm(super_views.SuperCommentConfirm):
+
+# class CommentConfirm(super_views.SuperCommentConfirm):
 #    pass
 
-#class CommentGetConfirmFormAjax(super_views.SuperCommentGetConfirmFormAjax):
-#    pass
-
-
-#class CommentDoConfirmAjax(super_views.SuperCommentDoConfirmAjax):
-#    pass
-
-#class GetAjaxLoginFormView(super_views.SuperGetAjaxLoginFormView):
+# class CommentGetConfirmFormAjax(super_views.SuperCommentGetConfirmFormAjax):
 #    pass
 
 
-#class AjaxLoginView(super_views.SuperAjaxLoginView):
+# class CommentDoConfirmAjax(super_views.SuperCommentDoConfirmAjax):
+#    pass
+
+# class GetAjaxLoginFormView(super_views.SuperGetAjaxLoginFormView):
+#    pass
+
+
+# class AjaxLoginView(super_views.SuperAjaxLoginView):
 #    pass
 
 class CommentGetTreeAjax(super_views.SuperCommentGetTreeAjax):
     template_name = 'main/widgets/_get_child_comments.html'
-
-

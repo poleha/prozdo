@@ -5,27 +5,27 @@
 <!DOCTYPE html>
 <html lang="ru">
 {% block head %}
- <head>
-     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
- {% metatags %}
-<link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
-    <!-- Bootstrap -->
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        {% metatags %}
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon"/>
+        <!-- Bootstrap -->
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
-     <link rel="stylesheet" type="text/css" href="{% static "main/css/styles.css" %}">
-     <!-- Optional theme -->
-<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
+        <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
+        <link rel="stylesheet" type="text/css" href="{% static "main/css/styles.css" %}">
+        <!-- Optional theme -->
+        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
 
- </head>
+    </head>
 {% endblock head %}
 
 
@@ -34,84 +34,85 @@
 <body itemscope itemtype="http://schema.org/WebPage">
 <div class="container-fluid">
 
-{% block header  %}
-<div class="row" id="header">
-<div class="col-xs-2 hidden-sm hidden-md hidden-lg">
+    {% block header %}
+        <div class="row" id="header">
+            <div class="col-xs-2 hidden-sm hidden-md hidden-lg">
 <span id="mobile-menu-button">
 
 </span>
-</div>
-    <div class="col-xs-10 col-sm-3 col-md-3 col-lg-2" id="top-logo">
-<a href="/"></a>
-</div>
-<div class="hidden-xs col-sm-5 col-md-5 col-lg-offset-1 " id="top-consult-banner">
-</div>
-<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" id="user-info-top">
-    {% include 'super_model/user/_user_info_top.html' %}
-</div>
-<div class="col-md-1 hidden-sm hidden-xs" id="rss">
-<a href="{% url 'rss' %}"></a>
-</div>
+            </div>
+            <div class="col-xs-10 col-sm-3 col-md-3 col-lg-2" id="top-logo">
+                <a href="/"></a>
+            </div>
+            <div class="hidden-xs col-sm-5 col-md-5 col-lg-offset-1 " id="top-consult-banner">
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" id="user-info-top">
+                {% include 'super_model/user/_user_info_top.html' %}
+            </div>
+            <div class="col-md-1 hidden-sm hidden-xs" id="rss">
+                <a href="{% url 'rss' %}"></a>
+            </div>
 
-</div>
- <div class="row hidden-xs" id="top-menu">
-{% top_menu %}
-</div>
-{% endblock header  %}
-<div class="row">
-<div class="col-lg-2 col-md-3 hidden-sm hidden-xs" id="sidebar-left">
+        </div>
+        <div class="row hidden-xs" id="top-menu">
+            {% top_menu %}
+        </div>
+    {% endblock header %}
+    <div class="row">
+        <div class="col-lg-2 col-md-3 hidden-sm hidden-xs" id="sidebar-left">
 
-{% block sidebar_left %}
-    <a id="medavi-link" href="http://medavi.ru"><img alt="medavi.ru" src="{% static "main/images/medavi.jpg" %}"/> </a>
-    <div class="comments-portlet">
-    <h3>Лучшие отзывы</h3>
-{% best_comments %}
-  </div>
- {% if show_ad and flavour == 'full' %}
-<!-- Яндекс.Директ -->
-<script type="text/javascript">
-yandex_partner_id = 75763;
-yandex_site_bg_color = 'FFFFFF';
-yandex_stat_id = 2;
-yandex_ad_format = 'direct';
-yandex_font_size = 1;
-yandex_direct_type = 'vertical';
-yandex_direct_border_type = 'ad';
-yandex_direct_limit = 4;
-yandex_direct_title_font_size = 3;
-yandex_direct_border_radius = true;
-yandex_direct_links_underline = false;
-yandex_direct_header_bg_color = '66CC00';
-yandex_direct_border_color = '66CC00';
-yandex_direct_title_color = '0000CC';
-yandex_direct_url_color = '006600';
-yandex_direct_text_color = '000000';
-yandex_direct_hover_color = '0066FF';
-yandex_direct_sitelinks_color = '0000CC';
-yandex_direct_favicon = true;
-yandex_no_sitelinks = false;
-document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
-</script>
-{% endif %}
+            {% block sidebar_left %}
+                <a id="medavi-link" href="http://medavi.ru"><img alt="medavi.ru"
+                                                                 src="{% static "main/images/medavi.jpg" %}"/> </a>
+                <div class="comments-portlet">
+                    <h3>Лучшие отзывы</h3>
+                    {% best_comments %}
+                </div>
+                {% if show_ad and flavour == 'full' %}
+                    <!-- Яндекс.Директ -->
+                    <script type="text/javascript">
+                        yandex_partner_id = 75763;
+                        yandex_site_bg_color = 'FFFFFF';
+                        yandex_stat_id = 2;
+                        yandex_ad_format = 'direct';
+                        yandex_font_size = 1;
+                        yandex_direct_type = 'vertical';
+                        yandex_direct_border_type = 'ad';
+                        yandex_direct_limit = 4;
+                        yandex_direct_title_font_size = 3;
+                        yandex_direct_border_radius = true;
+                        yandex_direct_links_underline = false;
+                        yandex_direct_header_bg_color = '66CC00';
+                        yandex_direct_border_color = '66CC00';
+                        yandex_direct_title_color = '0000CC';
+                        yandex_direct_url_color = '006600';
+                        yandex_direct_text_color = '000000';
+                        yandex_direct_hover_color = '0066FF';
+                        yandex_direct_sitelinks_color = '0000CC';
+                        yandex_direct_favicon = true;
+                        yandex_no_sitelinks = false;
+                        document.write('<scr' + 'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr' + 'ipt>');
+                    </script>
+                {% endif %}
 
-{% endblock sidebar_left %}
-</div>
+            {% endblock sidebar_left %}
+        </div>
 
 
-<div class="col-lg-8 col-md-6 col-sm-8 col-xs-12">
-{% block breadcrumbs %}
-{% breadcrumbs %}
-{% endblock breadcrumbs %}
+        <div class="col-lg-8 col-md-6 col-sm-8 col-xs-12">
+            {% block breadcrumbs %}
+                {% breadcrumbs %}
+            {% endblock breadcrumbs %}
 
-{% block top-content %}
-{% if show_ad and flavour == 'full' %}
-<!-- Яндекс.Директ -->
-<div id="yandex_ad"></div>
-{% endif %}
-{% endblock %}
+            {% block top-content %}
+                {% if show_ad and flavour == 'full' %}
+                    <!-- Яндекс.Директ -->
+                    <div id="yandex_ad"></div>
+                {% endif %}
+            {% endblock %}
 
-    {% block messages %}
- {% comment %}
+            {% block messages %}
+                {% comment %}
         {% if messages %}
     <div id="messages">
       <ul>
@@ -123,146 +124,152 @@ document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/con
     {% endif %}
   {% endcomment %}
 
-{% endblock %}
+            {% endblock %}
 
 
-<div itemprop="mainContentOfPage">
-    {% block content %}
-{% endblock content %}
-</div>
-</div>
+            <div itemprop="mainContentOfPage">
+                {% block content %}
+                {% endblock content %}
+            </div>
+        </div>
 
-<div class="col-lg-2 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
-{% block sidebar_right %}
-    {% user_menu %}
+        <div class="col-lg-2 col-md-3 col-sm-4 hidden-xs" id="sidebar-right">
+            {% block sidebar_right %}
+                {% user_menu %}
 
-    {% if show_ad and flavour == 'full' %}
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- sidebar_right_responsive -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-0854751854460145"
-     data-ad-slot="8717850831"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-    {% endif %}
+                {% if show_ad and flavour == 'full' %}
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- sidebar_right_responsive -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-0854751854460145"
+                         data-ad-slot="8717850831"
+                         data-ad-format="auto"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                {% endif %}
 
-    <div class="comments-portlet">
-    <h3>Новые отзывы</h3>
-    {% recent_comments %}
-</div>
- {% if show_ad and flavour == 'full' %}
- <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- sidebar_right_bottom_responsive -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-0854751854460145"
-     data-ad-slot="1194584037"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
- {% endif %}
-{% get_contact_form %}
-{% endblock sidebar_right %}
-</div>
-</div>
+                <div class="comments-portlet">
+                    <h3>Новые отзывы</h3>
+                    {% recent_comments %}
+                </div>
+                {% if show_ad and flavour == 'full' %}
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- sidebar_right_bottom_responsive -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-0854751854460145"
+                         data-ad-slot="1194584037"
+                         data-ad-format="auto"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                {% endif %}
+                {% get_contact_form %}
+            {% endblock sidebar_right %}
+        </div>
+    </div>
 
     <div class="row" id="bottom-menu">
-{% block bottom_menu %}
-{% bottom_menu %}
-    {% endblock %}
+        {% block bottom_menu %}
+            {% bottom_menu %}
+        {% endblock %}
     </div>
 
     <div class="row">
         {% block footer %}
- {% if show_ad %}
- {% if flavour == 'full' %}
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- Нижний блок -->
-<ins class="adsbygoogle"
-     style="display:inline-block;width:728px;height:90px"
-     data-ad-client="ca-pub-0854751854460145"
-     data-ad-slot="6309822396"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
- {% else %}
-             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-            <!-- bottom_responsive -->
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-0854751854460145"
-                 data-ad-slot="2197630431"
-                 data-ad-format="auto"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
- {% endif %}
- {% endif %}
+            {% if show_ad %}
+                {% if flavour == 'full' %}
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- Нижний блок -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:728px;height:90px"
+                         data-ad-client="ca-pub-0854751854460145"
+                         data-ad-slot="6309822396"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                {% else %}
+                    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                    <!-- bottom_responsive -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-0854751854460145"
+                         data-ad-slot="2197630431"
+                         data-ad-format="auto"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                {% endif %}
+            {% endif %}
 
-<div class="clearfix">
-    <div id="footer-info">
-    Вся информация на сайте предоставляется исключительно в справочных целях. Напоминаем, что самолечение недопустимо и в случае заболевания рекомендуем обратиться к врачу.
-Информация о препаратах на сайте не является инструкцией по применению, а содержит лишь общие сведения. Перед применением любого препарата обязательно ознакомьтесь с инструкцией и проконсультируйтесь с врачом.
-</div>
+            <div class="clearfix">
+                <div id="footer-info">
+                    Вся информация на сайте предоставляется исключительно в справочных целях. Напоминаем, что
+                    самолечение недопустимо и в случае заболевания рекомендуем обратиться к врачу.
+                    Информация о препаратах на сайте не является инструкцией по применению, а содержит лишь общие
+                    сведения. Перед применением любого препарата обязательно ознакомьтесь с инструкцией и
+                    проконсультируйтесь с врачом.
+                </div>
 
-<div id="site-info">
-    Авторское право © 2010-2017 ProZdo.Ru. Все права на материалы, размещенные на сайте, защищены в соответствии с российским и международным законодательством об авторском праве и смежных правах. При любом использовании материалов сайта ссылка (для интернет-сайтов — гиперссылка) на ProZdo.Ru обязательна. По вопросам работы сайта обращайтесь на info@prozdo.ru
-</div>
+                <div id="site-info">
+                    Авторское право © 2010-2017 ProZdo.Ru. Все права на материалы, размещенные на сайте, защищены в
+                    соответствии с российским и международным законодательством об авторском праве и смежных правах. При
+                    любом использовании материалов сайта ссылка (для интернет-сайтов — гиперссылка) на ProZdo.Ru
+                    обязательна. По вопросам работы сайта обращайтесь на info@prozdo.ru
+                </div>
+            </div>
+        {% endblock footer %}
+
+        {% block bottom_scripts %}
+
+            {% include 'main/base/_bottom_scripts.html' %}
+
+            {% if show_ad and flavour == 'full' %}
+
+                <!-- Яндекс.Директ -->
+                <script type="text/javascript">
+                    (function (w, d, n, s, t) {
+                        w[n] = w[n] || [];
+                        w[n].push(function () {
+                            Ya.Direct.insertInto(75763, "yandex_ad", {
+                                stat_id: 1,
+                                ad_format: "direct",
+                                font_size: 1,
+                                type: "horizontal",
+                                border_type: "ad",
+                                limit: 3,
+                                title_font_size: 2,
+                                border_radius: true,
+                                links_underline: false,
+                                site_bg_color: "FFFFFF",
+                                header_bg_color: "66CC00",
+                                border_color: "66CC00",
+                                title_color: "0000CC",
+                                url_color: "006600",
+                                text_color: "000000",
+                                hover_color: "0066FF",
+                                sitelinks_color: "0000CC",
+                                favicon: true,
+                                no_sitelinks: false
+                            });
+                        });
+                        t = d.getElementsByTagName("script")[0];
+                        s = d.createElement("script");
+                        s.src = "//an.yandex.ru/system/context.js";
+                        s.type = "text/javascript";
+                        s.async = true;
+                        t.parentNode.insertBefore(s, t);
+                    })(window, document, "yandex_context_callbacks");
+                </script>
+
+            {% endif %}
+
+
+
+        {% endblock bottom_scripts %}
     </div>
-{% endblock footer %}
-
-{% block bottom_scripts %}
-
-{% include 'main/base/_bottom_scripts.html' %}
-
- {% if show_ad and flavour == 'full' %}
-
-<!-- Яндекс.Директ -->
-<script type="text/javascript">
-(function(w, d, n, s, t) {
-    w[n] = w[n] || [];
-    w[n].push(function() {
-        Ya.Direct.insertInto(75763, "yandex_ad", {
-            stat_id: 1,
-            ad_format: "direct",
-            font_size: 1,
-            type: "horizontal",
-            border_type: "ad",
-            limit: 3,
-            title_font_size: 2,
-            border_radius: true,
-            links_underline: false,
-            site_bg_color: "FFFFFF",
-            header_bg_color: "66CC00",
-            border_color: "66CC00",
-            title_color: "0000CC",
-            url_color: "006600",
-            text_color: "000000",
-            hover_color: "0066FF",
-            sitelinks_color: "0000CC",
-            favicon: true,
-            no_sitelinks: false
-        });
-    });
-    t = d.getElementsByTagName("script")[0];
-    s = d.createElement("script");
-    s.src = "//an.yandex.ru/system/context.js";
-    s.type = "text/javascript";
-    s.async = true;
-    t.parentNode.insertBefore(s, t);
-})(window, document, "yandex_context_callbacks");
-</script>
-
-{% endif %}
-
-
-
-{% endblock bottom_scripts %}
-</div>
 </div>
 </body>
 </html>

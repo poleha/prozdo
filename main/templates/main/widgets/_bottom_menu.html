@@ -1,41 +1,41 @@
 <div class="col-xs-3">
-<div>
-<a href="{{ main }}">Главная страница</a>
-</div>
-</div>
-
-<div class="col-xs-3">
-<div>
-<a href="{{ drugs }}">Отзывы о лекарствах</a>
-</div>
-<div>
-<a href="{{ cosmetics }}">Аптечная косметика</a>
-</div>
+    <div>
+        <a href="{{ main }}">Главная страница</a>
+    </div>
 </div>
 
 <div class="col-xs-3">
-<div>
-<a href="{{ components }}">Состав препаратов</a>
-</div>
-<div>
-<a href="{{ blog }}">Статьи о здоровье</a>
-</div>
+    <div>
+        <a href="{{ drugs }}">Отзывы о лекарствах</a>
+    </div>
+    <div>
+        <a href="{{ cosmetics }}">Аптечная косметика</a>
+    </div>
 </div>
 
 <div class="col-xs-3">
-{% if current_user.is_authenticated %}
-<div>
-<a href="{{ user_profile }}">{{ current_user }}</a>
+    <div>
+        <a href="{{ components }}">Состав препаратов</a>
+    </div>
+    <div>
+        <a href="{{ blog }}">Статьи о здоровье</a>
+    </div>
 </div>
-<div>
-<a href="{{ logout }}">Выйти</a>
-</div>
- {% else %}
-<div>
-<a href="{{ login }}">Войти</a>
-</div>
-<div>
-<a href="{{ signup }}">Зарегистрироваться</a>
-</div>
-{% endif %}
+
+<div class="col-xs-3">
+    {% if current_user.is_authenticated %}
+        <div>
+            <a href="{{ user_profile }}">{{ current_user }}</a>
+        </div>
+        <div>
+            <a href="{{ logout }}">Выйти</a>
+        </div>
+    {% else %}
+        <div>
+            <a href="{{ login }}">Войти</a>
+        </div>
+        <div>
+            <a href="{{ signup }}">Зарегистрироваться</a>
+        </div>
+    {% endif %}
 </div>

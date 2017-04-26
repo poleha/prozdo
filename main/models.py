@@ -1,20 +1,20 @@
-from django.db import models
-from django.contrib.auth.models import User
-from helper import helper
-from django.db.models.aggregates import Sum, Count
-from django.conf import settings
-from django.core.urlresolvers import reverse
-from mptt.models import MPTTModel, TreeForeignKey, TreeManager
-from mptt.fields import TreeManyToManyField
 from allauth.account.models import EmailAddress, EmailConfirmation
-from sorl.thumbnail import ImageField, get_thumbnail
-from django.utils.html import strip_tags
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
-from cache.models import CachedModelMixin
-from cache.decorators import cached_property
-from super_model import models as super_models
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models.aggregates import Sum, Count
+from django.utils.html import strip_tags
+from mptt.fields import TreeManyToManyField
+from mptt.models import MPTTModel, TreeForeignKey, TreeManager
+from sorl.thumbnail import ImageField, get_thumbnail
 
+from cache.decorators import cached_property
+from cache.models import CachedModelMixin
+from helper import helper
+from super_model import models as super_models
 
 COMPONENT_TYPE_VITAMIN = 1
 COMPONENT_TYPE_MINERAL = 2
@@ -41,7 +41,7 @@ class Post(super_models.SuperPost):
         ('main.views.PostDetail', 'get'),
     )
 
-    #can_be_rated = False
+    # can_be_rated = False
 
     @classmethod
     def get_post_type(cls):
@@ -83,7 +83,6 @@ class Post(super_models.SuperPost):
     @property
     def is_cosmetics(self):
         return self.post_type == settings.POST_TYPE_COSMETICS
-
 
     @classmethod
     def list_view_default_template(cls):
@@ -138,7 +137,7 @@ class Post(super_models.SuperPost):
         elif self.is_forum:
             return reverse('forum-update', kwargs={'pk': self.pk})
 
-    #Вообще неправильно и все это надо(как и get_post_type) делать в каждом дочернем классе. Но так удобнее...
+    # Вообще неправильно и все это надо(как и get_post_type) делать в каждом дочернем классе. Но так удобнее...
     @property
     def show_body_label(self):
         if self.is_drug:
@@ -194,7 +193,8 @@ class Post(super_models.SuperPost):
 
     @cached_property
     def marks_count(self):
-        return History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED, deleted=False).count()
+        return History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED,
+                                      deleted=False).count()
 
 
 class BrandModel(Post):
@@ -245,7 +245,7 @@ class DrugUsageArea(Post):
         return ''
 
 
-class Category(Post, MPTTModel):  #Для блога
+class Category(Post, MPTTModel):  # Для блога
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
 
     objects = TreeManager()
@@ -267,6 +267,7 @@ class Component(Post):
         for component_type in COMPONENT_TYPES:
             if self.component_type == component_type[0]:
                 return component_type[1]
+
 
 class Drug(Post):
     body = RichTextField(verbose_name='Описание', blank=True)
@@ -309,6 +310,7 @@ class Drug(Post):
         except:
             return ''
 
+
 class Cosmetics(Post):
     body = RichTextField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='cosmetics', blank=True, null=True, max_length=300)
@@ -322,7 +324,7 @@ class Cosmetics(Post):
     def type_str(self):
         return 'Косметика'
 
-    #TODO проверить, убрать лишнее
+    # TODO проверить, убрать лишнее
     @property
     def thumb110(self):
         try:
@@ -344,9 +346,11 @@ class Cosmetics(Post):
         except:
             return ''
 
+
 class Blog(Post):
     class Meta:
-        ordering = ('-created', )
+        ordering = ('-created',)
+
     short_body = models.TextField(verbose_name='Анонс', blank=True)
     body = RichTextUploadingField(verbose_name='Содержимое', blank=True)
     image = ImageField(verbose_name='Изображение', upload_to='blog', blank=True, null=True, max_length=300)
@@ -354,7 +358,8 @@ class Blog(Post):
     objects = super_models.PostManager()
 
     rate_type = 'votes'
-    #can_be_rated = True
+
+    # can_be_rated = True
 
     def type_str(self):
         return 'Запись блога'
@@ -397,7 +402,8 @@ class Blog(Post):
     @cached_property
     def mark(self):
         try:
-            mark = History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED, deleted=False).aggregate(Count('pk'))['pk__count']
+            mark = History.objects.filter(post=self, history_type=super_models.HISTORY_TYPE_POST_RATED,
+                                          deleted=False).aggregate(Count('pk'))['pk__count']
             if mark is None:
                 mark = 0
         except:
@@ -405,11 +411,10 @@ class Blog(Post):
         return mark
 
 
-
-
 class Comment(super_models.SuperComment):
     class Meta:
         ordering = ['-created']
+
     post = models.ForeignKey(Post, related_name='comments', db_index=True)
     consult_required = models.BooleanField(default=False, verbose_name='Нужна консультация провизора', db_index=True)
     old_id = models.PositiveIntegerField(null=True, blank=True)
@@ -420,14 +425,10 @@ class Comment(super_models.SuperComment):
     confirm_comment_html_template_name = 'main/comment/email/confirm_comment_html_template.html'
 
 
-
-
-
-
 class UserProfile(super_models.SuperUserProfile):
     old_id = models.PositiveIntegerField(null=True, blank=True)
 
-    @cached_property
+    @property
     def can_publish_comment(self):
         if self.user.is_admin or self.user.is_author or self.user.is_doctor or self.get_user_karm >= settings.PUBLISH_COMMENT_WITHOUT_APPROVE_KARM:
             return True
@@ -447,6 +448,7 @@ class UserProfile(super_models.SuperUserProfile):
             return get_thumbnail(self.image, '100x100', quality=settings.DEFAULT_THUMBNAIL_QUALITY).url
         except:
             return ''
+
 
 class Mail(super_models.SuperMail):
     pass

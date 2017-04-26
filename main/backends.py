@@ -16,14 +16,19 @@ class ProzdoCacheBackendMixin:
             return None
 
 
-
 class ProzdoDBCacheBackend(ProzdoCacheBackendMixin, DatabaseCache):
     pass
 
+
 from django.core.cache.backends.memcached import MemcachedCache
+
+
 class ProzdoMemcachedCacheCacheBackend(ProzdoCacheBackendMixin, MemcachedCache):
     pass
 
+
 from redis_cache.cache import RedisCache
+
+
 class ProzdoRedisCacheBackend(ProzdoCacheBackendMixin, RedisCache):
     pass
