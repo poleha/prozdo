@@ -307,6 +307,25 @@ class CommentAntispanTests(BaseTest):
         self.assertEqual(comment.email, email)
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
 
+    def test_comment_antispan_comment_with_numbers_not_published_for_user(self):
+        drug = self.drug
+        u = self.user
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}), user=u)
+        form = page.forms['comment-form']
+        body = 'Я очень рад тому, что имею возможность написать здесь, очень очень 1234567'
+        email = 'sdfgsdfgdsf@gdfgdfgd.ru'
+        username = 'Василь Лукич'
+        form['email'] = email
+        form['username'] = username
+        form['body'] = body
+        page = form.submit()
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.all().latest('created')
+        self.assertEqual(comment.body, body)
+        self.assertEqual(comment.username, username)
+        self.assertEqual(comment.email, email)
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
+
 
 class HistoryTests(BaseTest):
     def test_comment_create_without_mark_for_drug(self):
