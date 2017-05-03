@@ -176,7 +176,7 @@ class CommentAntispanTests(BaseTest):
         drug = self.drug
         page = self.app.get(reverse('post-detail-pk', kwargs={'pk': drug.pk}))
         form = page.forms['comment-form']
-        body = 'Привет, это хороший отзыв12345678901267890125678901234567'
+        body = 'Привет, это хороший отзыв123456'
         email = 'sdfgsdfgdsf@gdfgdfgd.ru'
         username = 'dfsgdfgsdfgsdfg'
         form['email'] = email
@@ -881,8 +881,7 @@ class CommentConfirmationTests(BaseTest):
         form = page.form
         form['email'] = 'sdfsdgjkshne5iu4gh@dsfsdf.ru'
         form['comment'] = comment.pk
-        page = form.submit()
-        comment = comment.saved_version
+        form.submit()
         mail_count_2 = models.Mail.objects.filter(mail_type=super_models.MAIL_TYPE_COMMENT_CONFIRM).count()
         self.assertEqual(mail_count_1, mail_count_2)
 
@@ -917,6 +916,20 @@ class CommentConfirmationTests(BaseTest):
         comment = models.Comment.objects.latest('created')
         self.assertEqual(comment.status, super_models.COMMENT_STATUS_PUBLISHED)
         self.assertEqual(comment.confirmed, False)
+
+    def test_user_with_no_karma_cant_publish_comment(self):
+        user = self.user
+        page = self.app.get(reverse('post-detail-pk', kwargs={'pk': self.drug.pk}))
+        form = page.forms['comment-form']
+        email = "exasghmple@exaghmple.com"
+        form['body'] = app_settings.BAD_WORDS[0]
+        form['email'] = email
+        form['username'] = 'Tester'
+        page = form.submit(user=user)
+        self.assertEqual(page.status_code, 302)
+        comment = models.Comment.objects.latest('created')
+        self.assertEqual(comment.status, super_models.COMMENT_STATUS_PENDING_APPROVAL)
+        self.assertEqual(comment.confirmed, True)
 
 
 class PublishedModelMixinTests(BaseTest):
