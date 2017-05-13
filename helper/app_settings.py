@@ -38,4 +38,5 @@ BAD_WORDS = (
     '.ua',
     '.biz',
     'колме',
+    'asna',
 )
