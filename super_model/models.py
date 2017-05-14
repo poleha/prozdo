@@ -23,6 +23,7 @@ from cache.models import CachedModelMixin
 from helper import helper
 from super_model.helper import generate_key
 from .app_settings import settings
+from . import fix
 
 HISTORY_TYPE_COMMENT_CREATED = settings.HISTORY_TYPE_COMMENT_CREATED
 HISTORY_TYPE_COMMENT_SAVED = settings.HISTORY_TYPE_COMMENT_SAVED
