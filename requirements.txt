@@ -3,7 +3,7 @@ Jinja2==2.8
 MarkupSafe==0.23
 Pillow==3.1.0
 PyMySQL==0.7.1
-Pygments==2.1
+Pygments==2.7.4
 WebOb==1.5.1
 WebTest==2.0.20
 argparse==1.4.0
